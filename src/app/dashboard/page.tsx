@@ -121,7 +121,18 @@ export default function DashboardPage() {
 
   // Profile edit state
   const [editProfileMode, setEditProfileMode] = useState(false);
-  const [profileForm, setProfileForm] = useState({
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [profileForm, setProfileForm] = useState<{
+    namaLengkap: string;
+    namaPanggilan: string;
+    universitas: string;
+    prodi: string;
+    semester: string;
+    domisili: string;
+    bio: string;
+    latitude?: number | null;
+    longitude?: number | null;
+  }>({
     namaLengkap: '',
     namaPanggilan: '',
     universitas: '',
@@ -129,7 +140,43 @@ export default function DashboardPage() {
     semester: '',
     domisili: '',
     bio: '',
+    latitude: null,
+    longitude: null,
   });
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Browser Anda tidak mendukung fitur Geolocation API.');
+      return;
+    }
+    setDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = Number(position.coords.latitude.toFixed(6));
+        const lng = Number(position.coords.longitude.toFixed(6));
+        setProfileForm((prev) => ({
+          ...prev,
+          latitude: lat,
+          longitude: lng,
+          domisili: prev.domisili || 'Bandung, Jawa Barat',
+        }));
+        setDetectingLocation(false);
+        alert(`Lokasi GPS berhasil dideteksi: (${lat}, ${lng}) untuk fitur nearby!`);
+      },
+      () => {
+        setDetectingLocation(false);
+        // Fallback simulated GPS coordinates for Telkom University
+        setProfileForm((prev) => ({
+          ...prev,
+          latitude: -6.9740,
+          longitude: 107.6303,
+          domisili: prev.domisili || 'Dayeuhkolot, Bandung',
+        }));
+        alert('Izin lokasi browser tidak diberikan. Menggunakan koordinat simulasi kampus Bandung (-6.9740, 107.6303).');
+      },
+      { timeout: 8000 }
+    );
+  };
 
   const loadUserData = async () => {
     try {
@@ -148,6 +195,8 @@ export default function DashboardPage() {
         semester: data.user.semester || '',
         domisili: data.user.domisili || '',
         bio: data.user.bio || '',
+        latitude: data.user.latitude ?? null,
+        longitude: data.user.longitude ?? null,
       });
     } catch (err) {
       router.push('/auth');
@@ -681,14 +730,33 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Domisili</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">Domisili & Lokasi (Nearby)</label>
+                    {editProfileMode && (
+                      <button
+                        type="button"
+                        onClick={handleDetectLocation}
+                        disabled={detectingLocation}
+                        className="text-[11px] font-bold text-[#ED3875] hover:text-[#D92361] flex items-center gap-1 transition"
+                      >
+                        <MapPin className="w-3 h-3" />
+                        <span>{detectingLocation ? 'Mendeteksi...' : 'Deteksi GPS Browser'}</span>
+                      </button>
+                    )}
+                  </div>
                   <input
                     type="text"
                     disabled={!editProfileMode}
                     value={profileForm.domisili}
                     onChange={(e) => setProfileForm({ ...profileForm, domisili: e.target.value })}
+                    placeholder="mis. Bandung, Jawa Barat"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500"
                   />
+                  {profileForm.latitude && profileForm.longitude && (
+                    <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                      <span>✓ Koordinat Terkunci: {profileForm.latitude}, {profileForm.longitude} (Fitur Nearby Aktif)</span>
+                    </p>
+                  )}
                 </div>
               </div>
 
