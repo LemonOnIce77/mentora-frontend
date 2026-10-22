@@ -38,7 +38,7 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
-  // Step 1: Data Diri State (defaults initialized from mockup example)
+  // Step 1: Data Diri State
   const [namaLengkap, setNamaLengkap] = useState('Aulia Rahisa Putri');
   const [namaPanggilan, setNamaPanggilan] = useState('Aulia');
   const [universitas, setUniversitas] = useState('Universitas Telkom');
@@ -196,7 +196,7 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFB]">
         <div className="flex flex-col items-center gap-3 text-slate-500">
-          <Loader2 className="w-8 h-8 animate-spin text-[#ED3875]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
           <p className="text-sm font-semibold">Memuat profil Mentora...</p>
         </div>
       </div>
@@ -209,7 +209,7 @@ export default function OnboardingPage() {
       <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 via-[#2563EB] to-indigo-500 flex items-center justify-center">
               <div className="grid grid-cols-2 gap-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
                 <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
@@ -227,7 +227,7 @@ export default function OnboardingPage() {
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   currentStep === 1
-                    ? 'bg-[#ED3875] text-white'
+                    ? 'bg-[#2563EB] text-white'
                     : 'bg-emerald-500 text-white'
                 }`}
               >
@@ -245,7 +245,7 @@ export default function OnboardingPage() {
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   currentStep === 2
-                    ? 'bg-[#ED3875] text-white'
+                    ? 'bg-[#2563EB] text-white'
                     : 'bg-slate-200 text-slate-500'
                 }`}
               >
@@ -272,13 +272,13 @@ export default function OnboardingPage() {
       {/* Main Container */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-10">
         
-        {/* ================= STEP 1: DATA DIRI (03 Mockup) ================= */}
+        {/* ================= STEP 1: DATA DIRI ================= */}
         {currentStep === 1 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             
             {/* Left Column: Context & Guidelines */}
             <div className="lg:col-span-5 space-y-6">
-              <div className="inline-block px-3 py-1 rounded-full bg-rose-50 text-[#ED3875] text-xs font-bold tracking-wider uppercase">
+              <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#2563EB] text-xs font-bold tracking-wider uppercase">
                 LANGKAH 1 DARI 2
               </div>
 
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
               {/* Informative Card */}
               <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2.5">
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-teal-600" />
+                  <Info className="w-3.5 h-3.5 text-blue-600" />
                   Kenapa data ini penting?
                 </h4>
                 <ul className="text-xs text-slate-500 space-y-1.5 pl-1">
@@ -329,7 +329,7 @@ export default function OnboardingPage() {
                         <img
                           src={fotoProfil}
                           alt="Avatar"
-                          className="w-20 h-20 rounded-2xl object-cover border-2 border-rose-100 shadow-sm"
+                          className="w-20 h-20 rounded-2xl object-cover border-2 border-blue-100 shadow-sm"
                         />
                       ) : (
                         <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400">
@@ -339,7 +339,7 @@ export default function OnboardingPage() {
                     </div>
                     <div>
                       <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 transition">
-                        <Upload className="w-3.5 h-3.5 text-[#ED3875]" />
+                        <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
                         <span>Klik untuk upload foto</span>
                         <input
                           type="file"
@@ -365,7 +365,7 @@ export default function OnboardingPage() {
                       onChange={(e) => setNamaLengkap(e.target.value)}
                       placeholder="mis. Aulia Rahisa Putri"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
                     />
                   </div>
 
@@ -379,7 +379,7 @@ export default function OnboardingPage() {
                       onChange={(e) => setNamaPanggilan(e.target.value)}
                       placeholder="mis. Aulia"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
                     />
                   </div>
 
@@ -393,7 +393,7 @@ export default function OnboardingPage() {
                       onChange={(e) => setUniversitas(e.target.value)}
                       placeholder="mis. Universitas Telkom"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
                     />
                   </div>
 
@@ -407,7 +407,7 @@ export default function OnboardingPage() {
                       onChange={(e) => setProdi(e.target.value)}
                       placeholder="mis. Desain Komunikasi Visual"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
                     />
                   </div>
 
@@ -421,7 +421,7 @@ export default function OnboardingPage() {
                       onChange={(e) => setSemester(e.target.value)}
                       placeholder="mis. 4 (Semester Empat)"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
                     />
                   </div>
 
@@ -435,7 +435,7 @@ export default function OnboardingPage() {
                       onChange={(e) => setDomisili(e.target.value)}
                       placeholder="mis. Depok, Jawa Barat"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
                     />
                   </div>
                 </div>
@@ -450,7 +450,7 @@ export default function OnboardingPage() {
                     onChange={(e) => setTglLahir(e.target.value)}
                     placeholder="mis. 14 Agustus 2003"
                     required
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
                   />
                 </div>
 
@@ -463,7 +463,7 @@ export default function OnboardingPage() {
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Tuliskan perkenalan singkat mengenai dirimu..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none resize-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none resize-none"
                   />
                 </div>
 
@@ -480,7 +480,7 @@ export default function OnboardingPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#ED3875] hover:bg-[#D92361] text-white text-xs font-bold shadow-md transition disabled:opacity-60"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition disabled:opacity-60"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     <span>Lanjut ke Minat & Skill</span>
@@ -494,7 +494,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* ================= STEP 2: MINAT & SKILL (04 Mockup) ================= */}
+        {/* ================= STEP 2: MINAT & SKILL ================= */}
         {currentStep === 2 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             
@@ -502,7 +502,7 @@ export default function OnboardingPage() {
             <div className="lg:col-span-8 space-y-8">
               
               <div>
-                <div className="inline-block px-3 py-1 rounded-full bg-rose-50 text-[#ED3875] text-xs font-bold tracking-wider uppercase mb-2">
+                <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#2563EB] text-xs font-bold tracking-wider uppercase mb-2">
                   PILIH AKTIVITAS KEMAMPUAN LEBIH CEPAT
                 </div>
                 <h1 className="text-3xl font-extrabold text-slate-900">
@@ -530,7 +530,7 @@ export default function OnboardingPage() {
                         onClick={() => toggleLearnSkill(skill)}
                         className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
                           isSelected
-                            ? 'bg-rose-50 text-[#ED3875] border-2 border-[#ED3875] shadow-xs'
+                            ? 'bg-blue-50 text-[#2563EB] border-2 border-[#2563EB] shadow-xs'
                             : 'bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300'
                         }`}
                       >
@@ -548,7 +548,7 @@ export default function OnboardingPage() {
                     value={customSkillInput}
                     onChange={(e) => setCustomSkillInput(e.target.value)}
                     placeholder="Tambah skill lain..."
-                    className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-1 focus:ring-[#ED3875] outline-none"
+                    className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-1 focus:ring-[#2563EB] outline-none"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -611,7 +611,7 @@ export default function OnboardingPage() {
                       onClick={() => setModeSesi(mode)}
                       className={`py-3 px-4 rounded-xl text-xs font-bold text-center border transition-all ${
                         modeSesi === mode
-                          ? 'border-[#ED3875] bg-rose-50 text-[#ED3875] shadow-xs'
+                          ? 'border-[#2563EB] bg-blue-50 text-[#2563EB] shadow-xs'
                           : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                       }`}
                     >
@@ -638,15 +638,15 @@ export default function OnboardingPage() {
             {/* Right Column: Tips & Complete Action */}
             <div className="lg:col-span-4 space-y-5">
               
-              {/* Pink Card Graphic */}
-              <div className="bg-[#ED3875] text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+              {/* Blue Card Graphic */}
+              <div className="bg-[#2563EB] text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
                 <div className="relative z-10 space-y-4">
                   <h3 className="text-lg font-black leading-snug">
                     Mulai perjalanan <br />
                     belajarmu hari ini <br />
                     bareng Mentora! 🚀
                   </h3>
-                  <div className="font-handwriting text-2xl font-bold -rotate-2 text-rose-100">
+                  <div className="font-handwriting text-2xl font-bold -rotate-2 text-blue-100">
                     More Skills Brighter Friends
                   </div>
                 </div>
@@ -654,7 +654,7 @@ export default function OnboardingPage() {
                 <div className="absolute -bottom-6 -right-6 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
               </div>
 
-              {/* Green Tip Box from Mockup */}
+              {/* Green Tip Box */}
               <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-xs text-slate-700 space-y-1.5">
                 <div className="flex items-center gap-1.5 font-bold text-emerald-800">
                   <Lightbulb className="w-3.5 h-3.5 text-emerald-600" />
@@ -665,7 +665,7 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
-              {/* Yellow Tip Box from Mockup */}
+              {/* Yellow Tip Box */}
               <div className="p-5 rounded-2xl bg-[#FEF08A]/70 border border-amber-300 text-xs text-slate-800 space-y-2">
                 <h4 className="font-bold text-amber-900">Tips memilih skill:</h4>
                 <ol className="list-decimal list-inside space-y-1 text-slate-700 leading-relaxed">
@@ -680,7 +680,7 @@ export default function OnboardingPage() {
                 type="button"
                 onClick={handleFinalSubmit}
                 disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl bg-[#ED3875] hover:bg-[#D92361] text-white text-sm font-bold shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 disabled:opacity-60"
+                className="w-full py-4 px-6 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 <span>Selesai & Masuk Mentora</span>

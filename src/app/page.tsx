@@ -12,9 +12,6 @@ import {
   Play,
   Check,
   Sparkles,
-  BookOpen,
-  Calendar,
-  Compass,
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -30,7 +27,7 @@ export default function LandingPage() {
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6">
               {/* Pill Tag */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-50 border border-rose-100 text-[#ED3875] text-xs font-bold tracking-wider uppercase">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-[#2563EB] text-xs font-bold tracking-wider uppercase">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>TEMUKAN BELAJAR, TUMBUH BERSAMA</span>
               </div>
@@ -39,7 +36,7 @@ export default function LandingPage() {
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
                 Belajar bareng <br />
                 mahasiswa lain, <br />
-                <span className="text-[#ED3875]">berkembang lewat skill.</span>
+                <span className="text-[#2563EB]">berkembang lewat skill.</span>
               </h1>
 
               {/* Subheading */}
@@ -51,7 +48,7 @@ export default function LandingPage() {
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
                   href="/auth?tab=daftar"
-                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#ED3875] hover:bg-[#D92361] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all"
                 >
                   <span>Mulai Sekarang</span>
                   <ArrowRight className="w-4 h-4" />
@@ -72,8 +69,8 @@ export default function LandingPage() {
             {/* Right Graphics / Visual Cards */}
             <div className="lg:col-span-5 relative flex flex-col items-center justify-center">
               {/* Background Glow */}
-              <div className="absolute -top-10 -right-10 w-72 h-72 bg-rose-200/50 rounded-full blur-3xl pointer-events-none"></div>
-              <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-amber-200/50 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="absolute -top-10 -right-10 w-72 h-72 bg-blue-200/50 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-indigo-200/40 rounded-full blur-3xl pointer-events-none"></div>
 
               <div className="relative w-full max-w-md space-y-4">
                 
@@ -87,8 +84,8 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Pink Pill Sticky Note */}
-                <div className="bg-[#ED3875] text-white p-5 rounded-3xl shadow-lg transform -rotate-1 hover:rotate-0 transition-transform">
+                {/* Blue Pill Sticky Note */}
+                <div className="bg-[#2563EB] text-white p-5 rounded-3xl shadow-lg transform -rotate-1 hover:rotate-0 transition-transform">
                   <p className="text-sm font-bold leading-snug">
                     Skill baru ini <br />
                     bisa jadi peluang <br />
@@ -141,7 +138,7 @@ export default function LandingPage() {
             {/* Feature 1 */}
             <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#ED3875] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
                   <Users className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-2">
@@ -155,7 +152,7 @@ export default function LandingPage() {
               <div className="pt-6">
                 <Link
                   href="/auth?tab=daftar"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#ED3875] group-hover:gap-2.5 transition-all"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] group-hover:gap-2.5 transition-all"
                 >
                   <span>Cari partner</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -222,7 +219,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-rose-500">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2563EB]">
               LANGKAH MUDAH
             </span>
             <h2 className="text-3xl font-extrabold text-slate-900 mt-1">
@@ -237,7 +234,7 @@ export default function LandingPage() {
             
             {/* Step 1 */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200/80 relative">
-              <div className="w-9 h-9 rounded-full bg-[#ED3875] text-white font-bold flex items-center justify-center text-sm mb-6">
+              <div className="w-9 h-9 rounded-full bg-[#2563EB] text-white font-bold flex items-center justify-center text-sm mb-6">
                 1
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">Buat Profil</h3>
@@ -259,7 +256,7 @@ export default function LandingPage() {
 
             {/* Step 3 */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200/80 relative">
-              <div className="w-9 h-9 rounded-full bg-purple-500 text-white font-bold flex items-center justify-center text-sm mb-6">
+              <div className="w-9 h-9 rounded-full bg-indigo-500 text-white font-bold flex items-center justify-center text-sm mb-6">
                 3
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">Mulai Sesi</h3>
@@ -271,18 +268,18 @@ export default function LandingPage() {
           </div>
 
           {/* Banner CTA */}
-          <div className="mt-14 bg-gradient-to-r from-rose-500 via-[#ED3875] to-pink-600 rounded-3xl p-8 md:p-12 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+          <div className="mt-14 bg-gradient-to-r from-blue-600 via-[#2563EB] to-indigo-600 rounded-3xl p-8 md:p-12 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
             <div>
               <h3 className="text-2xl md:text-3xl font-extrabold">
                 Siap upgrade skill dan teman belajarmu?
               </h3>
-              <p className="text-rose-100 text-sm mt-2 max-w-xl">
+              <p className="text-blue-100 text-sm mt-2 max-w-xl">
                 Bergabunglah dengan ratusan mahasiswa lainnya yang telah berkolaborasi di Mentora.
               </p>
             </div>
             <Link
               href="/auth?tab=daftar"
-              className="px-8 py-4 rounded-full bg-white text-[#ED3875] font-bold text-sm shadow-md hover:bg-rose-50 transition whitespace-nowrap"
+              className="px-8 py-4 rounded-full bg-white text-[#2563EB] font-bold text-sm shadow-md hover:bg-blue-50 transition whitespace-nowrap"
             >
               Daftar Gratis Sekarang
             </Link>

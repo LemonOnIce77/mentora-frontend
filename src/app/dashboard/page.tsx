@@ -343,7 +343,7 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFB]">
         <div className="flex flex-col items-center gap-3 text-slate-500">
-          <Loader2 className="w-8 h-8 animate-spin text-[#ED3875]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
           <p className="text-sm font-semibold">Memuat dashboard Mentora...</p>
         </div>
       </div>
@@ -368,10 +368,10 @@ export default function DashboardPage() {
                 <img
                   src={user.fotoProfil}
                   alt={user.namaLengkap}
-                  className="w-20 h-20 rounded-2xl object-cover border-2 border-rose-100 shadow-sm"
+                  className="w-20 h-20 rounded-2xl object-cover border-2 border-blue-100 shadow-sm"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-rose-100 to-rose-200 text-[#ED3875] flex items-center justify-center font-bold text-2xl shadow-sm">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-100 to-blue-200 text-[#2563EB] flex items-center justify-center font-bold text-2xl shadow-sm">
                   {(user?.namaPanggilan || user?.namaLengkap || 'U').charAt(0)}
                 </div>
               )}
@@ -396,7 +396,7 @@ export default function DashboardPage() {
                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1'
                       : user?.statusMentor === 'PENDING'
                       ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                      : 'bg-rose-50 text-[#ED3875] border border-rose-200'
+                      : 'bg-blue-50 text-[#2563EB] border border-blue-200'
                   }`}
                 >
                   {user?.role === 'Admin'
@@ -418,7 +418,7 @@ export default function DashboardPage() {
                   <MapPin className="w-3.5 h-3.5 text-slate-400" />
                   {user?.domisili || 'Indonesia'}
                 </span>
-                <span className="flex items-center gap-1 font-bold text-[#ED3875]">
+                <span className="flex items-center gap-1 font-bold text-[#2563EB]">
                   <Award className="w-3.5 h-3.5" />
                   {user?.totalPoin || 0} EduPoints
                 </span>
@@ -431,7 +431,7 @@ export default function DashboardPage() {
             {user?.role !== 'Admin' && user?.statusMentor !== 'APPROVED' && (
               <button
                 onClick={() => setActiveTab('apply')}
-                className="px-5 py-2.5 rounded-2xl bg-[#ED3875] hover:bg-[#D92361] text-white text-xs font-bold shadow-sm transition flex items-center gap-2"
+                className="px-5 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>
@@ -455,7 +455,7 @@ export default function DashboardPage() {
             onClick={() => setActiveTab('mentors')}
             className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeTab === 'mentors'
-                ? 'border-[#ED3875] text-[#ED3875]'
+                ? 'border-[#2563EB] text-[#2563EB]'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -467,7 +467,7 @@ export default function DashboardPage() {
             onClick={() => setActiveTab('profile')}
             className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeTab === 'profile'
-                ? 'border-[#ED3875] text-[#ED3875]'
+                ? 'border-[#2563EB] text-[#2563EB]'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -479,7 +479,7 @@ export default function DashboardPage() {
             onClick={() => setActiveTab('skills')}
             className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
               activeTab === 'skills'
-                ? 'border-[#ED3875] text-[#ED3875]'
+                ? 'border-[#2563EB] text-[#2563EB]'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -492,7 +492,7 @@ export default function DashboardPage() {
               onClick={() => setActiveTab('apply')}
               className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
                 activeTab === 'apply'
-                  ? 'border-[#ED3875] text-[#ED3875]'
+                  ? 'border-[#2563EB] text-[#2563EB]'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -534,7 +534,7 @@ export default function DashboardPage() {
                   value={searchMentorQuery}
                   onChange={(e) => setSearchMentorQuery(e.target.value)}
                   placeholder="Cari mentor, kampus, atau prodi..."
-                  className="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875]"
+                  className="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                 />
               </div>
 
@@ -557,7 +557,7 @@ export default function DashboardPage() {
                     onClick={() => setSelectedSkillFilter(sk === selectedSkillFilter ? '' : sk)}
                     className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
                       selectedSkillFilter === sk
-                        ? 'bg-[#ED3875] text-white'
+                        ? 'bg-[#2563EB] text-white'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
@@ -580,10 +580,10 @@ export default function DashboardPage() {
                         <img
                           src={mentor.fotoProfil}
                           alt={mentor.namaLengkap}
-                          className="w-14 h-14 rounded-2xl object-cover border border-rose-100 shadow-xs"
+                          className="w-14 h-14 rounded-2xl object-cover border border-blue-100 shadow-xs"
                         />
                       ) : (
-                        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-[#ED3875] flex items-center justify-center font-bold text-lg">
+                        <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold text-lg">
                           {(mentor.namaPanggilan || mentor.namaLengkap).charAt(0)}
                         </div>
                       )}
@@ -633,7 +633,7 @@ export default function DashboardPage() {
 
                     <button
                       onClick={() => alert(`Fitur booking sesi dengan Mentor ${mentor.namaLengkap} masuk dalam cakupan Sprint 2 (Fase 2: Skill Exchange & Reservasi).`)}
-                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#ED3875] text-white text-xs font-bold transition flex items-center gap-1"
+                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition flex items-center gap-1"
                     >
                       <span>Booking Sesi</span>
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -667,7 +667,7 @@ export default function DashboardPage() {
                 onClick={() => setEditProfileMode(!editProfileMode)}
                 className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 transition"
               >
-                <Edit3 className="w-3.5 h-3.5 text-[#ED3875]" />
+                <Edit3 className="w-3.5 h-3.5 text-[#2563EB]" />
                 <span>{editProfileMode ? 'Batal Edit' : 'Edit Profil'}</span>
               </button>
             </div>
@@ -681,7 +681,7 @@ export default function DashboardPage() {
                     disabled={!editProfileMode}
                     value={profileForm.namaLengkap}
                     onChange={(e) => setProfileForm({ ...profileForm, namaLengkap: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -692,7 +692,7 @@ export default function DashboardPage() {
                     disabled={!editProfileMode}
                     value={profileForm.namaPanggilan}
                     onChange={(e) => setProfileForm({ ...profileForm, namaPanggilan: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -703,7 +703,7 @@ export default function DashboardPage() {
                     disabled={!editProfileMode}
                     value={profileForm.universitas}
                     onChange={(e) => setProfileForm({ ...profileForm, universitas: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -714,7 +714,7 @@ export default function DashboardPage() {
                     disabled={!editProfileMode}
                     value={profileForm.prodi}
                     onChange={(e) => setProfileForm({ ...profileForm, prodi: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -725,7 +725,7 @@ export default function DashboardPage() {
                     disabled={!editProfileMode}
                     value={profileForm.semester}
                     onChange={(e) => setProfileForm({ ...profileForm, semester: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -737,7 +737,7 @@ export default function DashboardPage() {
                         type="button"
                         onClick={handleDetectLocation}
                         disabled={detectingLocation}
-                        className="text-[11px] font-bold text-[#ED3875] hover:text-[#D92361] flex items-center gap-1 transition"
+                        className="text-[11px] font-bold text-[#2563EB] hover:text-blue-700 flex items-center gap-1 transition"
                       >
                         <MapPin className="w-3 h-3" />
                         <span>{detectingLocation ? 'Mendeteksi...' : 'Deteksi GPS Browser'}</span>
@@ -750,7 +750,7 @@ export default function DashboardPage() {
                     value={profileForm.domisili}
                     onChange={(e) => setProfileForm({ ...profileForm, domisili: e.target.value })}
                     placeholder="mis. Bandung, Jawa Barat"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                   {profileForm.latitude && profileForm.longitude && (
                     <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
@@ -767,7 +767,7 @@ export default function DashboardPage() {
                   disabled={!editProfileMode}
                   value={profileForm.bio}
                   onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                 />
               </div>
 
@@ -775,7 +775,7 @@ export default function DashboardPage() {
                 <div className="pt-4 flex justify-end">
                   <button
                     type="submit"
-                    className="px-6 py-2.5 rounded-xl bg-[#ED3875] hover:bg-[#D92361] text-white text-xs font-bold shadow-md transition"
+                    className="px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition"
                   >
                     Simpan Perubahan
                   </button>
@@ -796,8 +796,8 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Skill Yang Ingin Dipelajari */}
-                <div className="p-6 rounded-2xl bg-rose-50/50 border border-rose-100">
-                  <h3 className="text-sm font-bold text-[#ED3875] mb-3 flex items-center gap-2">
+                <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-100">
+                  <h3 className="text-sm font-bold text-[#2563EB] mb-3 flex items-center gap-2">
                     <BookOpen className="w-4 h-4" />
                     <span>Skill yang Ingin Dipelajari (Mentee)</span>
                   </h3>
@@ -805,7 +805,7 @@ export default function DashboardPage() {
                     {learnedSkills.map((s) => (
                       <span
                         key={s.id}
-                        className="px-3 py-1.5 rounded-xl bg-white text-[#ED3875] border border-rose-200 text-xs font-semibold shadow-2xs"
+                        className="px-3 py-1.5 rounded-xl bg-white text-[#2563EB] border border-blue-200 text-xs font-semibold shadow-2xs"
                       >
                         {s.skill.namaSkill}
                       </span>
@@ -841,7 +841,7 @@ export default function DashboardPage() {
               <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
                 <button
                   onClick={() => router.push('/onboarding')}
-                  className="px-5 py-2.5 rounded-xl bg-[#ED3875] hover:bg-[#D92361] text-white text-xs font-bold transition flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Ubah Pilihan Skill di Onboarding</span>
@@ -855,7 +855,7 @@ export default function DashboardPage() {
         {activeTab === 'apply' && user?.role !== 'Admin' && (
           <div className="max-w-3xl mx-auto bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
             <div className="mb-6">
-              <span className="text-xs font-bold text-[#ED3875] uppercase tracking-wider">
+              <span className="text-xs font-bold text-[#2563EB] uppercase tracking-wider">
                 FASE 1: UPGRADE AKUN
               </span>
               <h2 className="text-2xl font-extrabold text-slate-900 mt-1">
@@ -912,7 +912,7 @@ export default function DashboardPage() {
                     onChange={(e) => setApplySkills(e.target.value)}
                     placeholder="mis. UI/UX Design, Figma, Programming Web Dasar"
                     required
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
                   />
                   <p className="text-[11px] text-slate-400 mt-1">Pisahkan dengan koma jika lebih dari satu.</p>
                 </div>
@@ -926,7 +926,7 @@ export default function DashboardPage() {
                     value={applyExperience}
                     onChange={(e) => setApplyExperience(e.target.value)}
                     placeholder="mis. Asisten praktikum mata kuliah DKV semester lalu, aktif sharing ilmu di kelompok belajar..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none resize-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none resize-none"
                   />
                 </div>
 
@@ -935,14 +935,14 @@ export default function DashboardPage() {
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Upload Dokumen Kredensial (FR-05) <span className="text-rose-500">*</span>
                   </label>
-                  <div className="border-2 border-dashed border-slate-200 hover:border-[#ED3875] rounded-2xl p-6 text-center transition bg-slate-50/50">
-                    <FileText className="w-8 h-8 text-[#ED3875] mx-auto mb-2" />
+                  <div className="border-2 border-dashed border-slate-200 hover:border-[#2563EB] rounded-2xl p-6 text-center transition bg-slate-50/50">
+                    <FileText className="w-8 h-8 text-[#2563EB] mx-auto mb-2" />
                     <p className="text-xs font-semibold text-slate-700">
                       {applyDocName ? `Dokumen terpilih: ${applyDocName}` : 'Pilih Transkrip Nilai / Sertifikat Keahlian (PDF)'}
                     </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">Format file: PDF, JPG, PNG (Maks 5MB)</p>
                     <label className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-xs">
-                      <Upload className="w-3.5 h-3.5 text-[#ED3875]" />
+                      <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
                       <span>{applyDocName ? 'Ganti File' : 'Browse File'}</span>
                       <input
                         type="file"
@@ -960,10 +960,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-xs text-slate-700 flex items-start gap-2.5 leading-relaxed">
-                  <Sparkles className="w-4 h-4 text-[#ED3875] shrink-0 mt-0.5" />
+                <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100 text-xs text-slate-700 flex items-start gap-2.5 leading-relaxed">
+                  <Sparkles className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" />
                   <p>
-                    Dengan mengajukan diri sebagai Mentor, Anda bersedia membagikan ilmu kepada mentee lain dan berhak memperoleh <span className="font-bold text-[#ED3875]">+5 EduPoints</span> per sesi belajar yang selesai.
+                    Dengan mengajukan diri sebagai Mentor, Anda bersedia membagikan ilmu kepada mentee lain dan berhak memperoleh <span className="font-bold text-[#2563EB]">+5 EduPoints</span> per sesi belajar yang selesai.
                   </p>
                 </div>
 
@@ -971,7 +971,7 @@ export default function DashboardPage() {
                   <button
                     type="submit"
                     disabled={applyLoading}
-                    className="w-full py-3.5 rounded-xl bg-[#ED3875] hover:bg-[#D92361] text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60"
+                    className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60"
                   >
                     {applyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     <span>Kirim Pengajuan Akun Mentor (FR-04)</span>
