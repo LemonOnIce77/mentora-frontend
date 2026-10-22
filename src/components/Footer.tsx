@@ -22,7 +22,7 @@ export default function Footer() {
             <p className="text-sm text-slate-500 leading-relaxed">
               Platform Peer-to-Peer Skill Exchange mahasiswa untuk berbagi ilmu, menambah koneksi, dan membangun portofolio keaktifan resmi.
             </p>
-            <div className="text-xs font-handwriting text-[#ED3875] text-lg">
+            <div className="text-lg font-handwriting text-[#2563EB]">
               More Skills Brighter Friends ✨
             </div>
           </div>
