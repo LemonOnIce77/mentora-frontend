@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Heart, Sparkles, BookOpen, Award } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-3 md:col-span-1">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#1E40AF] via-[#2563EB] to-teal-500 flex items-center justify-center">
                 <div className="grid grid-cols-2 gap-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
                   <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
@@ -22,7 +22,7 @@ export default function Footer() {
             <p className="text-sm text-slate-500 leading-relaxed">
               Platform Peer-to-Peer Skill Exchange mahasiswa untuk berbagi ilmu, menambah koneksi, dan membangun portofolio keaktifan resmi.
             </p>
-            <div className="text-xs font-handwriting text-[#ED3875] text-lg">
+            <div className="font-handwriting text-[#2563EB] text-lg">
               More Skills Brighter Friends ✨
             </div>
           </div>
@@ -30,10 +30,10 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">Fitur Utama</h4>
             <ul className="space-y-2 text-sm text-slate-500">
-              <li><Link href="/#fitur" className="hover:text-[#ED3875] transition">Skill Matching Dua Arah</Link></li>
-              <li><Link href="/#fitur" className="hover:text-[#ED3875] transition">Nearby Peer-Finder</Link></li>
-              <li><Link href="/dashboard" className="hover:text-[#ED3875] transition">Verifikasi & Profil Mentor</Link></li>
-              <li><Link href="/#fitur" className="hover:text-[#ED3875] transition">Gamifikasi EduPoints & Sertifikat</Link></li>
+              <li><Link href="/#fitur" className="hover:text-[#2563EB] transition">Skill Matching Dua Arah</Link></li>
+              <li><Link href="/#fitur" className="hover:text-[#2563EB] transition">Nearby Peer-Finder</Link></li>
+              <li><Link href="/dashboard" className="hover:text-[#2563EB] transition">Verifikasi & Profil Mentor</Link></li>
+              <li><Link href="/#fitur" className="hover:text-[#2563EB] transition">Gamifikasi EduPoints & Sertifikat</Link></li>
             </ul>
           </div>
 
@@ -64,7 +64,7 @@ export default function Footer() {
         <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400">
           <p>© 2026 Mentora Project. Seluruh hak cipta dilindungi.</p>
           <p className="flex items-center gap-1 mt-2 sm:mt-0">
-            Dibuat dengan <Heart className="w-3.5 h-3.5 text-[#ED3875] fill-current" /> untuk mahasiswa Indonesia
+            Dibuat dengan <Heart className="w-3.5 h-3.5 text-[#2563EB] fill-current" /> untuk mahasiswa Indonesia
           </p>
         </div>
       </div>

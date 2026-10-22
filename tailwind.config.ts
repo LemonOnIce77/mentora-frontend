@@ -10,23 +10,42 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50: '#fff1f4',
-          100: '#ffe4e8',
-          200: '#fecdd6',
-          300: '#fda4b4',
-          400: '#fb7185',
-          500: '#f43f5e',
-          600: '#e11d48',
-          700: '#be123c',
-          800: '#9f1239',
-          900: '#881337',
-          pink: '#ED3875',
-          'pink-hover': '#D92361',
-          'pink-light': '#FDF2F4',
-          'pink-badge': '#FCE7F3',
+          // Skala warna utama diubah dari Rose/Pink menjadi Mentora Education Blue
+          50: '#EFF6FF',
+          100: '#DBEAFE',
+          200: '#BFDBFE',
+          300: '#93C5FD',
+          400: '#60A5FA',
+          500: '#3B82F6',
+          600: '#2563EB', // Mentora Primary Blue
+          700: '#1D4ED8',
+          800: '#1E40AF', // Academic Deep Navy
+          900: '#1E3A8A',
+
+          // Token baru standar Mentora Blue
+          blue: '#2563EB',
+          'blue-hover': '#1E40AF',
+          'blue-light': '#F8FAFC',
+          'blue-badge': '#DBEAFE',
+
+          // Alias kompatibilitas (agar komponen lama otomatis berubah jadi biru)
+          pink: '#2563EB',
+          'pink-hover': '#1E40AF',
+          'pink-light': '#EFF6FF',
+          'pink-badge': '#DBEAFE',
+
+          // Warna aksen pendukung
           'yellow-note': '#FEF9C3',
-          teal: '#14B8A6',
-          purple: '#8B5CF6',
+          teal: '#0D9488', // Growth Teal (Skill to Learn)
+          purple: '#6366F1', // Indigo akademik
+        },
+        mentora: {
+          primary: '#2563EB',
+          secondary: '#1E40AF',
+          accent: '#0D9488',
+          surface: '#EFF6FF',
+          bg: '#F8FAFC',
+          ink: '#0F172A',
         },
       },
       fontFamily: {
@@ -36,4 +55,5 @@ const config: Config = {
   },
   plugins: [],
 };
+
 export default config;
