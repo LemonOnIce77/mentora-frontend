@@ -47,8 +47,8 @@ export async function GET(req: NextRequest) {
     // If filtered by skill name
     let filtered = mentors;
     if (skillQuery) {
-      filtered = mentors.filter((m) =>
-        m.skills.some((s) => s.skill.namaSkill.toLowerCase().includes(skillQuery.toLowerCase()))
+      filtered = mentors.filter((m: any) =>
+        m.skills.some((s: any) => s.skill.namaSkill.toLowerCase().includes(skillQuery.toLowerCase()))
       );
     }
 
