@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/router';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Sparkles, User, LogOut, Shield, Award, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard } from 'lucide-react';
 
 interface CurrentUser {
   id: number;
@@ -47,11 +46,11 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FAFAFB]/90 backdrop-blur-md border-b border-slate-200/60">
+    <header className="sticky top-0 z-50 bg-[#F8FAFC]/90 backdrop-blur-md border-b border-slate-200/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         {/* Logo */}
         <NextLink href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-400 via-teal-500 to-emerald-300 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#1E40AF] via-[#2563EB] to-teal-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             {/* Clover / Star shape icon matching mockup */}
             <div className="grid grid-cols-2 gap-0.5">
               <span className="w-2 h-2 rounded-full bg-white"></span>
@@ -60,14 +59,14 @@ export default function Navbar() {
               <span className="w-2 h-2 rounded-full bg-white"></span>
             </div>
           </div>
-          <span className="text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-[#ED3875] transition-colors">
+          <span className="text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-[#2563EB] transition-colors">
             Mentora
           </span>
         </NextLink>
 
         {/* Center Nav links matching mockup */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-          <NextLink href="/" className="text-[#ED3875] font-semibold hover:text-[#ED3875] transition-colors">
+          <NextLink href="/" className="text-[#2563EB] font-semibold hover:text-[#1E40AF] transition-colors">
             Beranda
           </NextLink>
           <NextLink href="/#tentang" className="hover:text-slate-900 transition-colors">
@@ -83,8 +82,8 @@ export default function Navbar() {
             FAQ
           </NextLink>
           {user && (
-            <NextLink href="/dashboard" className="text-slate-900 font-semibold flex items-center gap-1 hover:text-[#ED3875] transition-colors">
-              <LayoutDashboard className="w-4 h-4 text-[#ED3875]" />
+            <NextLink href="/dashboard" className="text-slate-900 font-semibold flex items-center gap-1 hover:text-[#2563EB] transition-colors">
+              <LayoutDashboard className="w-4 h-4 text-[#2563EB]" />
               Dashboard
             </NextLink>
           )}
@@ -103,7 +102,7 @@ export default function Navbar() {
                 {user.fotoProfil ? (
                   <img src={user.fotoProfil} alt={user.namaLengkap} className="w-7 h-7 rounded-full object-cover" />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-rose-100 text-[#ED3875] flex items-center justify-center font-bold text-xs">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-xs">
                     {(user.namaPanggilan || user.namaLengkap).charAt(0)}
                   </div>
                 )}
@@ -112,10 +111,10 @@ export default function Navbar() {
                 </span>
                 <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                   user.role === 'Admin'
-                    ? 'bg-purple-100 text-purple-700'
+                    ? 'bg-indigo-100 text-indigo-700'
                     : user.statusMentor === 'APPROVED'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-rose-50 text-[#ED3875]'
+                    ? 'bg-teal-100 text-teal-700'
+                    : 'bg-blue-50 text-[#2563EB]'
                 }`}>
                   {user.role === 'Admin' ? 'Admin' : user.statusMentor === 'APPROVED' ? 'Mentor' : 'Mentee'}
                 </span>
@@ -139,7 +138,7 @@ export default function Navbar() {
               </NextLink>
               <NextLink
                 href="/auth?tab=daftar"
-                className="px-6 py-2.5 text-sm font-semibold text-white bg-[#ED3875] hover:bg-[#D92361] rounded-full shadow-sm hover:shadow transition-all"
+                className="px-6 py-2.5 text-sm font-semibold text-white bg-[#2563EB] hover:bg-[#1E40AF] rounded-full shadow-sm hover:shadow transition-all"
               >
                 Daftar
               </NextLink>

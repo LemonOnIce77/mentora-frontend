@@ -6,12 +6,8 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import {
-  User,
   MapPin,
-  GraduationCap,
-  Sparkles,
   Camera,
-  Upload,
   Check,
   CheckCircle2,
   AlertCircle,
@@ -181,9 +177,9 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFB]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
         <div className="flex flex-col items-center gap-3 text-slate-500">
-          <Loader2 className="w-8 h-8 animate-spin text-[#ED3875]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
           <p className="text-sm font-semibold">Memuat profil mahasiswa...</p>
         </div>
       </div>
@@ -191,7 +187,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
       <Navbar />
 
       <main className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1">
@@ -214,14 +210,14 @@ export default function ProfilePage() {
               <img
                 src={fotoProfil}
                 alt={namaLengkap}
-                className="w-24 h-24 rounded-3xl object-cover border-2 border-rose-100 shadow-sm"
+                className="w-24 h-24 rounded-3xl object-cover border-2 border-blue-100 shadow-sm"
               />
             ) : (
-              <div className="w-24 h-24 rounded-3xl bg-rose-50 text-[#ED3875] flex items-center justify-center font-bold text-3xl">
+              <div className="w-24 h-24 rounded-3xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold text-3xl">
                 {(namaPanggilan || namaLengkap || 'M').charAt(0)}
               </div>
             )}
-            <label className="absolute -bottom-2 -right-2 p-2 bg-[#ED3875] hover:bg-[#D92361] text-white rounded-xl shadow-md cursor-pointer transition">
+            <label className="absolute -bottom-2 -right-2 p-2 bg-[#2563EB] hover:bg-[#1E40AF] text-white rounded-xl shadow-md cursor-pointer transition">
               <Camera className="w-4 h-4" />
               <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
             </label>
@@ -234,7 +230,7 @@ export default function ProfilePage() {
                 className={`text-xs font-bold px-3 py-0.5 rounded-full ${
                   statusMentor === 'APPROVED'
                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    : 'bg-rose-50 text-[#ED3875] border border-rose-200'
+                    : 'bg-blue-50 text-[#2563EB] border border-blue-200'
                 }`}
               >
                 {statusMentor === 'APPROVED' ? '⭐ Mentor Terverifikasi' : '🎓 Mentee / Mahasiswa'}
@@ -255,7 +251,7 @@ export default function ProfilePage() {
           </div>
         )}
         {errorMsg && (
-          <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-[#ED3875] text-xs font-semibold flex items-center gap-2">
+          <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-600 text-xs font-semibold flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -273,14 +269,14 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Nama Lengkap <span className="text-rose-500">*</span>
+                Nama Lengkap <span className="text-[#2563EB]">*</span>
               </label>
               <input
                 type="text"
                 value={namaLengkap}
                 onChange={(e) => setNamaLengkap(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
               />
             </div>
 
@@ -293,7 +289,7 @@ export default function ProfilePage() {
                 value={namaPanggilan}
                 onChange={(e) => setNamaPanggilan(e.target.value)}
                 placeholder="mis. Garda"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
               />
             </div>
 
@@ -306,7 +302,7 @@ export default function ProfilePage() {
                 value={universitas}
                 onChange={(e) => setUniversitas(e.target.value)}
                 placeholder="mis. Universitas Telkom"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
               />
             </div>
 
@@ -319,7 +315,7 @@ export default function ProfilePage() {
                 value={prodi}
                 onChange={(e) => setProdi(e.target.value)}
                 placeholder="mis. S1 Sistem Informasi"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
               />
             </div>
 
@@ -332,7 +328,7 @@ export default function ProfilePage() {
                 value={semester}
                 onChange={(e) => setSemester(e.target.value)}
                 placeholder="mis. 5 (Ganjil)"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
               />
             </div>
 
@@ -346,7 +342,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={handleDetectBrowserLocation}
                   disabled={detectingGps}
-                  className="text-[11px] font-bold text-[#ED3875] hover:text-[#D92361] flex items-center gap-1 transition"
+                  className="text-[11px] font-bold text-[#2563EB] hover:text-[#1E40AF] flex items-center gap-1 transition"
                   title="Deteksi lokasi via Geolocation API browser"
                 >
                   <Navigation className="w-3 h-3" />
@@ -358,7 +354,7 @@ export default function ProfilePage() {
                 value={domisili}
                 onChange={(e) => setDomisili(e.target.value)}
                 placeholder="mis. Bandung, Jawa Barat"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
               />
               {latitude && longitude && (
                 <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
@@ -378,7 +374,7 @@ export default function ProfilePage() {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="Ceritakan latar belakang akademik, minat, atau topik yang kamu kuasai..."
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#ED3875]/30 focus:border-[#ED3875] outline-none resize-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none resize-none"
             />
           </div>
 
@@ -395,7 +391,7 @@ export default function ProfilePage() {
                   onClick={() => setModeSesi(m)}
                   className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition ${
                     modeSesi === m
-                      ? 'border-[#ED3875] bg-rose-50 text-[#ED3875]'
+                      ? 'border-[#2563EB] bg-blue-50 text-[#2563EB]'
                       : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -417,7 +413,7 @@ export default function ProfilePage() {
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-[#ED3875] hover:bg-[#D92361] text-white text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 disabled:opacity-60"
+              className="px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1E40AF] text-white text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 disabled:opacity-60"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 stroke-[3]" />}
               <span>Simpan Perubahan Profil (FR-02)</span>
