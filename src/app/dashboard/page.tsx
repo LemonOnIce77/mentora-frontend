@@ -489,7 +489,7 @@ export default function DashboardPage() {
 
           {user?.role !== 'Admin' && (
             <button
-              onClick={() => setActiveTab('apply')}
+              onClick={() => router.push('/mentor/apply')}
               className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
                 activeTab === 'apply'
                   ? 'border-[#2563EB] text-[#2563EB]'
