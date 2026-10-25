@@ -98,25 +98,25 @@ export default function LandingPage() {
                   <div className="space-y-2.5 text-sm font-semibold">
                     <div className="flex items-center gap-2.5">
                       <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
-                        <Check className="w-3 h-3 stroke-[3]" />
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                       <span>Skill baru</span>
                     </div>
                     <div className="flex items-center gap-2.5">
                       <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
-                        <Check className="w-3 h-3 stroke-[3]" />
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                       <span>Teman baru</span>
                     </div>
                     <div className="flex items-center gap-2.5">
                       <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
-                        <Check className="w-3 h-3 stroke-[3]" />
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                       <span>Peluang baru</span>
                     </div>
                     <div className="flex items-center gap-2.5">
                       <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
-                        <Check className="w-3 h-3 stroke-[3]" />
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
                       <span>Versi terbaik dirimu</span>
                     </div>
