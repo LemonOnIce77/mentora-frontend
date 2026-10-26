@@ -1,76 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { comparePassword, signToken } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { email, password } = body;
+    const { email } = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { message: 'Email dan password wajib diisi.' },
-        { status: 400 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { message: 'Email atau password yang Anda masukkan salah.' },
-        { status: 401 }
-      );
-    }
-
-    const isMatch = await comparePassword(password, user.password);
-    if (!isMatch) {
-      return NextResponse.json(
-        { message: 'Email atau password yang Anda masukkan salah.' },
-        { status: 401 }
-      );
-    }
-
-    const token = signToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    });
+    // Mock data user langsung tanpa query database
+    const mockUser = {
+      id: 1,
+      namaLengkap: email.includes('admin') ? 'Admin Mentora' : 'Budi Pratama',
+      email: email || 'budi@mentora.com',
+      universitas: 'Telkom University',
+      prodi: 'Sistem Informasi',
+      semester: '5',
+      role: email.includes('admin') ? 'ADMIN' : 'STUDENT',
+      statusMentor: email.includes('admin') ? 'APPROVED' : 'NONE',
+    };
 
     const response = NextResponse.json({
-      message: 'Login berhasil!',
-      user: {
-        id: user.id,
-        namaLengkap: user.namaLengkap,
-        namaPanggilan: user.namaPanggilan,
-        email: user.email,
-        role: user.role,
-        statusMentor: user.statusMentor,
-        onboardingCompleted: user.onboardingCompleted,
-        totalPoin: user.totalPoin,
-        universitas: user.universitas,
-        prodi: user.prodi,
-        fotoProfil: user.fotoProfil,
-      },
-      token,
+      message: 'Login berhasil (Mock Session)',
+      user: mockUser,
     });
 
-    response.cookies.set('mentora_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+    // Simpan cookie sesi login agar Next.js mengenali status aktif
+    response.cookies.set('mentora_session', JSON.stringify(mockUser), {
+      httpOnly: false,
       path: '/',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24, // 1 hari
     });
 
     return response;
-  } catch (error: any) {
-    console.error('Login error:', error);
-    return NextResponse.json(
-      { message: 'Terjadi kesalahan pada server saat login.' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return NextResponse.json({ message: 'Terjadi kesalahan internal.' }, { status: 500 });
   }
 }

@@ -350,8 +350,8 @@ export default function DashboardPage() {
     );
   }
 
-  const taughtSkills = user?.skills.filter((s) => s.tipe === 'TEACH') || [];
-  const learnedSkills = user?.skills.filter((s) => s.tipe === 'LEARN') || [];
+  const taughtSkills = user?.skills?.filter((s: any) => s.tipe === 'TEACH') || [];
+const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || [];
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFB]">

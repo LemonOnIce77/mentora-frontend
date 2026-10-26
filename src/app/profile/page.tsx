@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import {
   User,
   MapPin,
@@ -18,65 +18,66 @@ import {
   ArrowLeft,
   Loader2,
   Navigation,
-} from 'lucide-react';
+} from "lucide-react";
+import LocationPicker from "@/components/LocationPicker";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [detectingGps, setDetectingGps] = useState(false);
-  const [successMsg, setSuccessMsg] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Profile Form States
-  const [namaLengkap, setNamaLengkap] = useState('');
-  const [namaPanggilan, setNamaPanggilan] = useState('');
-  const [email, setEmail] = useState('');
-  const [universitas, setUniversitas] = useState('');
-  const [prodi, setProdi] = useState('');
-  const [semester, setSemester] = useState('');
-  const [domisili, setDomisili] = useState('');
-  const [bio, setBio] = useState('');
-  const [fotoProfil, setFotoProfil] = useState('');
-  const [modeSesi, setModeSesi] = useState('Fleksibel');
+  const [namaLengkap, setNamaLengkap] = useState("");
+  const [namaPanggilan, setNamaPanggilan] = useState("");
+  const [email, setEmail] = useState("");
+  const [universitas, setUniversitas] = useState("");
+  const [prodi, setProdi] = useState("");
+  const [semester, setSemester] = useState("");
+  const [domisili, setDomisili] = useState("");
+  const [bio, setBio] = useState("");
+  const [fotoProfil, setFotoProfil] = useState("");
+  const [modeSesi, setModeSesi] = useState("Fleksibel");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [role, setRole] = useState('Mentee');
-  const [statusMentor, setStatusMentor] = useState('NONE');
+  const [role, setRole] = useState("Mentee");
+  const [statusMentor, setStatusMentor] = useState("NONE");
   const [totalPoin, setTotalPoin] = useState(0);
 
   // Load profile from API (SCRUM-95)
   const fetchProfile = async () => {
     try {
-      const res = await fetch('/api/profile');
+      const res = await fetch("/api/profile");
       if (!res.ok) {
         if (res.status === 401) {
-          router.push('/auth');
+          router.push("/auth");
           return;
         }
-        throw new Error('Gagal memuat profil');
+        throw new Error("Gagal memuat profil");
       }
       const data = await res.json();
       const p = data.profile;
       if (p) {
-        setNamaLengkap(p.namaLengkap || '');
-        setNamaPanggilan(p.namaPanggilan || '');
-        setEmail(p.email || '');
-        setUniversitas(p.universitas || '');
-        setProdi(p.prodi || '');
-        setSemester(p.semester || '');
-        setDomisili(p.domisili || '');
-        setBio(p.bio || '');
-        setFotoProfil(p.fotoProfil || '');
-        setModeSesi(p.modeSesi || 'Fleksibel');
+        setNamaLengkap(p.namaLengkap || "");
+        setNamaPanggilan(p.namaPanggilan || "");
+        setEmail(p.email || "");
+        setUniversitas(p.universitas || "");
+        setProdi(p.prodi || "");
+        setSemester(p.semester || "");
+        setDomisili(p.domisili || "");
+        setBio(p.bio || "");
+        setFotoProfil(p.fotoProfil || "");
+        setModeSesi(p.modeSesi || "Fleksibel");
         setLatitude(p.latitude ?? null);
         setLongitude(p.longitude ?? null);
-        setRole(p.role || 'Mentee');
-        setStatusMentor(p.statusMentor || 'NONE');
+        setRole(p.role || "Mentee");
+        setStatusMentor(p.statusMentor || "NONE");
         setTotalPoin(p.totalPoin || 0);
       }
     } catch (err) {
-      setErrorMsg('Gagal mengambil data profil.');
+      setErrorMsg("Gagal mengambil data profil.");
     } finally {
       setLoading(false);
     }
@@ -88,11 +89,11 @@ export default function ProfilePage() {
 
   // SCRUM-98: Mengambil lokasi melalui geolokasi browser (Nearby Feature)
   const handleDetectBrowserLocation = () => {
-    setErrorMsg('');
-    setSuccessMsg('');
+    setErrorMsg("");
+    setSuccessMsg("");
 
     if (!navigator.geolocation) {
-      setErrorMsg('Browser Anda tidak mendukung fitur Geolocation API.');
+      setErrorMsg("Browser Anda tidak mendukung fitur Geolocation API.");
       return;
     }
 
@@ -104,21 +105,25 @@ export default function ProfilePage() {
         setLatitude(lat);
         setLongitude(lng);
         if (!domisili) {
-          setDomisili('Bandung, Jawa Barat');
+          setDomisili("Bandung, Jawa Barat");
         }
         setDetectingGps(false);
-        setSuccessMsg(`✓ Koordinat GPS berhasil dideteksi: (${lat}, ${lng}). Siap untuk fitur nearby peer-finder!`);
+        setSuccessMsg(
+          `✓ Koordinat GPS berhasil dideteksi: (${lat}, ${lng}). Siap untuk fitur nearby peer-finder!`,
+        );
       },
       (error) => {
         setDetectingGps(false);
-        const defaultLat = -6.9740;
+        const defaultLat = -6.974;
         const defaultLng = 107.6303;
         setLatitude(defaultLat);
         setLongitude(defaultLng);
-        if (!domisili) setDomisili('Dayeuhkolot, Bandung');
-        setSuccessMsg(`Koordinat otomatis dialihkan ke kampus (-6.9740, 107.6303) karena izin lokasi browser belum aktif.`);
+        if (!domisili) setDomisili("Dayeuhkolot, Bandung");
+        setSuccessMsg(
+          `Koordinat otomatis dialihkan ke kampus (-6.9740, 107.6303) karena izin lokasi browser belum aktif.`,
+        );
       },
-      { timeout: 8000 }
+      { timeout: 8000 },
     );
   };
 
@@ -127,7 +132,7 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        setErrorMsg('Ukuran foto maksimal 2MB');
+        setErrorMsg("Ukuran foto maksimal 2MB");
         return;
       }
       const reader = new FileReader();
@@ -142,13 +147,13 @@ export default function ProfilePage() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setErrorMsg('');
-    setSuccessMsg('');
+    setErrorMsg("");
+    setSuccessMsg("");
 
     try {
-      const res = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           namaLengkap,
           namaPanggilan,
@@ -166,13 +171,15 @@ export default function ProfilePage() {
 
       const data = await res.json();
       if (res.ok) {
-        setSuccessMsg('✓ Data profil berhasil diperbarui dan tersimpan ke sistem!');
-        setTimeout(() => setSuccessMsg(''), 4000);
+        setSuccessMsg(
+          "✓ Data profil berhasil diperbarui dan tersimpan ke sistem!",
+        );
+        setTimeout(() => setSuccessMsg(""), 4000);
       } else {
-        setErrorMsg(data.message || 'Gagal menyimpan profil.');
+        setErrorMsg(data.message || "Gagal menyimpan profil.");
       }
     } catch (err) {
-      setErrorMsg('Terjadi kesalahan koneksi server.');
+      setErrorMsg("Terjadi kesalahan koneksi server.");
     } finally {
       setSaving(false);
     }
@@ -194,7 +201,6 @@ export default function ProfilePage() {
       <Navbar />
 
       <main className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1">
-        
         {/* Navigation link back to dashboard */}
         <div className="mb-6">
           <Link
@@ -217,26 +223,35 @@ export default function ProfilePage() {
               />
             ) : (
               <div className="w-24 h-24 rounded-3xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold text-3xl">
-                {(namaPanggilan || namaLengkap || 'M').charAt(0)}
+                {(namaPanggilan || namaLengkap || "M").charAt(0)}
               </div>
             )}
             <label className="absolute -bottom-2 -right-2 p-2 bg-[#2563EB] hover:bg-blue-700 text-white rounded-xl shadow-md cursor-pointer transition">
               <Camera className="w-4 h-4" />
-              <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
             </label>
           </div>
 
           <div className="flex-1 text-center sm:text-left space-y-1">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-              <h1 className="text-2xl font-extrabold text-slate-900">{namaLengkap}</h1>
+              <h1 className="text-2xl font-extrabold text-slate-900">
+                {namaLengkap}
+              </h1>
               <span
                 className={`text-xs font-bold px-3 py-0.5 rounded-full ${
-                  statusMentor === 'APPROVED'
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    : 'bg-blue-50 text-[#2563EB] border border-blue-200'
+                  statusMentor === "APPROVED"
+                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                    : "bg-blue-50 text-[#2563EB] border border-blue-200"
                 }`}
               >
-                {statusMentor === 'APPROVED' ? '⭐ Mentor Terverifikasi' : '🎓 Mentee / Mahasiswa'}
+                {statusMentor === "APPROVED"
+                  ? "⭐ Mentor Terverifikasi"
+                  : "🎓 Mentee / Mahasiswa"}
               </span>
             </div>
             <p className="text-xs text-slate-500">{email}</p>
@@ -261,14 +276,33 @@ export default function ProfilePage() {
         )}
 
         {/* Form Edit Profil (SCRUM-97 & SCRUM-98) */}
-        <form onSubmit={handleSaveProfile} className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-6">
+        <form
+          onSubmit={handleSaveProfile}
+          className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-6"
+        >
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Manajemen Profil Pengguna (FR-02)</h2>
+            <h2 className="text-xl font-bold text-slate-900">
+              Manajemen Profil Pengguna (FR-02)
+            </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Kelola data pribadi agar teman belajar mudah mengenalmu dan sistem dapat memberikan rekomendasi teman terdekat.
+              Kelola data pribadi agar teman belajar mudah mengenalmu dan sistem
+              dapat memberikan rekomendasi teman terdekat.
             </p>
           </div>
-
+          import LocationPicker from '@/components/LocationPicker'; // Di dalam
+          komponen form:
+          <div className="mb-4">
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              Lokasi Domisili (Untuk Sesi Offline / Fleksibel)
+            </label>
+            <LocationPicker
+              onLocationDetected={(loc) => {
+                console.log("Koordinat:", loc.latitude, loc.longitude);
+                console.log("Kota:", loc.kota);
+                // Simpan ke state form profil kamu (misal: setKota(loc.kota))
+              }}
+            />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -349,7 +383,9 @@ export default function ProfilePage() {
                   title="Deteksi lokasi via Geolocation API browser"
                 >
                   <Navigation className="w-3 h-3" />
-                  <span>{detectingGps ? 'Mendeteksi...' : 'Deteksi GPS Browser'}</span>
+                  <span>
+                    {detectingGps ? "Mendeteksi..." : "Deteksi GPS Browser"}
+                  </span>
                 </button>
               </div>
               <input
@@ -362,12 +398,13 @@ export default function ProfilePage() {
               {latitude && longitude && (
                 <p className="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-emerald-600" />
-                  <span>Koordinat Nearby: {latitude}, {longitude}</span>
+                  <span>
+                    Koordinat Nearby: {latitude}, {longitude}
+                  </span>
                 </p>
               )}
             </div>
           </div>
-
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1.5">
               Deskripsi Diri / Bio
@@ -380,22 +417,21 @@ export default function ProfilePage() {
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none resize-none"
             />
           </div>
-
           {/* Mode Sesi Pilihan */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-2">
               Mode Sesi Belajar yang Disukai
             </label>
             <div className="grid grid-cols-3 gap-3">
-              {['Online', 'Offline', 'Fleksibel'].map((m) => (
+              {["Online", "Offline", "Fleksibel"].map((m) => (
                 <button
                   key={m}
                   type="button"
                   onClick={() => setModeSesi(m)}
                   className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition ${
                     modeSesi === m
-                      ? 'border-[#2563EB] bg-blue-50 text-[#2563EB]'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                      ? "border-[#2563EB] bg-blue-50 text-[#2563EB]"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {m}
@@ -403,7 +439,6 @@ export default function ProfilePage() {
               ))}
             </div>
           </div>
-
           {/* Submit Button */}
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
             <Link
@@ -418,12 +453,15 @@ export default function ProfilePage() {
               disabled={saving}
               className="px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 disabled:opacity-60"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 stroke-[3]" />}
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Check className="w-4 h-4 stroke-[3]" />
+              )}
               <span>Simpan Perubahan Profil (FR-02)</span>
             </button>
           </div>
         </form>
-
       </main>
 
       <Footer />

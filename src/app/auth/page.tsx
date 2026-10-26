@@ -440,7 +440,7 @@ function AuthContent() {
           {/* Quick Demo Selector for Reviewers / QA testing */}
           <div className="mt-8 pt-6 border-t border-slate-100">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5 text-center">
-              Akun Demo Pengujian (Sprint 1)
+              Login Sebagai:
             </p>
             <div className="grid grid-cols-3 gap-2">
               <button

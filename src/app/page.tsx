@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import LocationPicker from '@/components/LocationPicker';
 import {
   Users,
   MessageSquare,
@@ -12,9 +13,16 @@ import {
   Play,
   Check,
   Sparkles,
+  Compass,
 } from 'lucide-react';
 
 export default function LandingPage() {
+  const [userLocation, setUserLocation] = useState<{
+    kota?: string;
+    latitude?: number;
+    longitude?: number;
+  } | null>(null);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
       <Navbar />
@@ -64,17 +72,48 @@ export default function LandingPage() {
                   <span>Lihat Cara Kerja</span>
                 </a>
               </div>
+
+              {/* Widget Interaktif Geolocation (FR-02) */}
+              <div className="pt-4 max-w-lg">
+                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Compass className="w-4 h-4 text-[#2563EB]" />
+                    <span className="text-xs font-bold text-slate-800">
+                      Cari Partner Belajar Terdekat (FR-02)
+                    </span>
+                  </div>
+                  <LocationPicker
+                    onLocationDetected={(data) => {
+                      setUserLocation({
+                        kota: data.kota,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                      });
+                    }}
+                  />
+                  {userLocation && (
+                    <div className="pt-1 flex items-center justify-between text-xs text-slate-500">
+                      <span>Siap mencocokkan mentor di sekitar: <strong className="text-slate-800">{userLocation.kota}</strong></span>
+                      <Link
+                        href={`/dashboard?lat=${userLocation.latitude}&lng=${userLocation.longitude}`}
+                        className="font-bold text-[#2563EB] hover:underline"
+                      >
+                        Lihat Partner &rarr;
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
 
             {/* Right Graphics / Visual Cards */}
             <div className="lg:col-span-5 relative flex flex-col items-center justify-center">
-              {/* Background Glow */}
               <div className="absolute -top-10 -right-10 w-72 h-72 bg-blue-200/50 rounded-full blur-3xl pointer-events-none"></div>
               <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-indigo-200/40 rounded-full blur-3xl pointer-events-none"></div>
 
               <div className="relative w-full max-w-md space-y-4">
                 
-                {/* Handwritten Tag */}
                 <div className="flex justify-end pr-6">
                   <div className="font-handwriting text-3xl font-bold text-slate-800 -rotate-3 tracking-wide">
                     More <br />
@@ -84,7 +123,6 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Blue Pill Sticky Note */}
                 <div className="bg-[#2563EB] text-white p-5 rounded-3xl shadow-lg transform -rotate-1 hover:rotate-0 transition-transform">
                   <p className="text-sm font-bold leading-snug">
                     Skill baru ini <br />
@@ -93,7 +131,6 @@ export default function LandingPage() {
                   </p>
                 </div>
 
-                {/* Yellow Sticky Note Checklist */}
                 <div className="bg-[#FEF08A] text-slate-900 p-6 rounded-2xl shadow-md border border-amber-200/80 transform rotate-2 hover:rotate-0 transition-transform">
                   <div className="space-y-2.5 text-sm font-semibold">
                     <div className="flex items-center gap-2.5">
@@ -135,7 +172,6 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            {/* Feature 1 */}
             <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
@@ -160,7 +196,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Feature 2 */}
             <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
@@ -185,7 +220,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Feature 3 */}
             <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
@@ -231,8 +265,6 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Step 1 */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200/80 relative">
               <div className="w-9 h-9 rounded-full bg-[#2563EB] text-white font-bold flex items-center justify-center text-sm mb-6">
                 1
@@ -243,7 +275,6 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Step 2 */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200/80 relative">
               <div className="w-9 h-9 rounded-full bg-teal-500 text-white font-bold flex items-center justify-center text-sm mb-6">
                 2
@@ -254,7 +285,6 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Step 3 */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200/80 relative">
               <div className="w-9 h-9 rounded-full bg-indigo-500 text-white font-bold flex items-center justify-center text-sm mb-6">
                 3
@@ -264,10 +294,8 @@ export default function LandingPage() {
                 Diskusi, belajar, dan berkembang bersama, lalu kumpulkan EduPoints untuk ditukar sertifikat.
               </p>
             </div>
-
           </div>
 
-          {/* Banner CTA */}
           <div className="mt-14 bg-gradient-to-r from-blue-600 via-[#2563EB] to-indigo-600 rounded-3xl p-8 md:p-12 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
             <div>
               <h3 className="text-2xl md:text-3xl font-extrabold">
