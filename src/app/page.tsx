@@ -7,13 +7,15 @@ import Footer from '@/components/Footer';
 import LocationPicker from '@/components/LocationPicker';
 import {
   Users,
-  MessageSquare,
   Award,
   ArrowRight,
-  Play,
+  ShieldCheck,
+  MapPin,
+  Clock,
+  ArrowLeftRight,
   Check,
-  Sparkles,
   Compass,
+  BookOpen,
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -27,139 +29,182 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-16 lg:pb-28">
+      {/* 1. Hero Section: Honest Value Prop & Real Product UI Card */}
+      <section className="pt-12 pb-20 lg:pt-16 lg:pb-24 border-b border-slate-200/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            {/* Left Content */}
+            {/* Left Content Column */}
             <div className="lg:col-span-7 space-y-6">
-              {/* Pill Tag */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-[#2563EB] text-xs font-bold tracking-wider uppercase">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>TEMUKAN BELAJAR, TUMBUH BERSAMA</span>
+              
+              {/* Category Pill Tag */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span>Platform Pertukaran Keahlian Mahasiswa</span>
               </div>
 
-              {/* Main Heading */}
+              {/* Main Headline */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-                Belajar bareng <br />
-                mahasiswa lain, <br />
-                <span className="text-[#2563EB]">berkembang lewat skill.</span>
+                Tukar keahlian, <br />
+                belajar bareng teman, <br />
+                <span className="text-blue-600">tanpa biaya tutor.</span>
               </h1>
 
-              {/* Subheading */}
-              <p className="text-lg text-slate-600 max-w-xl leading-relaxed">
-                Mentora adalah platform untuk mahasiswa belajar dari teman sejawat, bertukar skill, dan berkembang lewat sesi belajar yang fleksibel.
+              {/* Plain Subheading */}
+              <p className="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed">
+                Platform peer-to-peer exchange mahasiswa Telkom University. Kuasai materi kuliah sulit dan tools industri dengan mengajarkan apa yang kamu kuasai ke rekan sejawat.
               </p>
 
-              {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              {/* Primary Actions */}
+              <div className="flex flex-wrap items-center gap-3.5 pt-2">
                 <Link
                   href="/auth?tab=daftar"
-                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm hover:shadow transition"
                 >
-                  <span>Mulai Sekarang</span>
+                  <span>Mulai Barter Keahlian</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
-                <a
-                  href="#cara-kerja"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white border border-slate-300 hover:border-slate-400 text-slate-700 font-semibold text-sm shadow-sm transition-all"
+                <Link
+                  href="/skills"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white border border-slate-300 hover:border-slate-400 text-slate-700 font-semibold text-sm transition"
                 >
-                  <div className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px]">
-                    <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
-                  </div>
-                  <span>Lihat Cara Kerja</span>
-                </a>
+                  <BookOpen className="w-4 h-4 text-slate-500" />
+                  <span>Jelajahi Katalog Keahlian</span>
+                </Link>
               </div>
 
-              {/* Widget Interaktif Geolocation (FR-02) */}
-              <div className="pt-4 max-w-lg">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-3">
+              {/* Campus Trust Indicator */}
+              <div className="pt-2 flex items-center gap-3 text-xs text-slate-500">
+                <div className="flex -space-x-2">
+                  <img
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60&auto=format&fit=crop&q=80"
+                    alt="Mahasiswa"
+                    className="w-7 h-7 rounded-full ring-2 ring-white object-cover"
+                  />
+                  <img
+                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&auto=format&fit=crop&q=80"
+                    alt="Mahasiswa"
+                    className="w-7 h-7 rounded-full ring-2 ring-white object-cover"
+                  />
+                  <div className="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] ring-2 ring-white">
+                    TEL-U
+                  </div>
+                </div>
+                <span>Mahasiswa Informatika, DKV, Rekayasa Industri, dan Bisnis telah terhubung.</span>
+              </div>
+
+            </div>
+
+            {/* Right Column: Real Product UI: Live Peer Barter Session Card */}
+            <div className="lg:col-span-5 relative">
+              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+                
+                {/* Card Header: Campus Session Status */}
+                <div className="px-6 py-3.5 bg-slate-900 text-white flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Compass className="w-4 h-4 text-[#2563EB]" />
-                    <span className="text-xs font-bold text-slate-800">
-                      Cari Teman Belajar di Sekitarmu
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                      Sesi Barter Aktif
                     </span>
                   </div>
-                  <LocationPicker
-                    onLocationDetected={(data) => {
-                      setUserLocation({
-                        kota: data.kota,
-                        latitude: data.latitude,
-                        longitude: data.longitude,
-                      });
-                    }}
-                  />
-                  {userLocation && (
-                    <div className="pt-1 flex items-center justify-between text-xs text-slate-500">
-                      <span>Siap mencocokkan mentor di sekitar: <strong className="text-slate-800">{userLocation.kota}</strong></span>
-                      <Link
-                        href={`/dashboard?lat=${userLocation.latitude}&lng=${userLocation.longitude}`}
-                        className="font-bold text-[#2563EB] hover:underline"
-                      >
-                        Lihat Partner &rarr;
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-            </div>
-
-            {/* Right Graphics / Visual Cards */}
-            <div className="lg:col-span-5 relative flex flex-col items-center justify-center">
-              <div className="absolute -top-10 -right-10 w-72 h-72 bg-blue-200/50 rounded-full blur-3xl pointer-events-none"></div>
-              <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-indigo-200/40 rounded-full blur-3xl pointer-events-none"></div>
-
-              <div className="relative w-full max-w-md space-y-4">
-                
-                <div className="flex justify-end pr-6">
-                  <div className="font-handwriting text-3xl font-bold text-slate-800 -rotate-3 tracking-wide">
-                    More <br />
-                    Skills <br />
-                    Brighter <br />
-                    Friends
-                  </div>
+                  <span className="text-[11px] font-semibold text-slate-400">
+                    Telkom University
+                  </span>
                 </div>
 
-                <div className="bg-[#2563EB] text-white p-5 rounded-3xl shadow-lg transform -rotate-1 hover:rotate-0 transition-transform">
-                  <p className="text-sm font-bold leading-snug">
-                    Skill baru ini <br />
-                    bisa jadi peluang <br />
-                    besar nanti! ✨
-                  </p>
-                </div>
-
-                <div className="bg-[#FEF08A] text-slate-900 p-6 rounded-2xl shadow-md border border-amber-200/80 transform rotate-2 hover:rotate-0 transition-transform">
-                  <div className="space-y-2.5 text-sm font-semibold">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                {/* The Match Visual: Two Students Exchanging */}
+                <div className="p-6 space-y-4">
+                  
+                  {/* Student 1 */}
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80"
+                        alt="Aulia"
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500/20"
+                      />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-slate-900">Aulia Rahisa</span>
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">DKV '24</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Bimbingan: <strong className="text-slate-800">Figma UI/UX & Prototyping</strong>
+                        </p>
                       </div>
-                      <span>Skill baru</span>
                     </div>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </div>
-                      <span>Teman baru</span>
-                    </div>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </div>
-                      <span>Peluang baru</span>
-                    </div>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </div>
-                      <span>Versi terbaik dirimu</span>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-amber-600">★ 4.9</span>
+                      <p className="text-[10px] text-slate-400">30 sesi tuntas</p>
                     </div>
                   </div>
-                </div>
 
+                  {/* The Exchange Bridge Indicator */}
+                  <div className="relative flex items-center justify-center py-1">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-dashed border-slate-300"></div>
+                    </div>
+                    <div className="relative px-3 py-1 rounded-full bg-blue-600 text-white text-[11px] font-bold shadow-xs flex items-center gap-1.5">
+                      <ArrowLeftRight className="w-3.5 h-3.5" />
+                      <span>Saling Tukar 1 Jam Belajar</span>
+                    </div>
+                  </div>
+
+                  {/* Student 2 */}
+                  <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+                        alt="Sulthoni"
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-emerald-500/20"
+                      />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-slate-900">Sulthoni Prima</span>
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Informatika '23</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Bimbingan: <strong className="text-slate-800">Database SQL & REST API</strong>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-amber-600">★ 5.0</span>
+                      <p className="text-[10px] text-slate-400">45 sesi tuntas</p>
+                    </div>
+                  </div>
+
+                  {/* Session Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-2.5 pt-1 text-xs">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-slate-500 block text-[11px]">Titik Sesi Tatap Muka:</span>
+                      <span className="font-bold text-slate-800 mt-0.5 flex items-center gap-1 truncate">
+                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        Open Library Tel-U Lt. 2
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-slate-500 block text-[11px]">Poin Keaktifan:</span>
+                      <span className="font-bold text-slate-800 mt-0.5 flex items-center gap-1">
+                        <Award className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        +5 EduPoints Resmi
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card Action */}
+                  <div className="pt-2">
+                    <Link
+                      href="/auth?tab=daftar"
+                      className="w-full py-3 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition"
+                    >
+                      <span>Ajukan Barter dengan Rekan Mahasiswa</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+
+                </div>
               </div>
             </div>
 
@@ -167,152 +212,252 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 3 Feature Cards Section */}
-      <section id="fitur" className="py-8 bg-transparent">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-                  <Users className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">
-                  Pencocokan Skill <br />
-                  yang Tepat
-                </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  Temukan partner belajar sesuai minat, skill, dan tujuanmu dengan rekomendasi Mentora.
-                </p>
-              </div>
-              <div className="pt-6">
-                <Link
-                  href="/auth?tab=daftar"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] group-hover:gap-2.5 transition-all"
-                >
-                  <span>Cari partner</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-                  <MessageSquare className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">
-                  Chat & Booking <br />
-                  Sesi dengan Mudah
-                </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  Diskusi lewat chat, atur jadwal fleksibel, lalu mulai sesi secara online atau offline.
-                </p>
-              </div>
-              <div className="pt-6">
-                <Link
-                  href="/auth?tab=daftar"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-600 group-hover:gap-2.5 transition-all"
-                >
-                  <span>Atur sesi</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
-              <div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-                  <Award className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">
-                  EduPoints <br />
-                  dan E-Certificate
-                </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  Kumpulkan poin dari sesi yang kamu bantu. Tukar menjadi e-certificate resmi untuk portofolio.
-                </p>
-              </div>
-              <div className="pt-6">
-                <Link
-                  href="/auth?tab=daftar"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 group-hover:gap-2.5 transition-all"
-                >
-                  <span>Lihat EduPoints</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* Cara Kerja Mentora Section */}
-      <section id="cara-kerja" className="py-16 lg:py-24">
+      {/* 2. Campus Proximity & Study Spot Radar */}
+      <section className="py-16 bg-white border-b border-slate-200/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#2563EB]">
-              LANGKAH MUDAH
+          <div className="max-w-2xl mb-10">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+              RADAR TEMAN BELAJAR KAMPUS
             </span>
-            <h2 className="text-3xl font-extrabold text-slate-900 mt-1">
-              Cara Kerja Mentora
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
+              Temukan partner belajar di sekitar kampusmu
             </h2>
-            <p className="text-slate-500 text-sm mt-2 max-w-xl">
-              Mulai perjalanan belajarmu dalam 3 langkah sederhana. Temukan teman belajar, kembangkan skill, dan wujudkan versi terbaikmu.
+            <p className="text-slate-600 text-sm mt-2 leading-relaxed">
+              Pilih titik belajar favorit di area kampus Telkom University atau gunakan GPS untuk mencocokkan teman terdekat.
             </p>
           </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left: Interactive GPS Detector */}
+            <div className="lg:col-span-5 bg-slate-50 p-6 rounded-3xl border border-slate-200/80 space-y-4">
+              <div className="flex items-center gap-2">
+                <Compass className="w-5 h-5 text-blue-600" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  Deteksi Lokasi Terdekat (GPS)
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Aktifkan izin lokasi browser untuk menampilkan rekan mahasiswa yang sedang berada di radius yang sama.
+              </p>
+              
+              <LocationPicker
+                onLocationDetected={(data) => {
+                  setUserLocation({
+                    kota: data.kota,
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                  });
+                }}
+              />
+
+              {userLocation && (
+                <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+                  <span>Lokasi: <strong className="text-slate-900">{userLocation.kota}</strong></span>
+                  <Link
+                    href={`/dashboard?lat=${userLocation.latitude}&lng=${userLocation.longitude}`}
+                    className="font-bold text-blue-600 hover:underline"
+                  >
+                    Buka Hasil &rarr;
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Real Campus Spot Hubs */}
+            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 transition">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-900">Open Library Tel-U</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">14 Mahasiswa Aktif</span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Gedung Perpustakaan Pusat Lt. 2 & 3. Cocok untuk bimbingan coding dan tugas akhir dengan suasana hening.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 transition">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-900">Bandung Techno Park</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">8 Mahasiswa Aktif</span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  BTP Co-Working Space. Tempat berkumpul tim proyek startup, desain antarmuka, dan kompetisi hackathon.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 transition">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-900">Open Space Gedung GKB</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">19 Mahasiswa Aktif</span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Area diskusi terbuka Gedung Kuliah Bersama. Ideal untuk review resume, latihan public speaking, dan tugas kelompok.
+                </p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 transition">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-900">Lab Komputer FIF</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">11 Mahasiswa Aktif</span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Fakultas Informatika. Titik temu untuk debugging kode praktikum, machine learning, dan struktur data.
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Distinct Core Pillars (Not Identical Cards) */}
+      <section className="py-20 bg-[#FAFAFB] border-b border-slate-200/70">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="max-w-2xl mb-12">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+              PRINSIP SISTEM MENTORA
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
+              Belajar berkualitas berbasis timbal-balik yang adil
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Pillar 1 */}
+            <div className="bg-white p-7 rounded-3xl border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm mb-5">
+                  01
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">
+                  Satu Jam Mengajar = Satu Jam Belajar
+                </h3>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Sistem barter seimbang tanpa biaya uang kuliah tambahan. Mahasiswa yang membimbing di bidangnya berhak menerima bimbingan dari rekan yang ahli di topik lain.
+                </p>
+              </div>
+              <div className="pt-6 border-t border-slate-100 mt-6 text-xs text-slate-500 font-semibold">
+                ✓ Menghilangkan hambatan biaya kursus
+              </div>
+            </div>
+
+            {/* Pillar 2 */}
+            <div className="bg-white p-7 rounded-3xl border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm mb-5">
+                  02
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">
+                  Kredensial Mentor Terverifikasi
+                </h3>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Calon mentor wajib mengunggah transkrip nilai akademik atau portofolio riil. Dokumen ditinjau oleh tim verifikator sebelum status mentor diaktifkan.
+                </p>
+              </div>
+              <div className="pt-6 border-t border-slate-100 mt-6 text-xs text-slate-500 font-semibold">
+                ✓ Transkrip dan portofolio diverifikasi
+              </div>
+            </div>
+
+            {/* Pillar 3 */}
+            <div className="bg-white p-7 rounded-3xl border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm mb-5">
+                  03
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">
+                  EduPoints & Bukti Kompetensi
+                </h3>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Setiap sesi yang tuntas memberi poin reputasi. Mahasiswa aktif dapat menukarkannya menjadi e-certificate resmi untuk lampiran portofolio magang dan SKPI.
+                </p>
+              </div>
+              <div className="pt-6 border-t border-slate-100 mt-6 text-xs text-slate-500 font-semibold">
+                ✓ Diakui dalam portofolio keaktifan
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Practical 3-Step Workflow */}
+      <section id="cara-kerja" className="py-20 bg-white border-b border-slate-200/70">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="max-w-2xl mb-12">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+              ALUR SESI BELAJAR
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
+              Cara memulai barter keahlian di Mentora
+            </h2>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-3xl p-8 border border-slate-200/80 relative">
-              <div className="w-9 h-9 rounded-full bg-[#2563EB] text-white font-bold flex items-center justify-center text-sm mb-6">
-                1
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Buat Profil</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Ceritakan minat, skill, dan tujuan belajar pada proses onboarding yang interaktif.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-3xl p-8 border border-slate-200/80 relative">
-              <div className="w-9 h-9 rounded-full bg-teal-500 text-white font-bold flex items-center justify-center text-sm mb-6">
-                2
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Cari Partner</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Temukan mahasiswa dengan skill yang sesuai, baik daring maupun luring di sekitar kampusmu.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-3xl p-8 border border-slate-200/80 relative">
-              <div className="w-9 h-9 rounded-full bg-indigo-500 text-white font-bold flex items-center justify-center text-sm mb-6">
-                3
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Mulai Sesi</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Diskusi, belajar, dan berkembang bersama, lalu kumpulkan EduPoints untuk ditukar sertifikat.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-14 bg-gradient-to-r from-blue-600 via-[#2563EB] to-indigo-600 rounded-3xl p-8 md:p-12 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-            <div>
-              <h3 className="text-2xl md:text-3xl font-extrabold">
-                Siap upgrade skill dan teman belajarmu?
+            
+            <div className="space-y-3">
+              <span className="text-3xl font-extrabold text-blue-600 font-mono">1.</span>
+              <h3 className="text-base font-bold text-slate-900">
+                Tentukan Keahlian & Kebutuhan
               </h3>
-              <p className="text-blue-100 text-sm mt-2 max-w-xl">
-                Bergabunglah dengan ratusan mahasiswa lainnya yang telah berkolaborasi di Mentora.
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Pilih topik yang kamu kuasai untuk diajarkan, lalu tentukan materi kuliah atau software yang ingin kamu pelajari.
               </p>
             </div>
-            <Link
-              href="/auth?tab=daftar"
-              className="px-8 py-4 rounded-full bg-white text-[#2563EB] font-bold text-sm shadow-md hover:bg-blue-50 transition whitespace-nowrap"
-            >
-              Daftar Gratis Sekarang
-            </Link>
-          </div>
 
+            <div className="space-y-3">
+              <span className="text-3xl font-extrabold text-blue-600 font-mono">2.</span>
+              <h3 className="text-base font-bold text-slate-900">
+                Sepakati Waktu & Titik Temu
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Cari rekan dengan minat barter silang. Tentukan waktu luang dan sepakati pertemuan di area kampus atau lewat panggilan daring.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <span className="text-3xl font-extrabold text-blue-600 font-mono">3.</span>
+              <h3 className="text-base font-bold text-slate-900">
+                Selesaikan Sesi & Kumpulkan Poin
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Jalankan sesi belajar bersama. Setelah selesai, berikan konfirmasi dan penilaian timbal-balik untuk mengklaim EduPoints.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Clean, Confident Closing CTA (No radioactive gradients) */}
+      <section className="py-16 bg-[#FAFAFB]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 lg:p-14 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm">
+            <div className="space-y-2 max-w-xl">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                Punya keahlian yang bisa dibagikan minggu ini?
+              </h2>
+              <p className="text-sm text-slate-400 leading-relaxed">
+                Bantu teman sejawat memahami materi sulit, perluas koneksi lintas fakultas di Telkom University, dan bangun portofolio kompetensimu.
+              </p>
+            </div>
+            <div>
+              <Link
+                href="/auth?tab=daftar"
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-sm transition whitespace-nowrap"
+              >
+                <span>Daftar Akun Mahasiswa</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 

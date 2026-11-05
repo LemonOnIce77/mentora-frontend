@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Sparkles, User, LogOut, Shield, Award, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard, Compass, BookOpen, GraduationCap } from 'lucide-react';
 
 interface CurrentUser {
   id: number;
@@ -46,75 +46,70 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FAFAFB]/90 backdrop-blur-md border-b border-slate-200/60">
+    <header className="sticky top-0 z-50 bg-[#FAFAFB]/95 backdrop-blur-md border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Logo */}
-        <NextLink href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 via-[#2563EB] to-indigo-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-            {/* Clover / Star shape icon */}
-            <div className="grid grid-cols-2 gap-0.5">
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-            </div>
+        {/* Brand Logo */}
+        <NextLink href="/" className="flex items-center gap-3 group">
+          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow-sm group-hover:bg-blue-700 transition">
+            M
           </div>
-          <span className="text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-[#2563EB] transition-colors">
-            Mentora
-          </span>
+          <div>
+            <span className="text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+              Mentora
+            </span>
+            <span className="hidden sm:inline-block ml-2 text-[11px] font-semibold text-slate-400 border-l border-slate-300 pl-2">
+              Peer Skill Exchange
+            </span>
+          </div>
         </NextLink>
 
-        {/* Center Nav links matching mockup */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-          <NextLink href="/" className="text-[#2563EB] font-semibold hover:text-blue-700 transition-colors">
+        {/* Navigation Links */}
+        <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+          <NextLink href="/" className="hover:text-blue-600 transition-colors">
             Beranda
           </NextLink>
-          <NextLink href="/#tentang" className="hover:text-slate-900 transition-colors">
-            Tentang
+          <NextLink href="/skills" className="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+            <BookOpen className="w-4 h-4 text-slate-400" />
+            <span>Katalog Keahlian</span>
           </NextLink>
-          <NextLink href="/#fitur" className="hover:text-slate-900 transition-colors">
-            Fitur
-          </NextLink>
-          <NextLink href="/#testimoni" className="hover:text-slate-900 transition-colors">
-            Testimoni
-          </NextLink>
-          <NextLink href="/#faq" className="hover:text-slate-900 transition-colors">
-            FAQ
+          <NextLink href="/mentor/apply" className="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+            <GraduationCap className="w-4 h-4 text-slate-400" />
+            <span>Daftar Mentor</span>
           </NextLink>
           {user && (
-            <NextLink href="/dashboard" className="text-slate-900 font-semibold flex items-center gap-1 hover:text-[#2563EB] transition-colors">
-              <LayoutDashboard className="w-4 h-4 text-[#2563EB]" />
-              Dashboard
+            <NextLink href="/dashboard" className="text-slate-900 font-bold flex items-center gap-1.5 hover:text-blue-600 transition-colors">
+              <LayoutDashboard className="w-4 h-4 text-blue-600" />
+              <span>Dashboard</span>
             </NextLink>
           )}
         </nav>
 
-        {/* Auth CTA buttons */}
+        {/* User Session Actions */}
         <div className="flex items-center gap-3">
           {loading ? (
-            <div className="w-20 h-9 bg-slate-200/60 rounded-full animate-pulse"></div>
+            <div className="w-24 h-9 bg-slate-200/60 rounded-full animate-pulse"></div>
           ) : user ? (
             <div className="flex items-center gap-3">
               <NextLink
                 href="/dashboard"
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white border border-slate-200 hover:border-slate-300 shadow-sm transition"
+                className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 hover:border-slate-300 shadow-xs transition"
               >
                 {user.fotoProfil ? (
                   <img src={user.fotoProfil} alt={user.namaLengkap} className="w-7 h-7 rounded-full object-cover" />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-xs">
+                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
                     {(user.namaPanggilan || user.namaLengkap).charAt(0)}
                   </div>
                 )}
-                <span className="text-sm font-semibold text-slate-800">
+                <span className="text-xs font-bold text-slate-800">
                   {user.namaPanggilan || user.namaLengkap.split(' ')[0]}
                 </span>
-                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   user.role === 'Admin'
                     ? 'bg-purple-100 text-purple-700'
                     : user.statusMentor === 'APPROVED'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-blue-50 text-[#2563EB]'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-blue-50 text-blue-700'
                 }`}>
                   {user.role === 'Admin' ? 'Admin' : user.statusMentor === 'APPROVED' ? 'Mentor' : 'Mentee'}
                 </span>
@@ -122,27 +117,27 @@ export default function Navbar() {
 
               <button
                 onClick={handleLogout}
-                title="Keluar"
+                title="Keluar dari akun"
                 className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition"
               >
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
           ) : (
-            <>
+            <div className="flex items-center gap-2.5">
               <NextLink
                 href="/auth?tab=masuk"
-                className="px-5 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors"
+                className="px-4 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 transition-colors"
               >
                 Masuk
               </NextLink>
               <NextLink
                 href="/auth?tab=daftar"
-                className="px-6 py-2.5 text-sm font-semibold text-white bg-[#2563EB] hover:bg-blue-700 rounded-full shadow-sm hover:shadow transition-all"
+                className="px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-full shadow-xs transition-all"
               >
-                Daftar
+                Daftar Akun
               </NextLink>
-            </>
+            </div>
           )}
         </div>
       </div>
