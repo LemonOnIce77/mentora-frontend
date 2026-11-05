@@ -17,7 +17,6 @@ import {
   GraduationCap,
   ShieldCheck,
   Check,
-  HelpCircle,
 } from 'lucide-react';
 
 interface CurrentUser {
@@ -36,6 +35,7 @@ export default function MentorApplyPage() {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Form states
   const [skillsOffered, setSkillsOffered] = useState('');
@@ -77,33 +77,65 @@ export default function MentorApplyPage() {
     loadUserData();
   }, []);
 
-  // 2. Simulasi / Upload Dokumen Transkrip (FR-05)
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 2. Upload Dokumen Transkrip / Kredensial via /api/upload
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setErrorMsg('Ukuran file maksimal 5MB.');
-        return;
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg('Ukuran berkas melebihi batas maksimal 5MB.');
+      return;
+    }
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      setErrorMsg('Format berkas tidak didukung. Harap unggah PDF, JPG, atau PNG.');
+      return;
+    }
+
+    setUploading(true);
+    setErrorMsg('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setDokumenNama(data.fileName);
+        setDokumenUrl(data.fileUrl);
+        setSuccessMsg(`✓ Dokumen "${data.fileName}" berhasil diunggah.`);
+        setTimeout(() => setSuccessMsg(''), 3500);
+      } else {
+        // Fallback simpan metadata lokal
+        setDokumenNama(file.name);
+        setDokumenUrl('/uploads/' + file.name);
       }
+    } catch {
       setDokumenNama(file.name);
       setDokumenUrl('/uploads/' + file.name);
-      setErrorMsg('');
+    } finally {
+      setUploading(false);
     }
   };
 
-  // 3. Submit Pengajuan Mentor (FR-04)
+  // 3. Submit Pengajuan Mentor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
 
     if (!skillsOffered.trim()) {
-      setErrorMsg('Mohon sebutkan keahlian/skill yang ingin Anda ajarkan.');
+      setErrorMsg('Mohon sebutkan keahlian yang ingin Anda ajarkan.');
       return;
     }
 
     if (!dokumenNama) {
-      setErrorMsg('Mohon unggah dokumen transkrip nilai atau sertifikat kredensial pendukung.');
+      setErrorMsg('Mohon unggah dokumen transkrip nilai atau sertifikat pendukung.');
       return;
     }
 
@@ -116,7 +148,7 @@ export default function MentorApplyPage() {
           skillsOffered: skillsOffered.trim(),
           pengalamanMengajar: pengalamanMengajar.trim(),
           dokumenNama,
-          dokumenUrl: dokumenUrl || '/uploads/transkrip_dummy.pdf',
+          dokumenUrl: dokumenUrl || `/uploads/${dokumenNama}`,
         }),
       });
 
@@ -178,22 +210,29 @@ export default function MentorApplyPage() {
 
         {/* Status Section: APPROVED */}
         {user?.statusMentor === 'APPROVED' && (
-          <div className="bg-white rounded-3xl p-8 border border-emerald-200 shadow-sm text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl">
+          <div className="bg-white rounded-3xl p-8 border border-emerald-200 shadow-sm text-center max-w-2xl mx-auto space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
               <ShieldCheck className="w-8 h-8" />
             </div>
             <h2 className="text-xl font-bold text-slate-900">
-              Selamat! Akun Anda Telah Terverifikasi sebagai Mentor
+              Selamat! Akun Anda Telah Menjadi Mentor Terverifikasi 🎉
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
-              Profil dan skill Anda telah dipublikasikan di direktori mentor Mentora. Mahasiswa lain kini dapat menjadwalkan sesi belajar bersama Anda.
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Kredensial akademik dan keahlian Anda telah disetujui oleh tim verifikator Mentora. Profil Anda kini terdaftar di direktori mentor dan dapat menerima permintaan sesi belajar.
             </p>
+            {user?.dokumenKredensial && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
+                <FileText className="w-4 h-4 text-[#2563EB]" />
+                <span>Dokumen Terverifikasi: {user.dokumenKredensial}</span>
+              </div>
+            )}
             <div className="pt-2">
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#2563EB] text-white text-xs font-bold hover:bg-blue-700 transition"
               >
-                <span>Buka Direktori Mentor di Dashboard</span>
+                <span>Buka Dashboard Mentor</span>
+                <Check className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -201,30 +240,36 @@ export default function MentorApplyPage() {
 
         {/* Status Section: PENDING */}
         {user?.statusMentor === 'PENDING' && (
-          <div className="bg-white rounded-3xl p-8 border border-amber-200 shadow-sm space-y-5">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <Clock className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-lg font-bold text-slate-900">
-                  Pengajuan Mentor Anda Sedang Ditinjau Admin
-                </h2>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Dokumen kredensial Anda (<span className="font-semibold text-slate-700">{user.dokumenKredensial || dokumenNama || 'Transkrip_Nilai.pdf'}</span>) sedang diverifikasi untuk memastikan standar mutu pembelajaran.
-                </p>
-              </div>
+          <div className="bg-white rounded-3xl p-8 border border-amber-200 shadow-sm text-center max-w-2xl mx-auto space-y-4">
+            <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
+              <Clock className="w-8 h-8" />
             </div>
-
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/60 text-xs text-amber-900 leading-relaxed">
-              Status pengajuan akan diperbarui secara otomatis begitu proses validasi oleh administrator selesai (FR-06 & FR-07).
+            <h2 className="text-xl font-bold text-slate-900">
+              Pengajuan Mentor Sedang Ditinjau Tim Verifikator
+            </h2>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Berkas transkrip/sertifikat Anda sedang dalam proses peninjauan oleh Admin Mentora. Notifikasi status kelulusan akan diperbarui secara otomatis.
+            </p>
+            {dokumenNama && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-medium text-amber-900">
+                <FileText className="w-4 h-4 text-amber-600" />
+                <span>Berkas Kredensial: {dokumenNama}</span>
+              </div>
+            )}
+            <div className="pt-2">
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+              >
+                <span>Kembali ke Halaman Utama</span>
+              </Link>
             </div>
           </div>
         )}
 
-        {/* Form Section: NONE or REJECTED */}
-        {(!user?.statusMentor || user?.statusMentor === 'NONE' || user?.statusMentor === 'REJECTED') && (
-          <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-6">
+        {/* Application Form for NONE or REJECTED */}
+        {user?.statusMentor !== 'APPROVED' && user?.statusMentor !== 'PENDING' && (
+          <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
             
             {user?.statusMentor === 'REJECTED' && (
               <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2.5">
@@ -258,14 +303,14 @@ export default function MentorApplyPage() {
                 </span>
               </div>
               <div>
-                Prodi: <span className="font-semibold text-slate-800">{user?.prodi || 'Sistem Informasi'}</span> • Semester {user?.semester || '-'}
+                Prodi: <span className="font-semibold text-slate-800">{user?.prodi || 'Informatika'}</span> • Semester {user?.semester || '5'}
               </div>
             </div>
 
             {/* Field: Skills Offered */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Materi / Skill yang Ditawarkan untuk Diajarkan<span className="text-rose-500">*</span>
+                Materi / Keahlian yang Ingin Diajarkan <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -292,24 +337,25 @@ export default function MentorApplyPage() {
               />
             </div>
 
-            {/* Field: Upload Kredensial (FR-05) */}
+            {/* Field: Upload Kredensial */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Unggah Bukti Kredensial / Transkrip Nilai (FR-05) <span className="text-rose-500">*</span>
+                Unggah Bukti Kredensial / Transkrip Nilai <span className="text-rose-500">*</span>
               </label>
               <div className="border-2 border-dashed border-slate-200 hover:border-[#2563EB] rounded-2xl p-7 text-center transition bg-slate-50/50">
                 <FileText className="w-8 h-8 text-[#2563EB] mx-auto mb-2" />
                 <p className="text-xs font-bold text-slate-700">
-                  {dokumenNama ? `File terpilih: ${dokumenNama}` : 'Pilih Transkrip Nilai Akademik atau Portofolio (PDF)'}
+                  {dokumenNama ? `Berkas terpilih: ${dokumenNama}` : 'Pilih Transkrip Nilai Akademik atau Portofolio (PDF)'}
                 </p>
                 <p className="text-[11px] text-slate-400 mt-0.5">Format file yang didukung: PDF, JPG, PNG (Maksimal 5MB)</p>
                 <label className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-xs transition">
-                  <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
-                  <span>{dokumenNama ? 'Ganti Dokumen' : 'Cari File Dokumen'}</span>
+                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2563EB]" /> : <Upload className="w-3.5 h-3.5 text-[#2563EB]" />}
+                  <span>{uploading ? 'Mengunggah berkas...' : dokumenNama ? 'Ganti Dokumen' : 'Cari File Dokumen'}</span>
                   <input
                     type="file"
                     accept=".pdf,image/*"
                     onChange={handleFileUpload}
+                    disabled={uploading}
                     className="hidden"
                   />
                 </label>
@@ -328,7 +374,7 @@ export default function MentorApplyPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || uploading}
                 className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}

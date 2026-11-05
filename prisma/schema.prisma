@@ -1,0 +1,172 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  Int          @id @default(autoincrement())
+  namaLengkap         String
+  namaPanggilan       String?
+  email               String       @unique
+  password            String
+  universitas         String?
+  prodi               String?
+  semester            String?
+  domisili            String?
+  tglLahir            String?
+  bio                 String?
+  fotoProfil          String?
+  modeSesi            String?      @default("Fleksibel") // Online, Offline, Fleksibel
+  onboardingCompleted Boolean      @default(false)
+  role                String       @default("Mentee") // Mentee, Mentor, Admin
+  statusMentor        String       @default("NONE") // NONE, PENDING, APPROVED, REJECTED
+  dokumenKredensial   String?
+  totalPoin           Int          @default(0)
+  latitude            Float?
+  longitude           Float?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  skills              UserSkill[]
+  applications        MentorApplication[]
+  sentMessages        ChatMessage[]       @relation("SenderMessages")
+  receivedMessages    ChatMessage[]       @relation("ReceiverMessages")
+  reviewsGiven        Review[]            @relation("Reviewer")
+  reviewsReceived     Review[]            @relation("ReviewedUser")
+  poinHistory         RiwayatPoin[]
+  certificates        ECertificate[]
+  schedules           JadwalKetersediaan[]
+  mentorSessions      SesiExchange[]      @relation("MentorSessions")
+  menteeSessions      SesiExchange[]      @relation("MenteeSessions")
+}
+
+model Skill {
+  id          Int         @id @default(autoincrement())
+  namaSkill   String      @unique
+  kategori    String      // Design, Tech, Business, Communication, Language, etc.
+  deskripsi   String?
+  users       UserSkill[]
+  sessions    SesiExchange[]
+}
+
+model UserSkill {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  skillId   Int
+  tipe      String   // "LEARN" (ingin dipelajari) | "TEACH" (sudah dimiliki)
+  level     String?  @default("Beginner") // Beginner, Intermediate, Advanced
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId, tipe])
+}
+
+model MentorApplication {
+  id                   Int       @id @default(autoincrement())
+  userId               Int
+  skillsOffered        String    // JSON or comma separated skills
+  pengalamanMengajar   String?
+  dokumenUrl           String    // Path or base64 data URL
+  dokumenNama          String
+  status               String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  catatanAdmin         String?
+  createdAt            DateTime  @default(now())
+  reviewedAt           DateTime?
+
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model JadwalKetersediaan {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  hari        String
+  jamMulai    String
+  jamSelesai  String
+  isAvailable Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session     SesiExchange?
+}
+
+model SesiExchange {
+  id           Int                 @id @default(autoincrement())
+  mentorId     Int
+  menteeId     Int
+  skillId      Int
+  jadwalId     Int?                @unique
+  tanggalSesi  DateTime
+  jamMulai     String
+  jamSelesai   String
+  metode       String              // Online / Offline
+  lokasi       String?
+  status       String              @default("BOOKED") // BOOKED, COMPLETED, CANCELLED
+  createdAt    DateTime            @default(now())
+
+  mentor       User                @relation("MentorSessions", fields: [mentorId], references: [id], onDelete: Cascade)
+  mentee       User                @relation("MenteeSessions", fields: [menteeId], references: [id], onDelete: Cascade)
+  skill        Skill               @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  jadwal       JadwalKetersediaan? @relation(fields: [jadwalId], references: [id])
+  messages     ChatMessage[]
+  reviews      Review[]
+  poinHistory  RiwayatPoin[]
+}
+
+model ChatMessage {
+  id         Int           @id @default(autoincrement())
+  sesiId     Int?
+  pengirimId Int
+  penerimaId Int
+  pesan      String
+  waktuKirim DateTime      @default(now())
+  isRead     Boolean       @default(false)
+
+  sesi       SesiExchange? @relation(fields: [sesiId], references: [id], onDelete: Cascade)
+  pengirim   User          @relation("SenderMessages", fields: [pengirimId], references: [id], onDelete: Cascade)
+  penerima   User          @relation("ReceiverMessages", fields: [penerimaId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id             Int          @id @default(autoincrement())
+  sesiId         Int
+  reviewerId     Int
+  reviewedUserId Int
+  rating         Int
+  komentar       String?
+  createdAt      DateTime     @default(now())
+
+  sesi           SesiExchange @relation(fields: [sesiId], references: [id], onDelete: Cascade)
+  reviewer       User         @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewedUser   User         @relation("ReviewedUser", fields: [reviewedUserId], references: [id], onDelete: Cascade)
+}
+
+model RiwayatPoin {
+  id               Int           @id @default(autoincrement())
+  userId           Int
+  sesiId           Int?
+  jumlahPoin       Int
+  tipeTransaksi    String        // "ADD" (dapat poin) atau "DEDUCT" (tukar sertifikat)
+  keterangan       String
+  waktuTransaksi   DateTime      @default(now())
+
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sesi             SesiExchange? @relation(fields: [sesiId], references: [id])
+}
+
+model ECertificate {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  nomorSertifikat  String   @unique
+  tanggalTerbit    DateTime @default(now())
+  poinDitebus      Int      @default(25)
+  fileUrl          String
+  status           String   @default("ISSUED")
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

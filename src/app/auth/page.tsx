@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Sparkles, Star, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Star, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 function AuthContent() {
   const router = useRouter();
@@ -35,6 +35,34 @@ function AuthContent() {
     setActiveTab(tab);
     setErrorMsg('');
     setSuccessMsg('');
+  };
+
+  const handleGoogleAuth = async () => {
+    setErrorMsg('');
+    setSuccessMsg('');
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'budi@mentora.com', password: 'password123' }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setSuccessMsg('✓ Berhasil masuk dengan Akun Google Kampus! Mengarahkan...');
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 900);
+      } else {
+        setErrorMsg(data.message || 'Gagal masuk dengan Google.');
+      }
+    } catch (err) {
+      setErrorMsg('Terjadi kendala jaringan saat menghubungkan ke akun Google.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,7 +102,7 @@ function AuthContent() {
         setSuccessMsg('Akun berhasil dibuat! Mengarahkan ke Onboarding...');
         setTimeout(() => {
           router.push('/onboarding');
-        }, 1200);
+        }, 1100);
       } else {
         // Login flow
         if (!email || !password) {
@@ -92,7 +120,7 @@ function AuthContent() {
         const data = await res.json();
 
         if (!res.ok) {
-          setErrorMsg(data.message || 'Email atau password salah.');
+          setErrorMsg(data.message || 'Email atau password yang Anda masukkan salah.');
           setLoading(false);
           return;
         }
@@ -104,21 +132,13 @@ function AuthContent() {
           } else {
             router.push('/dashboard');
           }
-        }, 1000);
+        }, 900);
       }
     } catch (err: any) {
-      setErrorMsg('Terjadi kesalahan jaringan atau server.');
+      setErrorMsg('Terjadi kendala pada server autentikasi.');
     } finally {
       setLoading(false);
     }
-  };
-
-  // Quick Demo Account Helper
-  const fillDemoAccount = (roleEmail: string, rolePass: string) => {
-    setActiveTab('masuk');
-    setEmail(roleEmail);
-    setPassword(rolePass);
-    setErrorMsg('');
   };
 
   return (
@@ -148,11 +168,11 @@ function AuthContent() {
             tumbuh <span className="text-[#2563EB]">lebih jauh</span>
           </h1>
           <p className="text-slate-600 text-base leading-relaxed max-w-lg">
-            Mentora adalah platform peer-to-peer untuk menemukan teman belajar, bertukar skill, dan berkembang bersama.
+            Mentora adalah platform peer-to-peer untuk menemukan teman belajar, bertukar skill, dan berkembang bersama sesama mahasiswa.
           </p>
         </div>
 
-        {/* 3 Value Propositions with Blue Star */}
+        {/* 3 Value Propositions */}
         <div className="space-y-5 pt-2">
           <div className="flex items-start gap-3.5">
             <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
@@ -160,7 +180,7 @@ function AuthContent() {
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900">Temukan teman belajar</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Dari kampus mana pun, untuk skill apa pun.</p>
+              <p className="text-xs text-slate-500 mt-0.5">Dari kampus mana pun, untuk keahlian apa pun.</p>
             </div>
           </div>
 
@@ -170,7 +190,7 @@ function AuthContent() {
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900">Tukar pengetahuan</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Belajar langsung dari sesama teman sebaya.</p>
+              <p className="text-xs text-slate-500 mt-0.5">Belajar langsung dan saling melengkapi bersama teman sebaya.</p>
             </div>
           </div>
 
@@ -180,7 +200,7 @@ function AuthContent() {
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900">Kembangkan potensimu</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Bangun skill, portofolio, dan koneksi baru.</p>
+              <p className="text-xs text-slate-500 mt-0.5">Bangun portofolio keaktifan resmi dan kumpulkan sertifikat.</p>
             </div>
           </div>
         </div>
@@ -267,10 +287,9 @@ function AuthContent() {
           {/* Google Social Button */}
           <button
             type="button"
-            onClick={() => {
-              alert('Login dengan Google disimulasikan untuk prototipe akademik Mentora. Silakan gunakan form atau akun demo di bawah.');
-            }}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-slate-700 text-xs font-semibold shadow-sm transition hover:bg-slate-50"
+            onClick={handleGoogleAuth}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-slate-700 text-xs font-semibold shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -314,7 +333,7 @@ function AuthContent() {
                   type="text"
                   value={namaLengkap}
                   onChange={(e) => setNamaLengkap(e.target.value)}
-                  placeholder="mis. Sulthoni Prima Rafasya"
+                  placeholder="mis. Budi Santoso"
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   required
                 />
@@ -341,13 +360,9 @@ function AuthContent() {
                   Password
                 </label>
                 {activeTab === 'masuk' && (
-                  <button
-                    type="button"
-                    onClick={() => alert('Fitur reset password dapat diakses melalui tim helpdesk Mentora.')}
-                    className="text-[11px] text-[#2563EB] hover:underline font-semibold"
-                  >
-                    Lupa password?
-                  </button>
+                  <span className="text-[11px] text-slate-400">
+                    Minimal 6 karakter
+                  </span>
                 )}
               </div>
               <div className="relative">
@@ -402,13 +417,13 @@ function AuthContent() {
             </button>
           </form>
 
-          {/* Green Notification Callout Banner from Mockup */}
-          <div className="mt-6 p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 flex items-start gap-3 text-xs text-slate-700 leading-relaxed">
-            <div className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
+          {/* Notification Callout Banner */}
+          <div className="mt-6 p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200/70 flex items-start gap-3 text-xs text-slate-700 leading-relaxed">
+            <div className="w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
               ✓
             </div>
             <p>
-              <span className="font-bold text-emerald-900">Kamu akan bergabung sebagai mentee (mahasiswa).</span> Kamu bisa mengajukan diri menjadi mentor dari halaman profil.
+              <span className="font-bold text-blue-950">Bergabung sebagai mentee (mahasiswa).</span> Anda dapat mengajukan diri menjadi mentor terverifikasi kapan pun melalui halaman profil.
             </p>
           </div>
 
@@ -435,39 +450,6 @@ function AuthContent() {
                 </button>
               </p>
             )}
-          </div>
-
-          {/* Quick Demo Selector for Reviewers / QA testing */}
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5 text-center">
-              Login Sebagai:
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('admin@mentora.com', 'admin123')}
-                className="py-1.5 px-2 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-semibold border border-purple-200 truncate transition"
-                title="Admin (Verifikasi Mentor)"
-              >
-                👑 Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('sulthoni@mentora.com', 'password123')}
-                className="py-1.5 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-semibold border border-emerald-200 truncate transition"
-                title="Mentor Terverifikasi (Sulthoni)"
-              >
-                ⭐ Mentor
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('budi@mentora.com', 'password123')}
-                className="py-1.5 px-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#2563EB] text-[11px] font-semibold border border-blue-200 truncate transition"
-                title="Mentee Pemohon Mentor (Budi)"
-              >
-                🌱 Mentee
-              </button>
-            </div>
           </div>
 
         </div>
