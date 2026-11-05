@@ -91,7 +91,12 @@ function AuthContent() {
           body: JSON.stringify({ namaLengkap, email, password }),
         });
 
-        const data = await res.json();
+        let data: any = {};
+        try {
+          data = await res.json();
+        } catch {
+          data = { message: 'Server merespons di luar format JSON. Pastikan prisma client dan database dev aktif.' };
+        }
 
         if (!res.ok) {
           setErrorMsg(data.message || 'Registrasi gagal. Silakan coba lagi.');
@@ -117,7 +122,12 @@ function AuthContent() {
           body: JSON.stringify({ email, password }),
         });
 
-        const data = await res.json();
+        let data: any = {};
+        try {
+          data = await res.json();
+        } catch {
+          data = { message: 'Server merespons di luar format JSON. Pastikan prisma client dan database dev aktif.' };
+        }
 
         if (!res.ok) {
           setErrorMsg(data.message || 'Email atau password yang Anda masukkan salah.');
@@ -135,7 +145,7 @@ function AuthContent() {
         }, 900);
       }
     } catch (err: any) {
-      setErrorMsg('Terjadi kendala pada server autentikasi.');
+      setErrorMsg(err?.message && !err.message.includes('Unexpected') ? err.message : 'Terjadi kendala pada server autentikasi. Pastikan npm run dev aktif dan prisma ter-generate.');
     } finally {
       setLoading(false);
     }
