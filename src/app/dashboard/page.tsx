@@ -354,7 +354,7 @@ export default function DashboardPage() {
 const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
+    <div className="min-h-screen flex flex-col bg-[#FAFAFB] dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200">
       <Navbar />
 
       {/* Main App Container */}
@@ -796,7 +796,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Skill Yang Ingin Dipelajari */}
-                <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-100">
+                <div className="p-6 rounded-2xl bg-blue-100/70 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 shadow-xs">
                   <h3 className="text-sm font-bold text-[#2563EB] mb-3 flex items-center gap-2">
                     <BookOpen className="w-4 h-4" />
                     <span>Skill yang Ingin Dipelajari (Mentee)</span>
@@ -805,7 +805,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     {learnedSkills.map((s) => (
                       <span
                         key={s.id}
-                        className="px-3 py-1.5 rounded-xl bg-white text-[#2563EB] border border-blue-200 text-xs font-semibold shadow-2xs"
+                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-[#2563EB] dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-semibold shadow-xs"
                       >
                         {s.skill.namaSkill}
                       </span>
@@ -817,7 +817,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 </div>
 
                 {/* Skill Yang Sudah Dimiliki */}
-                <div className="p-6 rounded-2xl bg-emerald-50/50 border border-emerald-100">
+                <div className="p-6 rounded-2xl bg-emerald-100/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60 shadow-xs">
                   <h3 className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     <span>Skill yang Sudah Dimiliki (Mentor)</span>
@@ -826,7 +826,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     {taughtSkills.map((s) => (
                       <span
                         key={s.id}
-                        className="px-3 py-1.5 rounded-xl bg-white text-emerald-700 border border-emerald-200 text-xs font-semibold shadow-2xs"
+                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold shadow-xs"
                       >
                         {s.skill.namaSkill}
                       </span>
@@ -935,7 +935,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                   <label className="block text-xs font-bold text-slate-700 mb-1">
                     Upload Dokumen Kredensial (FR-05) <span className="text-rose-500">*</span>
                   </label>
-                  <div className="border-2 border-dashed border-slate-200 hover:border-[#2563EB] rounded-2xl p-6 text-center transition bg-slate-50/50">
+                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-[#2563EB] rounded-2xl p-6 text-center transition bg-slate-100/70 dark:bg-slate-800/50">
                     <FileText className="w-8 h-8 text-[#2563EB] mx-auto mb-2" />
                     <p className="text-xs font-semibold text-slate-700">
                       {applyDocName ? `Dokumen terpilih: ${applyDocName}` : 'Pilih Transkrip Nilai / Sertifikat Keahlian (PDF)'}
