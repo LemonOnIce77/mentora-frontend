@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Loader2, ShieldCheck, BookOpen, Users } from 'lucide-react';
+import { Star, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 function AuthContent() {
   const router = useRouter();
@@ -51,7 +51,7 @@ function AuthContent() {
 
       const data = await res.json();
       if (res.ok) {
-        setSuccessMsg('✓ Berhasil masuk dengan Akun Kampus! Mengarahkan...');
+        setSuccessMsg('✓ Berhasil masuk dengan Akun Google Kampus! Mengarahkan...');
         setTimeout(() => {
           router.push('/dashboard');
         }, 900);
@@ -144,90 +144,87 @@ function AuthContent() {
   return (
     <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
       
-      {/* Left Column: Context & Real Student Social Proof */}
+      {/* Left Column: Mentora Value Props & Graphics */}
       <div className="lg:col-span-6 space-y-8 pr-0 lg:pr-6">
-        {/* Brand Logo */}
-        <Link href="/" className="inline-flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow-sm">
-            M
+        {/* Logo */}
+        <Link href="/" className="inline-flex items-center gap-2.5 group">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-500 via-[#2563EB] to-indigo-500 flex items-center justify-center shadow-sm">
+            <div className="grid grid-cols-2 gap-0.5">
+              <span className="w-2 h-2 rounded-full bg-white"></span>
+              <span className="w-2 h-2 rounded-full bg-white"></span>
+              <span className="w-2 h-2 rounded-full bg-white"></span>
+              <span className="w-2 h-2 rounded-full bg-white"></span>
+            </div>
           </div>
-          <div>
-            <span className="text-xl font-extrabold tracking-tight text-slate-900">
-              Mentora
-            </span>
-            <span className="hidden sm:inline-block ml-2 text-[11px] font-semibold text-slate-400 border-l border-slate-300 pl-2">
-              Peer Skill Exchange
-            </span>
-          </div>
+          <span className="text-2xl font-black tracking-tight text-slate-900">
+            Mentora
+          </span>
         </Link>
 
         {/* Heading */}
         <div className="space-y-3">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.2]">
-            Tukar keahlian, <br />
-            tumbuh <span className="text-blue-600">bersama teman.</span>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.2]">
+            Belajar bareng, <br />
+            tumbuh <span className="text-[#2563EB]">lebih jauh</span>
           </h1>
-          <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-lg">
-            Masuk ke platform kolaboratif mahasiswa Telkom University. Temukan partner belajar, saling bimbing, dan kumpulkan EduPoints resmi.
+          <p className="text-slate-600 text-base leading-relaxed max-w-lg">
+            Mentora adalah platform peer-to-peer untuk menemukan teman belajar, bertukar skill, dan berkembang bersama sesama mahasiswa.
           </p>
         </div>
 
-        {/* Real Value Pillars */}
-        <div className="space-y-4 pt-1 text-xs">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-              1
+        {/* 3 Value Propositions */}
+        <div className="space-y-5 pt-2">
+          <div className="flex items-start gap-3.5">
+            <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
+              <Star className="w-4 h-4 fill-[#2563EB]" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-sm">Barter 1-on-1 Seimbang</h4>
-              <p className="text-slate-500 mt-0.5">Satu jam kamu membimbing keahlianmu, satu jam kamu menerima materi dari rekan.</p>
+              <h4 className="text-sm font-bold text-slate-900">Temukan teman belajar</h4>
+              <p className="text-xs text-slate-500 mt-0.5">Dari kampus mana pun, untuk keahlian apa pun.</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-              2
+          <div className="flex items-start gap-3.5">
+            <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
+              <Star className="w-4 h-4 fill-[#2563EB]" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-sm">Verifikasi Dokumen Akademik</h4>
-              <p className="text-slate-500 mt-0.5">Transkrip nilai dan portofolio resmi ditinjau verifikator sebelum status mentor aktif.</p>
+              <h4 className="text-sm font-bold text-slate-900">Tukar pengetahuan</h4>
+              <p className="text-xs text-slate-500 mt-0.5">Belajar langsung dan saling melengkapi bersama teman sebaya.</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-              3
+          <div className="flex items-start gap-3.5">
+            <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
+              <Star className="w-4 h-4 fill-[#2563EB]" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 text-sm">Klaim EduPoints & Portofolio</h4>
-              <p className="text-slate-500 mt-0.5">Kumpulkan poin reputasi untuk sertifikat kompetensi keaktifan mahasiswa.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Student Testimonial Card */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs max-w-md space-y-2.5">
-          <p className="text-xs text-slate-600 leading-relaxed italic">
-            "Semester lalu saya terbantu memahami query SQL praktikum dari mahasiswa Informatika, dan saya gantian mengajarinya dasar pembuatan prototipe Figma untuk proyek tugas akhirnya."
-          </p>
-          <div className="flex items-center gap-2.5 pt-1 border-t border-slate-100">
-            <img
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=60&auto=format&fit=crop&q=80"
-              alt="Aulia"
-              className="w-7 h-7 rounded-full object-cover"
-            />
-            <div>
-              <span className="text-xs font-bold text-slate-900 block">Aulia Rahisa</span>
-              <span className="text-[10px] text-slate-400">Mahasiswa DKV • Telkom University</span>
+              <h4 className="text-sm font-bold text-slate-900">Kembangkan potensimu</h4>
+              <p className="text-xs text-slate-500 mt-0.5">Bangun portofolio keaktifan resmi dan kumpulkan sertifikat.</p>
             </div>
           </div>
         </div>
 
+        {/* Bottom Badge Stickers */}
+        <div className="pt-4 flex items-center justify-between max-w-md">
+          <div className="font-handwriting text-3xl font-bold text-slate-800 -rotate-2">
+            More Skills <br />
+            Brighter Friends
+          </div>
+
+          <div className="w-32 h-32 rounded-full bg-[#2563EB] text-white p-3 flex flex-col items-center justify-center text-center shadow-lg rotate-6 hover:rotate-0 transition-transform">
+            <p className="text-[11px] font-bold leading-tight">
+              Skill baru ini <br />
+              bisa jadi peluang <br />
+              besar nanti! ✨
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Right Column: Card with Masuk / Daftar Tabs */}
       <div className="lg:col-span-6">
-        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/90 shadow-lg relative">
+        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-lg relative">
           
           {/* Top Tabs Switcher */}
           <div className="flex border-b border-slate-200 mb-8">
@@ -236,13 +233,13 @@ function AuthContent() {
               onClick={() => handleTabChange('masuk')}
               className={`flex-1 pb-3 text-center text-sm font-bold transition-all relative ${
                 activeTab === 'masuk'
-                  ? 'text-blue-600'
+                  ? 'text-[#2563EB]'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               Masuk
               {activeTab === 'masuk' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full"></span>
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2563EB] rounded-full"></span>
               )}
             </button>
             <button
@@ -250,26 +247,26 @@ function AuthContent() {
               onClick={() => handleTabChange('daftar')}
               className={`flex-1 pb-3 text-center text-sm font-bold transition-all relative ${
                 activeTab === 'daftar'
-                  ? 'text-blue-600'
+                  ? 'text-[#2563EB]'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               Daftar
               {activeTab === 'daftar' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full"></span>
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2563EB] rounded-full"></span>
               )}
             </button>
           </div>
 
           {/* Greeting */}
           <div className="mb-6">
-            <h2 className="text-2xl font-extrabold text-slate-900">
-              {activeTab === 'masuk' ? 'Selamat datang kembali' : 'Buat akun Mentora'}
+            <h2 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+              {activeTab === 'masuk' ? 'Selamat datang di Mentora! 👋' : 'Daftar akun Mentora! 🚀'}
             </h2>
             <p className="text-xs text-slate-500 mt-1">
               {activeTab === 'masuk'
-                ? 'Gunakan akun mahasiswa terdaftar untuk masuk.'
-                : 'Mulai kolaborasi belajar bersama rekan mahasiswa Telkom University.'}
+                ? 'Masuk untuk melanjutkan perjalanan belajarmu.'
+                : 'Mulai perjalanan belajarmu bersama mahasiswa lainnya.'}
             </p>
           </div>
 
@@ -281,8 +278,8 @@ function AuthContent() {
             </div>
           )}
           {successMsg && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2.5">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <div className="mb-5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium flex items-center gap-2.5">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -292,7 +289,7 @@ function AuthContent() {
             type="button"
             onClick={handleGoogleAuth}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-slate-700 text-xs font-semibold shadow-xs transition hover:bg-slate-50 disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-slate-700 text-xs font-semibold shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -312,7 +309,7 @@ function AuthContent() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>{activeTab === 'masuk' ? 'Masuk dengan Akun Kampus (SSO)' : 'Daftar dengan Akun Kampus'}</span>
+            <span>{activeTab === 'masuk' ? 'Masuk dengan Google' : 'Daftar dengan Google'}</span>
           </button>
 
           {/* Divider */}
@@ -321,7 +318,7 @@ function AuthContent() {
               <div className="w-full border-t border-slate-200"></div>
             </div>
             <span className="relative px-3 bg-white text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-              atau gunakan email mahasiswa
+              atau {activeTab === 'masuk' ? 'masuk' : 'daftar'} dengan email
             </span>
           </div>
 
@@ -337,7 +334,7 @@ function AuthContent() {
                   value={namaLengkap}
                   onChange={(e) => setNamaLengkap(e.target.value)}
                   placeholder="mis. Budi Santoso"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   required
                 />
               </div>
@@ -352,7 +349,7 @@ function AuthContent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@email.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                 required
               />
             </div>
@@ -374,7 +371,7 @@ function AuthContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password kamu"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 pr-10"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] pr-10"
                   required
                 />
                 <button
@@ -397,7 +394,7 @@ function AuthContent() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Ulangi password kamu"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   required
                 />
               </div>
@@ -407,7 +404,7 @@ function AuthContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-xs transition flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -420,6 +417,16 @@ function AuthContent() {
             </button>
           </form>
 
+          {/* Notification Callout Banner */}
+          <div className="mt-6 p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200/70 flex items-start gap-3 text-xs text-slate-700 leading-relaxed">
+            <div className="w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
+              ✓
+            </div>
+            <p>
+              <span className="font-bold text-blue-950">Bergabung sebagai mentee (mahasiswa).</span> Anda dapat mengajukan diri menjadi mentor terverifikasi kapan pun melalui halaman profil.
+            </p>
+          </div>
+
           {/* Footer switcher */}
           <div className="mt-6 text-center text-xs text-slate-500">
             {activeTab === 'masuk' ? (
@@ -427,7 +434,7 @@ function AuthContent() {
                 Belum punya akun?{' '}
                 <button
                   onClick={() => handleTabChange('daftar')}
-                  className="font-bold text-blue-600 hover:underline"
+                  className="font-bold text-[#2563EB] hover:underline"
                 >
                   Daftar sekarang
                 </button>
@@ -437,7 +444,7 @@ function AuthContent() {
                 Sudah punya akun?{' '}
                 <button
                   onClick={() => handleTabChange('masuk')}
-                  className="font-bold text-blue-600 hover:underline"
+                  className="font-bold text-[#2563EB] hover:underline"
                 >
                   Masuk di sini
                 </button>
@@ -457,7 +464,7 @@ export default function AuthPage() {
     <div className="min-h-screen bg-[#FAFAFB] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <Suspense fallback={
         <div className="flex items-center justify-center p-12">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
         </div>
       }>
         <AuthContent />
