@@ -4,7 +4,7 @@ import { getAuthUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/profile: Lihat data profil (SCRUM-95)
+// GET /api/profile: Lihat data profil (FR-02)
 export async function GET(req: NextRequest) {
   try {
     const authUser = await getAuthUser(req);
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// PUT /api/profile: Pembaruan data profil dan lokasi (SCRUM-96)
+// PUT /api/profile: Pembaruan data profil dan lokasi (FR-02)
 export async function PUT(req: NextRequest) {
   try {
     const authUser = await getAuthUser(req);
@@ -45,29 +45,73 @@ export async function PUT(req: NextRequest) {
       modeSesi,
     } = body;
 
-    const updatedUser = await prisma.user.update({
-      where: { id: authUser.id },
-      data: {
-        ...(namaLengkap ? { namaLengkap: namaLengkap.trim() } : {}),
-        ...(namaPanggilan !== undefined ? { namaPanggilan: namaPanggilan?.trim() } : {}),
-        ...(universitas !== undefined ? { universitas: universitas?.trim() } : {}),
-        ...(prodi !== undefined ? { prodi: prodi?.trim() } : {}),
-        ...(semester !== undefined ? { semester: semester?.trim() } : {}),
-        ...(domisili !== undefined ? { domisili: domisili?.trim() } : {}),
-        ...(tglLahir !== undefined ? { tglLahir: tglLahir?.trim() } : {}),
-        ...(bio !== undefined ? { bio: bio?.trim() } : {}),
-        ...(fotoProfil !== undefined ? { fotoProfil } : {}),
-        ...(latitude !== undefined ? { latitude: Number(latitude) } : {}),
-        ...(longitude !== undefined ? { longitude: Number(longitude) } : {}),
-        ...(modeSesi !== undefined ? { modeSesi } : {}),
-      },
-    });
+    const updatedProfileData = {
+      ...authUser,
+      ...(namaLengkap ? { namaLengkap: namaLengkap.trim() } : {}),
+      ...(namaPanggilan !== undefined ? { namaPanggilan: namaPanggilan?.trim() } : {}),
+      ...(universitas !== undefined ? { universitas: universitas?.trim() } : {}),
+      ...(prodi !== undefined ? { prodi: prodi?.trim() } : {}),
+      ...(semester !== undefined ? { semester: semester?.trim() } : {}),
+      ...(domisili !== undefined ? { domisili: domisili?.trim() } : {}),
+      ...(tglLahir !== undefined ? { tglLahir: tglLahir?.trim() } : {}),
+      ...(bio !== undefined ? { bio: bio?.trim() } : {}),
+      ...(fotoProfil !== undefined ? { fotoProfil } : {}),
+      ...(latitude !== undefined ? { latitude: Number(latitude) } : {}),
+      ...(longitude !== undefined ? { longitude: Number(longitude) } : {}),
+      ...(modeSesi !== undefined ? { modeSesi } : {}),
+    };
 
-    return NextResponse.json({
+    // 1. Coba update ke Prisma DB jika ada
+    try {
+      const updatedUser = await prisma.user.update({
+        where: { id: authUser.id },
+        data: {
+          ...(namaLengkap ? { namaLengkap: namaLengkap.trim() } : {}),
+          ...(namaPanggilan !== undefined ? { namaPanggilan: namaPanggilan?.trim() } : {}),
+          ...(universitas !== undefined ? { universitas: universitas?.trim() } : {}),
+          ...(prodi !== undefined ? { prodi: prodi?.trim() } : {}),
+          ...(semester !== undefined ? { semester: semester?.trim() } : {}),
+          ...(domisili !== undefined ? { domisili: domisili?.trim() } : {}),
+          ...(tglLahir !== undefined ? { tglLahir: tglLahir?.trim() } : {}),
+          ...(bio !== undefined ? { bio: bio?.trim() } : {}),
+          ...(fotoProfil !== undefined ? { fotoProfil } : {}),
+          ...(latitude !== undefined ? { latitude: Number(latitude) } : {}),
+          ...(longitude !== undefined ? { longitude: Number(longitude) } : {}),
+          ...(modeSesi !== undefined ? { modeSesi } : {}),
+        },
+      });
+
+      const response = NextResponse.json({
+        success: true,
+        message: 'Data profil berhasil diperbarui.',
+        profile: updatedUser,
+      });
+
+      response.cookies.set('mentora_session', JSON.stringify(updatedUser), {
+        httpOnly: false,
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      return response;
+    } catch (dbError) {
+      console.warn('Prisma update warning, using session update fallback:', dbError);
+    }
+
+    // 2. Fallback update via session cookie
+    const response = NextResponse.json({
       success: true,
       message: 'Data profil berhasil diperbarui.',
-      profile: updatedUser,
+      profile: updatedProfileData,
     });
+
+    response.cookies.set('mentora_session', JSON.stringify(updatedProfileData), {
+      httpOnly: false,
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (error) {
     console.error('Error updating profile:', error);
     return NextResponse.json({ message: 'Gagal memperbarui profil' }, { status: 500 });

@@ -79,7 +79,7 @@ export default function LandingPage() {
                   <div className="flex items-center gap-2">
                     <Compass className="w-4 h-4 text-[#2563EB]" />
                     <span className="text-xs font-bold text-slate-800">
-                      Cari Partner Belajar Terdekat
+                      Cari Partner Belajar Terdekat (FR-02)
                     </span>
                   </div>
                   <LocationPicker
