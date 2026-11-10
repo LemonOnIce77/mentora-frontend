@@ -9,8 +9,8 @@ import {
   User, 
   LayoutDashboard, 
   LogOut, 
-  Sparkles,
-  ChevronDown
+  ChevronDown,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function FloatingProfileMenu() {
@@ -22,6 +22,20 @@ export default function FloatingProfileMenu() {
   const [isDark, setIsDark] = useState(false);
   const [user, setUser] = useState<{ namaLengkap?: string; email?: string; role?: string } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Fungsi pembaca sesi dari localStorage
+  const syncUserSession = () => {
+    const sessionData = localStorage.getItem('user_session');
+    if (sessionData) {
+      try {
+        setUser(JSON.parse(sessionData));
+      } catch (e) {
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+    }
+  };
 
   // 2. Hook inisialisasi tema & sesi
   useEffect(() => {
@@ -38,14 +52,7 @@ export default function FloatingProfileMenu() {
       document.documentElement.classList.remove('dark');
     }
 
-    const sessionData = localStorage.getItem('user_session');
-    if (sessionData) {
-      try {
-        setUser(JSON.parse(sessionData));
-      } catch (e) {
-        setUser(null);
-      }
-    }
+    syncUserSession();
   }, []);
 
   // 3. Hook klik di luar area modal (Wajib ditaruh sebelum return)
@@ -78,6 +85,7 @@ export default function FloatingProfileMenu() {
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_session');
+    setUser(null);
     router.push('/auth');
     setIsOpen(false);
   };
@@ -87,12 +95,17 @@ export default function FloatingProfileMenu() {
     return null;
   }
 
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
+
   return (
     <div ref={menuRef} className="fixed top-4 right-4 z-50">
       {/* Floating Pill / Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => {
+          syncUserSession(); // Segarkan data sesi saat tombol diklik
+          setIsOpen((prev) => !prev);
+        }}
         className="flex items-center gap-2.5 p-1.5 sm:px-3 sm:py-2 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-md hover:shadow-lg transition-all focus:outline-none"
         aria-label="Menu Profil & Tema"
       >
@@ -112,10 +125,21 @@ export default function FloatingProfileMenu() {
         <div className="absolute right-0 mt-2.5 w-64 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xl p-4 space-y-4 animate-in fade-in zoom-in-95 duration-150">
           {/* Header Info User */}
           <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-              {user?.namaLengkap || 'Pengguna Mentora'}
-            </p>
-            <p className="text-[11px] text-slate-400 truncate">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                {user?.namaLengkap || 'Pengguna Mentora'}
+              </p>
+              <span
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${
+                  isAdmin
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                    : 'bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400'
+                }`}
+              >
+                {user?.role || 'GUEST'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 truncate mt-0.5">
               {user?.email || 'Belum masuk akun'}
             </p>
           </div>
@@ -159,12 +183,12 @@ export default function FloatingProfileMenu() {
             </Link>
 
             <Link
-              href="/projects"
+              href="/admin/verifikasi-mentor"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
             >
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>Katalog Proyek</span>
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Verifikasi Mentor (Admin)</span>
             </Link>
           </div>
 

@@ -12,17 +12,18 @@ import {
   Moon, 
   Sun, 
   ChevronDown,
-  BookOpen
+  BookOpen,
+  ShieldCheck
 } from 'lucide-react';
 
 interface CurrentUser {
-  id: number;
+  id: number | string;
   namaLengkap: string;
   namaPanggilan?: string;
   email: string;
   role: string;
   statusMentor: string;
-  totalPoin: number;
+  totalPoin?: number;
   fotoProfil?: string;
 }
 
@@ -60,7 +61,7 @@ export default function Navbar() {
     };
   }, []);
 
-  // Fetch logged in user
+  // Fetch logged in user (API dengan Fallback ke LocalStorage)
   useEffect(() => {
     fetch('/api/auth/me')
       .then((res) => {
@@ -71,10 +72,31 @@ export default function Navbar() {
         if (data && data.user) {
           setUser(data.user);
         } else {
+          // Fallback membaca user_session saat pengetesan lokal/offline
+          const sessionData = localStorage.getItem('user_session');
+          if (sessionData) {
+            try {
+              setUser(JSON.parse(sessionData));
+            } catch {
+              setUser(null);
+            }
+          } else {
+            setUser(null);
+          }
+        }
+      })
+      .catch(() => {
+        const sessionData = localStorage.getItem('user_session');
+        if (sessionData) {
+          try {
+            setUser(JSON.parse(sessionData));
+          } catch {
+            setUser(null);
+          }
+        } else {
           setUser(null);
         }
       })
-      .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
 
@@ -116,10 +138,13 @@ export default function Navbar() {
     router.refresh();
   };
 
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
+
   return (
     <header className="sticky top-0 z-40 bg-[#FAFAFB]/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Logo */}
+        
+        {/* Sisi Kiri: Logo Icon 4 Titik & Nama Brand Mentora */}
         <NextLink href="/" className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 via-[#2563EB] to-indigo-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <div className="grid grid-cols-2 gap-0.5">
@@ -134,7 +159,7 @@ export default function Navbar() {
           </span>
         </NextLink>
 
-        {/* Center Nav links */}
+        {/* Tengah: Navigasi Halaman */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-300">
           <NextLink href="/" className="text-[#2563EB] dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
             Beranda
@@ -159,12 +184,12 @@ export default function Navbar() {
           )}
         </nav>
 
-        {/* Auth & Account CTA buttons */}
+        {/* Sisi Kanan: Auth & Account CTA */}
         <div className="flex items-center gap-3">
           {loading ? (
             <div className="w-28 h-9 bg-slate-200/60 dark:bg-slate-800 rounded-full animate-pulse"></div>
           ) : user ? (
-            /* Akun Pojok Kanan Atas: "Budi | Mentee" dengan Dropdown */
+            /* Akun Pojok Kanan Atas dengan Dropdown */
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
@@ -181,7 +206,7 @@ export default function Navbar() {
                   />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-950 text-[#2563EB] dark:text-blue-400 flex items-center justify-center font-bold text-xs">
-                    {(user.namaPanggilan || user.namaLengkap).charAt(0)}
+                    {(user.namaPanggilan || user.namaLengkap).charAt(0).toUpperCase()}
                   </div>
                 )}
                 <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 max-w-[120px] truncate">
@@ -189,14 +214,14 @@ export default function Navbar() {
                 </span>
                 <span
                   className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                    user.role === 'Admin'
+                    isAdmin
                       ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-200 dark:border-purple-800/80'
                       : user.statusMentor === 'APPROVED'
                       ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80'
                       : 'bg-blue-50 text-[#2563EB] dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80'
                   }`}
                 >
-                  {user.role === 'Admin' ? 'Admin' : user.statusMentor === 'APPROVED' ? 'Mentor' : 'Mentee'}
+                  {isAdmin ? 'Admin' : user.statusMentor === 'APPROVED' ? 'Mentor' : 'Mentee'}
                 </span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 ${
@@ -208,7 +233,7 @@ export default function Navbar() {
               {/* Dropdown Menu Modal */}
               {isMenuOpen && (
                 <div className="absolute right-0 mt-2.5 w-72 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xl p-4 space-y-3 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  {/* Header info akun */}
+                  {/* Header Info Akun */}
                   <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
                     {user.fotoProfil ? (
                       <img
@@ -218,7 +243,7 @@ export default function Navbar() {
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-100 to-blue-200 dark:from-blue-950 dark:to-indigo-950 text-[#2563EB] dark:text-blue-400 flex items-center justify-center font-bold text-base shadow-xs">
-                        {(user.namaPanggilan || user.namaLengkap).charAt(0)}
+                        {(user.namaPanggilan || user.namaLengkap).charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -230,9 +255,9 @@ export default function Navbar() {
                       </p>
                       <div className="mt-1 flex items-center gap-1.5">
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/70 text-[#2563EB] dark:text-blue-300">
-                          {user.role === 'Admin' ? '👑 Admin Mentora' : user.statusMentor === 'APPROVED' ? '⭐ Mentor Resmi' : '🎓 Mentee'}
+                          {isAdmin ? '👑 Admin Mentora' : user.statusMentor === 'APPROVED' ? '⭐ Mentor Resmi' : '🎓 Mentee'}
                         </span>
-                        {user.totalPoin > 0 && (
+                        {typeof user.totalPoin === 'number' && user.totalPoin > 0 && (
                           <span className="text-[10px] font-semibold text-slate-400">
                             • {user.totalPoin} Poin
                           </span>
@@ -241,7 +266,7 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  {/* Navigasi Menu: Dashboard, Settings, Skills */}
+                  {/* Navigasi Menu */}
                   <div className="space-y-1">
                     <NextLink
                       href="/dashboard"
@@ -252,22 +277,34 @@ export default function Navbar() {
                       <span>Dashboard Belajar</span>
                     </NextLink>
 
+                    {/* Menu Khusus Admin (FR-06 Verifikasi Mentor) */}
+                    {isAdmin && (
+                      <NextLink
+                        href="/admin/verifikasi-mentor"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition"
+                      >
+                        <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>Verifikasi Mentor (Admin)</span>
+                      </NextLink>
+                    )}
+
                     <NextLink
-                      href="/profile"
+                      href="/dashboard?tab=profil"
                       onClick={() => setIsMenuOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                     >
                       <Settings className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                      <span>Settings & Profil Akun</span>
+                      <span>Pengaturan & Profil Akun</span>
                     </NextLink>
 
                     <NextLink
-                      href="/skills"
+                      href="/dashboard?tab=katalog"
                       onClick={() => setIsMenuOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                     >
                       <Sparkles className="w-4 h-4 text-amber-500" />
-                      <span>Kelola Skill Exchange</span>
+                      <span>Katalog Skill Exchange</span>
                     </NextLink>
                   </div>
 
@@ -282,7 +319,6 @@ export default function Navbar() {
                       <span>{isDark ? 'Mode Gelap' : 'Mode Terang'}</span>
                     </div>
 
-                    {/* Toggle Switch Component */}
                     <button
                       type="button"
                       onClick={toggleTheme}
@@ -314,7 +350,7 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            /* Mode Guest (Belum Login): Toggle tema + Tombol Masuk / Daftar */
+            /* Mode Belum Login (Guest) */
             <>
               <button
                 type="button"
@@ -341,6 +377,7 @@ export default function Navbar() {
             </>
           )}
         </div>
+
       </div>
     </header>
   );
