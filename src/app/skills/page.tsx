@@ -180,7 +180,7 @@ export default function SkillManagementPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
+    <div className="min-h-screen flex flex-col bg-[#FAFAFB] dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200">
       <Navbar />
 
       <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1">
@@ -197,7 +197,7 @@ export default function SkillManagementPage() {
         </div>
 
         {/* Header Title Card */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[#2563EB] text-xs font-bold uppercase tracking-wider">
               <Layers className="w-3.5 h-3.5" />
@@ -239,7 +239,7 @@ export default function SkillManagementPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           
           {/* Card 1: Skill Ingin Dipelajari (LEARN / Mentee) */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
                 <div className="flex items-center gap-2.5">
@@ -257,13 +257,13 @@ export default function SkillManagementPage() {
               </div>
 
               {/* Chips Container */}
-              <div className="min-h-[100px] p-4 rounded-2xl bg-slate-50/70 border border-slate-200/70 mb-5">
+              <div className="min-h-[100px] p-4 rounded-2xl bg-slate-100/90 dark:bg-slate-800/70 border border-slate-300/80 dark:border-slate-700 mb-5 shadow-inner">
                 {skillsToLearn.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {skillsToLearn.map((skill) => (
                       <span
                         key={skill}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-[#2563EB] border border-blue-200 text-xs font-semibold shadow-xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-[#2563EB] dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-semibold shadow-xs"
                       >
                         <span>{skill}</span>
                         <button
@@ -344,7 +344,7 @@ export default function SkillManagementPage() {
           </div>
 
           {/* Card 2: Skill yang Sudah Dikuasai (TEACH / Mentor) */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
                 <div className="flex items-center gap-2.5">
@@ -362,13 +362,13 @@ export default function SkillManagementPage() {
               </div>
 
               {/* Chips Container */}
-              <div className="min-h-[100px] p-4 rounded-2xl bg-slate-50/70 border border-slate-200/70 mb-5">
+              <div className="min-h-[100px] p-4 rounded-2xl bg-slate-100/90 dark:bg-slate-800/70 border border-slate-300/80 dark:border-slate-700 mb-5 shadow-inner">
                 {skillsPossessed.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {skillsPossessed.map((skill) => (
                       <span
                         key={skill}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-emerald-700 border border-emerald-200 text-xs font-semibold shadow-xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold shadow-xs"
                       >
                         <span>{skill}</span>
                         <button
@@ -451,7 +451,7 @@ export default function SkillManagementPage() {
         </div>
 
         {/* Preferensi Pelaksanaan Sesi */}
-        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
           <div>
             <h3 className="text-base font-bold text-slate-900">Preferensi Pelaksanaan Sesi Belajar</h3>
             <p className="text-xs text-slate-500 mt-0.5">

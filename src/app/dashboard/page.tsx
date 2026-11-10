@@ -354,7 +354,7 @@ export default function DashboardPage() {
 const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
+    <div className="min-h-screen flex flex-col bg-[#FAFAFB] dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200">
       <Navbar />
 
       {/* Main App Container */}
@@ -460,7 +460,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Daftar Mentor (UC-F1-05)</span>
+            <span>Daftar Mentor</span>
           </button>
 
           <button
@@ -472,7 +472,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
             }`}
           >
             <User className="w-4 h-4" />
-            <span>Manajemen Profil (FR-02)</span>
+            <span>Manajemen Profil</span>
           </button>
 
           <button
@@ -484,7 +484,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
             }`}
           >
             <Layers className="w-4 h-4" />
-            <span>Pengelolaan Skill (FR-03)</span>
+            <span>Pengelolaan Skill</span>
           </button>
 
           {user?.role !== 'Admin' && (
@@ -497,7 +497,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
               }`}
             >
               <FileText className="w-4 h-4" />
-              <span>Pengajuan Mentor & Kredensial (FR-04, FR-05)</span>
+              <span>Pengajuan Mentor & Kredensial</span>
             </button>
           )}
 
@@ -511,7 +511,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
               }`}
             >
               <Shield className="w-4 h-4" />
-              <span>Admin Verifikasi Mentor (FR-06, FR-07)</span>
+              <span>Admin Verifikasi Mentor</span>
               {applications.filter((a) => a.status === 'PENDING').length > 0 && (
                 <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center font-bold">
                   {applications.filter((a) => a.status === 'PENDING').length}
@@ -659,7 +659,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
           <div className="max-w-3xl mx-auto bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Data Profil Pengguna (FR-02)</h2>
+                <h2 className="text-xl font-bold text-slate-900">Data Profil Pengguna</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Kelola informasi data diri untuk keperluan pertukaran ilmu.</p>
               </div>
               <button
@@ -789,14 +789,14 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
         {activeTab === 'skills' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-900 mb-1">Pengelolaan Skill Pengguna (FR-03)</h2>
+              <h2 className="text-xl font-bold text-slate-900 mb-1">Pengelolaan Skill Pengguna</h2>
               <p className="text-xs text-slate-500 mb-6">
                 Data keahlian yang kamu kuasai untuk diajarkan dan materi yang ingin kamu pelajari.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Skill Yang Ingin Dipelajari */}
-                <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-100">
+                <div className="p-6 rounded-2xl bg-blue-100/70 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 shadow-xs">
                   <h3 className="text-sm font-bold text-[#2563EB] mb-3 flex items-center gap-2">
                     <BookOpen className="w-4 h-4" />
                     <span>Skill yang Ingin Dipelajari (Mentee)</span>
@@ -805,7 +805,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     {learnedSkills.map((s) => (
                       <span
                         key={s.id}
-                        className="px-3 py-1.5 rounded-xl bg-white text-[#2563EB] border border-blue-200 text-xs font-semibold shadow-2xs"
+                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-[#2563EB] dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-semibold shadow-xs"
                       >
                         {s.skill.namaSkill}
                       </span>
@@ -817,7 +817,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 </div>
 
                 {/* Skill Yang Sudah Dimiliki */}
-                <div className="p-6 rounded-2xl bg-emerald-50/50 border border-emerald-100">
+                <div className="p-6 rounded-2xl bg-emerald-100/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-900/60 shadow-xs">
                   <h3 className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     <span>Skill yang Sudah Dimiliki (Mentor)</span>
@@ -826,7 +826,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     {taughtSkills.map((s) => (
                       <span
                         key={s.id}
-                        className="px-3 py-1.5 rounded-xl bg-white text-emerald-700 border border-emerald-200 text-xs font-semibold shadow-2xs"
+                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold shadow-xs"
                       >
                         {s.skill.namaSkill}
                       </span>
@@ -890,7 +890,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                   </div>
                 </div>
                 <p className="text-xs text-slate-600 bg-white p-3.5 rounded-xl border border-amber-200/60 leading-relaxed">
-                  Tim Admin Mentora sedang memvalidasi kesesuaian nilai dan kualifikasi keahlianmu. Status akunmu akan otomatis berubah setelah disetujui. (FR-06, FR-07)
+                  Tim Admin Mentora sedang memvalidasi kesesuaian nilai dan kualifikasi keahlianmu. Status akunmu akan otomatis berubah setelah disetujui.
                 </p>
               </div>
             ) : (
@@ -904,7 +904,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Skill yang Ingin Kamu Ajarkan (FR-04) <span className="text-rose-500">*</span>
+                    Skill yang Ingin Kamu Ajarkan<span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -933,9 +933,9 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 {/* Upload Dokumen Kredensial (FR-05) */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Upload Dokumen Kredensial (FR-05) <span className="text-rose-500">*</span>
+                    Upload Dokumen Kredensial <span className="text-rose-500">*</span>
                   </label>
-                  <div className="border-2 border-dashed border-slate-200 hover:border-[#2563EB] rounded-2xl p-6 text-center transition bg-slate-50/50">
+                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-[#2563EB] rounded-2xl p-6 text-center transition bg-slate-100/70 dark:bg-slate-800/50">
                     <FileText className="w-8 h-8 text-[#2563EB] mx-auto mb-2" />
                     <p className="text-xs font-semibold text-slate-700">
                       {applyDocName ? `Dokumen terpilih: ${applyDocName}` : 'Pilih Transkrip Nilai / Sertifikat Keahlian (PDF)'}
@@ -974,7 +974,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60"
                   >
                     {applyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    <span>Kirim Pengajuan Akun Mentor (FR-04)</span>
+                    <span>Kirim Pengajuan Akun Mentor</span>
                   </button>
                 </div>
               </form>
@@ -991,7 +991,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                   PORTAL ADMINISTRATOR MENTORA
                 </span>
                 <h2 className="text-xl font-extrabold text-slate-900 mt-1">
-                  Verifikasi Pengajuan Mentor (FR-06 & FR-07)
+                  Verifikasi Pengajuan Mentor
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Validasi transkrip nilai dan kredensial calon mentor sebelum status aktif dipublikasikan.
@@ -1057,7 +1057,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                           className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
                         >
                           <Check className="w-4 h-4 stroke-[3]" />
-                          <span>Setujui (FR-07)</span>
+                          <span>Setujui</span>
                         </button>
 
                         <button

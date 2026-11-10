@@ -120,7 +120,7 @@ export default function LocationPicker({
           ) : (
             <>
               <MapPin className="w-4 h-4 text-[#2563EB]" />
-              <span>Gunakan Lokasi Saat Ini (Browser GPS)</span>
+              <span>Gunakan Lokasi Saat Ini</span>
             </>
           )}
         </button>

@@ -6,15 +6,184 @@
 
 :root {
   --foreground-rgb: 15, 23, 42;
-  --background-rgb: 250, 250, 252;
+  --background-rgb: 241, 245, 249;
   --primary-mentora: #2563EB;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+.dark {
+  --foreground-rgb: 241, 245, 249;
+  --background-rgb: 2, 6, 23;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background-color: #FAFAFB;
+  background-color: #F1F5F9;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.dark body {
+  background-color: #020617;
+  color: #f8fafc;
+}
+
+.dark .bg-\[\#FAFAFB\] {
+  background-color: #020617 !important;
+}
+
+/* Light Mode: Container backgrounds with light contents inside them - made slightly darker for clear contrast */
+.bg-slate-50,
+.bg-slate-50\/50,
+.bg-slate-50\/70 {
+  background-color: #F1F5F9;
+  border-color: #CBD5E1;
+}
+
+.bg-blue-50\/50 {
+  background-color: rgba(219, 234, 254, 0.65);
+  border-color: #BFDBFE;
+}
+
+.bg-emerald-50\/50 {
+  background-color: rgba(209, 250, 229, 0.65);
+  border-color: #A7F3D0;
+}
+
+.bg-amber-50\/50 {
+  background-color: rgba(254, 243, 199, 0.65);
+  border-color: #FDE68A;
+}
+
+/* Dark Mode: High Contrast component styles */
+.dark .bg-white {
+  background-color: #0f172a;
+}
+
+.dark .border-slate-200,
+.dark .border-slate-200\/80,
+.dark .border-slate-200\/70,
+.dark .border-slate-200\/60,
+.dark .border-slate-100 {
+  border-color: #1e293b;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800 {
+  color: #f8fafc;
+}
+
+.dark .text-slate-700 {
+  color: #e2e8f0;
+}
+
+.dark .text-slate-600 {
+  color: #cbd5e1;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8;
+}
+
+/* Containers in dark mode: darker backgrounds with clear borders so light items/text pop */
+.dark .bg-slate-50,
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0;
+}
+
+.dark .bg-slate-200 {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+}
+
+.dark .bg-blue-50,
+.dark .bg-blue-50\/50,
+.dark .bg-blue-100,
+.dark .bg-blue-100\/60,
+.dark .bg-blue-100\/70 {
+  background-color: rgba(30, 58, 138, 0.35) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+.dark .bg-emerald-50,
+.dark .bg-emerald-50\/50,
+.dark .bg-emerald-100,
+.dark .bg-emerald-100\/60,
+.dark .bg-emerald-100\/70 {
+  background-color: rgba(6, 78, 59, 0.35) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.dark .bg-amber-50,
+.dark .bg-amber-50\/50,
+.dark .bg-amber-100 {
+  background-color: rgba(120, 53, 15, 0.35) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.dark .bg-purple-50,
+.dark .bg-purple-50\/50,
+.dark .bg-purple-100 {
+  background-color: rgba(88, 28, 135, 0.35) !important;
+  border-color: rgba(168, 85, 247, 0.4) !important;
+}
+
+.dark .bg-rose-50,
+.dark .bg-rose-50\/50,
+.dark .bg-rose-100 {
+  background-color: rgba(136, 19, 55, 0.35) !important;
+  border-color: rgba(244, 63, 94, 0.4) !important;
+}
+
+/* High contrast text adaptations in dark mode */
+.dark .text-\[\#2563EB\],
+.dark .text-blue-600 {
+  color: #60a5fa !important;
+}
+
+.dark .text-emerald-700,
+.dark .text-emerald-800 {
+  color: #6ee7b7 !important;
+}
+
+.dark .text-amber-700,
+.dark .text-amber-800 {
+  color: #fcd34d !important;
+}
+
+.dark .text-purple-700,
+.dark .text-purple-800 {
+  color: #d8b4fe !important;
+}
+
+.dark .text-rose-600,
+.dark .text-rose-700 {
+  color: #fda4af !important;
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.dark textarea,
+.dark select {
+  background-color: #1e293b;
+  color: #f8fafc;
+  border-color: #334155;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b;
+}
+
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1e293b;
 }
 
 .font-handwriting {
@@ -24,21 +193,38 @@ body {
 /* Custom subtle shadows and borders */
 .card-soft {
   background: #ffffff;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #CBD5E1;
   border-radius: 1.25rem;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .card-soft {
+  background: #0f172a;
+  border-color: #1e293b;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
 }
 
 /* Mentora Blue Card Accent */
 .card-blue,
 .card-pink {
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
+  background: #DBEAFE;
+  border: 1px solid #93C5FD;
+}
+
+.dark .card-blue,
+.dark .card-pink {
+  background: #1e293b;
+  border-color: #1d4ed8;
 }
 
 .card-yellow {
-  background: #FEF9C3;
-  border: 1px solid #FEF08A;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+}
+
+.dark .card-yellow {
+  background: #2e2609;
+  border-color: #713f12;
 }
 
 /* Button styles matching Mentora Blue theme */
