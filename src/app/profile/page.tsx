@@ -282,15 +282,13 @@ export default function ProfilePage() {
         >
           <div>
             <h2 className="text-xl font-bold text-slate-900">
-              Manajemen Profil Pengguna (FR-02)
+              Manajemen Profil Pengguna
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               Kelola data pribadi agar teman belajar mudah mengenalmu dan sistem
               dapat memberikan rekomendasi teman terdekat.
             </p>
           </div>
-          import LocationPicker from '@/components/LocationPicker'; // Di dalam
-          komponen form:
           <div className="mb-4">
             <label className="block text-xs font-bold text-slate-700 mb-1.5">
               Lokasi Domisili (Untuk Sesi Offline / Fleksibel)
@@ -458,7 +456,7 @@ export default function ProfilePage() {
               ) : (
                 <Check className="w-4 h-4 stroke-[3]" />
               )}
-              <span>Simpan Perubahan Profil (FR-02)</span>
+              <span>Simpan Perubahan Profil</span>
             </button>
           </div>
         </form>

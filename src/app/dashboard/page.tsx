@@ -460,7 +460,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Daftar Mentor (UC-F1-05)</span>
+            <span>Daftar Mentor</span>
           </button>
 
           <button
@@ -472,7 +472,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
             }`}
           >
             <User className="w-4 h-4" />
-            <span>Manajemen Profil (FR-02)</span>
+            <span>Manajemen Profil</span>
           </button>
 
           <button
@@ -484,7 +484,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
             }`}
           >
             <Layers className="w-4 h-4" />
-            <span>Pengelolaan Skill (FR-03)</span>
+            <span>Pengelolaan Skill</span>
           </button>
 
           {user?.role !== 'Admin' && (
@@ -497,7 +497,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
               }`}
             >
               <FileText className="w-4 h-4" />
-              <span>Pengajuan Mentor & Kredensial (FR-04, FR-05)</span>
+              <span>Pengajuan Mentor & Kredensial</span>
             </button>
           )}
 
@@ -511,7 +511,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
               }`}
             >
               <Shield className="w-4 h-4" />
-              <span>Admin Verifikasi Mentor (FR-06, FR-07)</span>
+              <span>Admin Verifikasi Mentor</span>
               {applications.filter((a) => a.status === 'PENDING').length > 0 && (
                 <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center font-bold">
                   {applications.filter((a) => a.status === 'PENDING').length}
@@ -659,7 +659,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
           <div className="max-w-3xl mx-auto bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Data Profil Pengguna (FR-02)</h2>
+                <h2 className="text-xl font-bold text-slate-900">Data Profil Pengguna</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Kelola informasi data diri untuk keperluan pertukaran ilmu.</p>
               </div>
               <button
@@ -789,7 +789,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
         {activeTab === 'skills' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-900 mb-1">Pengelolaan Skill Pengguna (FR-03)</h2>
+              <h2 className="text-xl font-bold text-slate-900 mb-1">Pengelolaan Skill Pengguna</h2>
               <p className="text-xs text-slate-500 mb-6">
                 Data keahlian yang kamu kuasai untuk diajarkan dan materi yang ingin kamu pelajari.
               </p>
@@ -862,7 +862,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 Pengajuan Akun Mentor & Unggah Kredensial
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                Sesuai FR-04 & FR-05 pada proposal Mentora, unggah bukti kompetensi (transkrip nilai/portofolio) untuk diverifikasi oleh Admin.
+                Sesuai pada proposal Mentora, unggah bukti kompetensi (transkrip nilai/portofolio) untuk diverifikasi oleh Admin.
               </p>
             </div>
 
@@ -890,7 +890,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                   </div>
                 </div>
                 <p className="text-xs text-slate-600 bg-white p-3.5 rounded-xl border border-amber-200/60 leading-relaxed">
-                  Tim Admin Mentora sedang memvalidasi kesesuaian nilai dan kualifikasi keahlianmu. Status akunmu akan otomatis berubah setelah disetujui. (FR-06, FR-07)
+                  Tim Admin Mentora sedang memvalidasi kesesuaian nilai dan kualifikasi keahlianmu. Status akunmu akan otomatis berubah setelah disetujui.
                 </p>
               </div>
             ) : (
@@ -933,7 +933,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 {/* Upload Dokumen Kredensial (FR-05) */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Upload Dokumen Kredensial (FR-05) <span className="text-rose-500">*</span>
+                    Upload Dokumen Kredensial<span className="text-rose-500">*</span>
                   </label>
                   <div className="border-2 border-dashed border-slate-200 hover:border-[#2563EB] rounded-2xl p-6 text-center transition bg-slate-50/50">
                     <FileText className="w-8 h-8 text-[#2563EB] mx-auto mb-2" />
@@ -974,7 +974,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60"
                   >
                     {applyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    <span>Kirim Pengajuan Akun Mentor (FR-04)</span>
+                    <span>Kirim Pengajuan Akun Mentor</span>
                   </button>
                 </div>
               </form>
@@ -991,7 +991,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                   PORTAL ADMINISTRATOR MENTORA
                 </span>
                 <h2 className="text-xl font-extrabold text-slate-900 mt-1">
-                  Verifikasi Pengajuan Mentor (FR-06 & FR-07)
+                  Verifikasi Pengajuan Mentor
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Validasi transkrip nilai dan kredensial calon mentor sebelum status aktif dipublikasikan.
@@ -1057,7 +1057,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                           className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
                         >
                           <Check className="w-4 h-4 stroke-[3]" />
-                          <span>Setujui (FR-07)</span>
+                          <span>Setujui</span>
                         </button>
 
                         <button
