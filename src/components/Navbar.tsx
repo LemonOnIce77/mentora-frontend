@@ -1,20 +1,21 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useRef } from 'react';
-import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
-import { 
-  Sparkles, 
-  User, 
-  LogOut, 
-  Settings, 
-  LayoutDashboard, 
-  Moon, 
-  Sun, 
+import React, { useEffect, useState, useRef } from "react";
+import NextLink from "next/link";
+import MentoraLogo from "@/components/MentoraLogo";
+import { useRouter } from "next/navigation";
+import {
+  Sparkles,
+  User,
+  LogOut,
+  Settings,
+  LayoutDashboard,
+  Moon,
+  Sun,
   ChevronDown,
   BookOpen,
-  ShieldCheck
-} from 'lucide-react';
+  ShieldCheck,
+} from "lucide-react";
 
 interface CurrentUser {
   id: number | string;
@@ -37,33 +38,34 @@ export default function Navbar() {
 
   // Sync tema bawaan Mentora
   useEffect(() => {
-    const isDarkTheme = 
-      document.documentElement.classList.contains('dark') ||
-      localStorage.getItem('theme') === 'dark' ||
-      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const isDarkTheme =
+      document.documentElement.classList.contains("dark") ||
+      localStorage.getItem("theme") === "dark" ||
+      (!("theme" in localStorage) &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
 
     setIsDark(isDarkTheme);
     if (isDarkTheme) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
 
     const handleThemeChange = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
+      setIsDark(document.documentElement.classList.contains("dark"));
     };
 
-    window.addEventListener('mentora-theme-change', handleThemeChange);
-    window.addEventListener('storage', handleThemeChange);
+    window.addEventListener("mentora-theme-change", handleThemeChange);
+    window.addEventListener("storage", handleThemeChange);
     return () => {
-      window.removeEventListener('mentora-theme-change', handleThemeChange);
-      window.removeEventListener('storage', handleThemeChange);
+      window.removeEventListener("mentora-theme-change", handleThemeChange);
+      window.removeEventListener("storage", handleThemeChange);
     };
   }, []);
 
   // Sync sesi user dengan fallback lokal
   useEffect(() => {
-    fetch('/api/auth/me')
+    fetch("/api/auth/me")
       .then((res) => {
         if (res.ok) return res.json();
         return null;
@@ -72,7 +74,7 @@ export default function Navbar() {
         if (data && data.user) {
           setUser(data.user);
         } else {
-          const sessionData = localStorage.getItem('user_session');
+          const sessionData = localStorage.getItem("user_session");
           if (sessionData) {
             try {
               setUser(JSON.parse(sessionData));
@@ -85,7 +87,7 @@ export default function Navbar() {
         }
       })
       .catch(() => {
-        const sessionData = localStorage.getItem('user_session');
+        const sessionData = localStorage.getItem("user_session");
         if (sessionData) {
           try {
             setUser(JSON.parse(sessionData));
@@ -102,56 +104,53 @@ export default function Navbar() {
   // Tutup dropdown saat klik luar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const toggleTheme = () => {
     const nextDark = !isDark;
     setIsDark(nextDark);
     if (nextDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
-    window.dispatchEvent(new Event('mentora-theme-change'));
+    window.dispatchEvent(new Event("mentora-theme-change"));
   };
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch("/api/auth/logout", { method: "POST" });
     } catch (_) {}
     try {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_session');
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_session");
     } catch (_) {}
     setUser(null);
     setIsMenuOpen(false);
-    router.push('/auth');
+    router.push("/auth");
     router.refresh();
   };
 
-  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const isAdmin = user?.role?.toLowerCase() === "admin";
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        
         {/* Sisi Kiri: Logo Icon 4 Titik & Nama Brand Mentora */}
         <NextLink href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 via-[#2563EB] to-indigo-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-            <div className="grid grid-cols-2 gap-0.5">
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-            </div>
+          <div className="group-hover:scale-105 transition-transform">
+            <MentoraLogo size={32} />
           </div>
           <span className="text-2xl font-extrabold tracking-tight text-black group-hover:text-[#2563EB] transition-colors">
             Mentora
@@ -160,23 +159,41 @@ export default function Navbar() {
 
         {/* Tengah: Navigasi Teks Hitam Pekat */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-bold text-black">
-          <NextLink href="/" className="text-[#2563EB] hover:text-blue-700 transition-colors">
+          <NextLink
+            href="/"
+            className="text-[#2563EB] hover:text-blue-700 transition-colors"
+          >
             Beranda
           </NextLink>
-          <NextLink href="/tentang" className="hover:text-[#2563EB] transition-colors">
+          <NextLink
+            href="/tentang"
+            className="hover:text-[#2563EB] transition-colors"
+          >
             Tentang
           </NextLink>
-          <NextLink href="/#fitur" className="hover:text-[#2563EB] transition-colors">
+          <NextLink
+            href="/#fitur"
+            className="hover:text-[#2563EB] transition-colors"
+          >
             Fitur
           </NextLink>
-          <NextLink href="/testimoni" className="hover:text-[#2563EB] transition-colors">
+          <NextLink
+            href="/testimoni"
+            className="hover:text-[#2563EB] transition-colors"
+          >
             Testimoni
           </NextLink>
-          <NextLink href="/faq" className="hover:text-[#2563EB] transition-colors">
+          <NextLink
+            href="/faq"
+            className="hover:text-[#2563EB] transition-colors"
+          >
             FAQ
           </NextLink>
           {user && (
-            <NextLink href="/dashboard" className="text-black font-bold flex items-center gap-1.5 hover:text-[#2563EB] transition-colors">
+            <NextLink
+              href="/dashboard"
+              className="text-black font-bold flex items-center gap-1.5 hover:text-[#2563EB] transition-colors"
+            >
               <LayoutDashboard className="w-4 h-4 text-[#2563EB]" />
               Dashboard
             </NextLink>
@@ -204,26 +221,32 @@ export default function Navbar() {
                   />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-xs">
-                    {(user.namaPanggilan || user.namaLengkap).charAt(0).toUpperCase()}
+                    {(user.namaPanggilan || user.namaLengkap)
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                 )}
                 <span className="text-sm font-bold text-black max-w-[120px] truncate">
-                  {user.namaPanggilan || user.namaLengkap.split(' ')[0]}
+                  {user.namaPanggilan || user.namaLengkap.split(" ")[0]}
                 </span>
                 <span
                   className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                     isAdmin
-                      ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                      : user.statusMentor === 'APPROVED'
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                      : 'bg-blue-100 text-[#2563EB] border border-blue-200'
+                      ? "bg-purple-100 text-purple-800 border border-purple-300"
+                      : user.statusMentor === "APPROVED"
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                        : "bg-blue-100 text-[#2563EB] border border-blue-200"
                   }`}
                 >
-                  {isAdmin ? 'Admin' : user.statusMentor === 'APPROVED' ? 'Mentor' : 'Mentee'}
+                  {isAdmin
+                    ? "Admin"
+                    : user.statusMentor === "APPROVED"
+                      ? "Mentor"
+                      : "Mentee"}
                 </span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 text-black transition-transform duration-200 ${
-                    isMenuOpen ? 'rotate-180' : ''
+                    isMenuOpen ? "rotate-180" : ""
                   }`}
                 />
               </button>
@@ -241,7 +264,9 @@ export default function Navbar() {
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-2xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-base shadow-xs">
-                        {(user.namaPanggilan || user.namaLengkap).charAt(0).toUpperCase()}
+                        {(user.namaPanggilan || user.namaLengkap)
+                          .charAt(0)
+                          .toUpperCase()}
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -253,13 +278,18 @@ export default function Navbar() {
                       </p>
                       <div className="mt-1 flex items-center gap-1.5">
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#2563EB]">
-                          {isAdmin ? '👑 Admin Mentora' : user.statusMentor === 'APPROVED' ? '⭐ Mentor Resmi' : '🎓 Mentee'}
+                          {isAdmin
+                            ? "👑 Admin Mentora"
+                            : user.statusMentor === "APPROVED"
+                              ? "⭐ Mentor Resmi"
+                              : "🎓 Mentee"}
                         </span>
-                        {typeof user.totalPoin === 'number' && user.totalPoin > 0 && (
-                          <span className="text-[10px] font-bold text-black">
-                            • {user.totalPoin} Poin
-                          </span>
-                        )}
+                        {typeof user.totalPoin === "number" &&
+                          user.totalPoin > 0 && (
+                            <span className="text-[10px] font-bold text-black">
+                              • {user.totalPoin} Poin
+                            </span>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -313,20 +343,20 @@ export default function Navbar() {
                       ) : (
                         <Sun className="w-4 h-4 text-amber-500" />
                       )}
-                      <span>{isDark ? 'Mode Gelap' : 'Mode Terang'}</span>
+                      <span>{isDark ? "Mode Gelap" : "Mode Terang"}</span>
                     </div>
 
                     <button
                       type="button"
                       onClick={toggleTheme}
                       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isDark ? 'bg-[#2563EB]' : 'bg-slate-300'
+                        isDark ? "bg-[#2563EB]" : "bg-slate-300"
                       }`}
                       aria-label="Switch Dark Mode"
                     >
                       <span
                         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                          isDark ? 'translate-x-5' : 'translate-x-0'
+                          isDark ? "translate-x-5" : "translate-x-0"
                         }`}
                       />
                     </button>
@@ -351,11 +381,17 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={toggleTheme}
-                title={isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'}
+                title={
+                  isDark ? "Beralih ke Mode Terang" : "Beralih ke Mode Gelap"
+                }
                 className="p-2 rounded-full text-black hover:bg-slate-100 transition"
                 aria-label="Toggle Mode Gelap/Terang"
               >
-                {isDark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4" />}
+                {isDark ? (
+                  <Sun className="w-4 h-4 text-amber-500" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
               </button>
 
               <NextLink
@@ -373,7 +409,6 @@ export default function Navbar() {
             </>
           )}
         </div>
-
       </div>
     </header>
   );

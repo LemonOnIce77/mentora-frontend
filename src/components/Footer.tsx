@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -7,16 +8,18 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-3 md:col-span-1">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center">
-                <div className="grid grid-cols-2 gap-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                </div>
+            {/* Logo Mentora Brand */}
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
+                <Image
+                  src="/Mentora.svg"
+                  alt="Mentora Logo"
+                  width={32}
+                  height={32}
+                  className="w-auto h-auto object-contain"
+                />
               </div>
-              <span className="text-xl font-extrabold text-slate-900">Mentora</span>
+              <span className="text-xl font-extrabold text-slate-900 tracking-tight">Mentora</span>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed">
               Platform Peer-to-Peer Skill Exchange mahasiswa untuk berbagi ilmu, menambah relasi, dan membangun portofolio keahlian resmi.
@@ -42,7 +45,7 @@ export default function Footer() {
               <li><Link href="/skills" className="hover:text-[#2563EB] transition">Katalog Keahlian</Link></li>
               <li><Link href="/mentor/apply" className="hover:text-[#2563EB] transition">Daftar Jadi Mentor</Link></li>
               <li><Link href="/dashboard" className="hover:text-[#2563EB] transition">Jadwal Sesi Belajar</Link></li>
-              <li><Link href="/#cara-kerja" className="hover:text-[#2563EB] transition">Panduan Komunitas</Link></li>
+              <li><Link href="/faq" className="hover:text-[#2563EB] transition">Panduan & FAQ</Link></li>
             </ul>
           </div>
 
@@ -62,7 +65,7 @@ export default function Footer() {
           <div className="flex gap-6 mt-4 sm:mt-0">
             <Link href="/" className="hover:text-slate-900">Kebijakan Privasi</Link>
             <Link href="/" className="hover:text-slate-900">Syarat Ketentuan</Link>
-            <Link href="/" className="hover:text-slate-900">Pusat Bantuan</Link>
+            <Link href="/faq" className="hover:text-slate-900">Pusat Bantuan</Link>
           </div>
         </div>
       </div>
