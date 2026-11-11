@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
@@ -54,4 +55,13 @@ body {
 .btn-pink:hover {
   background-color: #1D4ED8;
   transform: translateY(-1px);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+
+#fitur {
+  scroll-margin-top: 100px;
 }

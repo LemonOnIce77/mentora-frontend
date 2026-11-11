@@ -1,212 +1,426 @@
+
 'use client';
 
-import React, { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { 
-  HelpCircle, 
-  ChevronDown, 
-  Search, 
-  Sparkles, 
-  ShieldCheck, 
-  Coins, 
-  UserCheck, 
-  MessageSquareShare,
-  ArrowRight
+import {
+  Search,
+  ChevronDown,
+  ExternalLink,
+  CircleHelp,
+  UserRound,
+  GraduationCap,
+  CalendarDays,
+  Award,
 } from 'lucide-react';
-import Footer from '@/components/Footer';
 
-interface FaqItem {
-  kategori: string;
-  pertanyaan: string;
-  jawaban: string;
-}
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 
-export default function FaqPage() {
+const categories = [
+  'Semua Topik',
+  'Umum',
+  'Mentor',
+  'Sesi',
+  'Akun',
+  'EduPoints',
+];
+
+const faqData = [
+  {
+    category: 'Umum',
+    questions: [
+      {
+        question: 'Apa itu platform Mentora?',
+        answer:
+          'Mentora adalah platform Peer-to-Peer Skill Exchange yang memungkinkan mahasiswa saling berbagi pengetahuan, bertukar keterampilan, dan belajar bersama teman mahasiswa lainnya.',
+      },
+      {
+        question: 'Siapa saja yang bisa menggunakan Mentora?',
+        answer:
+          'Mentora ditujukan bagi mahasiswa yang ingin mengembangkan keterampilan, mencari teman belajar, maupun berbagi pengetahuan sebagai mentor.',
+      },
+      {
+        question: 'Apakah Mentora dapat digunakan secara gratis?',
+        answer:
+          'Mentora dikembangkan sebagai platform pembelajaran kolaboratif mahasiswa. Informasi mengenai ketentuan penggunaan dapat dilihat melalui fitur dan informasi yang tersedia di platform.',
+      },
+      {
+        question: 'Bagaimana cara kerja platform Mentora?',
+        answer:
+          'Pengguna dapat membuat profil, melengkapi informasi keterampilan, mencari partner belajar, dan mengikuti sesi pembelajaran bersama mentor atau mahasiswa lainnya.',
+      },
+    ],
+  },
+  {
+    category: 'Mentor',
+    questions: [
+      {
+        question: 'Bagaimana cara mencari mentor?',
+        answer:
+          'Kamu dapat membuka Dashboard, kemudian melihat daftar mentor yang tersedia. Gunakan pencarian dan filter keterampilan untuk menemukan mentor yang sesuai dengan kebutuhanmu.',
+      },
+      {
+        question: 'Bagaimana cara mendaftar menjadi mentor?',
+        answer:
+          'Lengkapi profil dan keterampilan yang kamu kuasai. Selanjutnya, gunakan fitur pengajuan mentor untuk mengikuti proses pendaftaran dan verifikasi.',
+      },
+      {
+        question: 'Apa fungsi verifikasi mentor?',
+        answer:
+          'Verifikasi mentor digunakan untuk memastikan informasi dan kredibilitas calon mentor sebelum mendapatkan status mentor terverifikasi di Mentora.',
+      },
+      {
+        question: 'Apakah saya bisa menjadi mentor sekaligus mentee?',
+        answer:
+          'Ya. Mahasiswa dapat berbagi keterampilan yang dikuasai sekaligus mempelajari keterampilan baru dari mahasiswa lainnya.',
+      },
+    ],
+  },
+  {
+    category: 'Sesi',
+    questions: [
+      {
+        question: 'Bagaimana cara memesan sesi belajar?',
+        answer:
+          'Pilih mentor yang sesuai melalui Dashboard, kemudian gunakan fitur sesi atau booking untuk mengatur pembelajaran bersama mentor tersebut.',
+      },
+      {
+        question: 'Apakah sesi belajar bisa dilakukan secara online dan offline?',
+        answer:
+          'Ya. Mentora mendukung pembelajaran secara online maupun offline sesuai kesepakatan dan ketersediaan mentor.',
+      },
+      {
+        question: 'Bagaimana cara mengatur jadwal sesi?',
+        answer:
+          'Diskusikan jadwal dengan mentor melalui fitur komunikasi yang tersedia, kemudian sesuaikan waktu pembelajaran berdasarkan kesepakatan bersama.',
+      },
+      {
+        question: 'Apakah saya bisa membatalkan sesi belajar?',
+        answer:
+          'Jika terdapat perubahan jadwal, komunikasikan terlebih dahulu dengan mentor dan ikuti ketentuan pengelolaan sesi yang tersedia pada platform.',
+      },
+    ],
+  },
+  {
+    category: 'Akun',
+    questions: [
+      {
+        question: 'Bagaimana cara membuat akun Mentora?',
+        answer:
+          'Buka halaman registrasi, kemudian lengkapi informasi yang diminta. Setelah proses pendaftaran selesai, kamu dapat masuk menggunakan akun yang telah dibuat.',
+      },
+      {
+        question: 'Bagaimana cara mengubah informasi profil?',
+        answer:
+          'Masuk ke Dashboard, buka bagian Manajemen Profil, kemudian perbarui informasi yang ingin kamu ubah.',
+      },
+      {
+        question: 'Bagaimana jika saya lupa password?',
+        answer:
+          'Gunakan pilihan Lupa Password pada halaman login apabila tersedia, kemudian ikuti instruksi pemulihan akun.',
+      },
+    ],
+  },
+  {
+    category: 'EduPoints',
+    questions: [
+      {
+        question: 'Apa itu EduPoints?',
+        answer:
+          'EduPoints merupakan sistem poin penghargaan di Mentora yang dapat dikumpulkan melalui aktivitas berbagi keterampilan dan membantu mahasiswa lainnya.',
+      },
+      {
+        question: 'Bagaimana cara mendapatkan EduPoints?',
+        answer:
+          'Kamu dapat memperoleh EduPoints melalui aktivitas pembelajaran dan kontribusi sebagai mentor sesuai mekanisme yang diterapkan oleh Mentora.',
+      },
+      {
+        question: 'Apakah EduPoints bisa ditukarkan dengan sertifikat?',
+        answer:
+          'EduPoints dirancang untuk mendukung sistem penghargaan dan perolehan e-certificate sebagai bagian dari pengembangan portofolio mahasiswa.',
+      },
+    ],
+  },
+];
+
+export default function FAQPage() {
+  const [activeCategory, setActiveCategory] = useState('Semua Topik');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeKategori, setActiveKategori] = useState<string>('SEMUA');
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [openQuestion, setOpenQuestion] = useState<string | null>(null);
 
-  const daftarFaq: FaqItem[] = [
-    {
-      kategori: 'UMUM',
-      pertanyaan: 'Apa itu Mentora dan bagaimana cara kerjanya?',
-      jawaban: 'Mentora adalah platform pertukaran keahlian (peer-to-peer skill exchange) antarmahasiswa. Kamu dapat belajar keahlian baru dari mahasiswa lain yang sudah menguasainya, atau mendaftarkan diri sebagai mentor untuk membagikan keterampilan yang kamu miliki.',
-    },
-    {
-      kategori: 'UMUM',
-      pertanyaan: 'Apakah layanan di Mentora berbayar?',
-      jawaban: 'Mentora mengedepankan model pembelajaran kolaboratif dan sistem pertukaran nilai (poin keaktifan/skill barter), sehingga mahasiswa dapat saling belajar tanpa biaya kursus konvensional yang mahal.',
-    },
-    {
-      kategori: 'MENTOR',
-      pertanyaan: 'Bagaimana cara mendaftar menjadi Mentor di Mentora?',
-      jawaban: 'Kamu dapat mengajukan diri menjadi mentor melalui halaman Dashboard. Kamu akan diminta melengkapi form kualifikasi, memilih bidang keahlian, serta melampirkan berkas pendukung seperti CV, Transkrip/KHS, atau Sertifikat pendukung.',
-    },
-    {
-      kategori: 'MENTOR',
-      pertanyaan: 'Bagaimana proses verifikasi kualifikasi mentor (FR-06)?',
-      jawaban: 'Setiap pengajuan diperiksa langsung oleh Administrator Mentora. Admin akan memvalidasi keabsahan dokumen portofolio dan prestasi akademikmu sebelum mengubah status akunmu menjadi Mentor Terverifikasi (Verified Mentor).',
-    },
-    {
-      kategori: 'MENTOR',
-      pertanyaan: 'Apa yang harus dilakukan jika pengajuan mentor saya ditolak?',
-      jawaban: 'Admin selalu menyertakan alasan penolakan secara spesifik (misalnya dokumen tidak terbaca atau portofolio kurang lengkap). Kamu dapat memperbarui berkas yang diminta dan mengajukan verifikasi ulang melalui Dashboard.',
-    },
-    {
-      kategori: 'SESI',
-      pertanyaan: 'Bagaimana format pelaksanaan sesi mentoring?',
-      jawaban: 'Sesi mentoring dilakukan secara 1-on-1 atau kelompok kecil secara daring menggunakan Google Meet, Zoom, atau platform kolaborasi kode (seperti VS Code Live Share) sesuai kesepakatan jadwal antara mentor dan mentee.',
-    },
-    {
-      kategori: 'SESI',
-      pertanyaan: 'Apa yang terjadi jika mentor tidak hadir pada jadwal yang ditentukan?',
-      jawaban: 'Mentee dapat melaporkan ketidakhadiran melalui riwayat sesi di Dashboard. Sistem akan mengembalikan poin sesi dan memberikan catatan evaluasi pada profil mentor bersangkutan.',
-    },
-    {
-      kategori: 'AKUN',
-      pertanyaan: 'Apakah saya bisa menjadi Mentee sekaligus Mentor?',
-      jawaban: 'Bisa! Inilah keunggulan utama Mentora. Kamu bisa belajar bidang baru (misalnya Machine Learning) sebagai Mentee, sembari tetap membuka sesi pengajaran untuk bidang yang kamu kuasai (misalnya Desain UI/UX).',
-    },
+  const filteredFAQ = useMemo(() => {
+    return faqData
+      .filter(
+        (group) =>
+          activeCategory === 'Semua Topik' ||
+          group.category === activeCategory
+      )
+      .map((group) => ({
+        ...group,
+        questions: group.questions.filter((item) => {
+          const search = searchQuery.toLowerCase();
+
+          return (
+            item.question.toLowerCase().includes(search) ||
+            item.answer.toLowerCase().includes(search)
+          );
+        }),
+      }))
+      .filter((group) => group.questions.length > 0);
+  }, [activeCategory, searchQuery]);
+
+  const toggleQuestion = (question: string) => {
+    setOpenQuestion((current) =>
+      current === question ? null : question
+    );
+  };
+
+  const categoryIcons = [
+    { name: 'Umum', icon: CircleHelp },
+    { name: 'Mentor', icon: GraduationCap },
+    { name: 'Sesi', icon: CalendarDays },
+    { name: 'Akun', icon: UserRound },
+    { name: 'EduPoints', icon: Award },
   ];
 
-  const kategoriList = ['SEMUA', 'UMUM', 'MENTOR', 'SESI', 'AKUN'];
-
-  const filteredFaq = daftarFaq.filter((item) => {
-    const matchKategori = activeKategori === 'SEMUA' || item.kategori === activeKategori;
-    const matchSearch =
-      item.pertanyaan.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.jawaban.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchKategori && matchSearch;
-  });
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      <main className="flex-1">
-        {/* Header Section */}
-        <section className="py-16 sm:py-20 border-b border-slate-200/60 dark:border-slate-800/80 bg-gradient-to-b from-blue-50/40 via-transparent to-transparent dark:from-blue-950/20">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/70 text-[#2563EB] dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/60 text-xs font-bold uppercase tracking-wider">
-              <HelpCircle className="w-3.5 h-3.5" />
-              <span>Pusat Bantuan & Tanya Jawab</span>
+    <>
+      <Navbar />
+
+      <main className="min-h-screen bg-[#FAFAFB] text-slate-900">
+
+        {/* HERO FAQ */}
+        <section className="border-b border-slate-100 bg-white px-4 py-16 md:py-20">
+          <div className="mx-auto max-w-5xl text-center">
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-5 py-2 text-sm font-bold tracking-wide text-blue-600">
+              <CircleHelp size={17} />
+              PUSAT BANTUAN & TANYA JAWAB
             </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Pertanyaan yang Sering Diajukan
+
+            <h1 className="mt-7 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">
+              Pertanyaan yang Sering{' '}
+              <span className="text-blue-600">
+                Diajukan
+              </span>
             </h1>
-            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-              Temukan jawaban cepat seputar cara kerja platform, mekanisme verifikasi mentor, pelaksanaan sesi, dan keamanan akun Mentora.
+
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-500 md:text-lg">
+              Temukan jawaban seputar cara kerja platform,
+              mekanisme verifikasi mentor, pelaksanaan sesi,
+              dan pengelolaan akun Mentora.
             </p>
 
-            {/* Pencarian FAQ */}
-            <div className="pt-4 max-w-xl mx-auto relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari pertanyaan (misal: verifikasi mentor, biaya, sesi)..."
-                className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 shadow-xs focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-              />
+            {/* SEARCH */}
+            <div className="mx-auto mt-9 max-w-2xl">
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
+                <Search
+                  size={21}
+                  className="shrink-0 text-slate-400"
+                />
+
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setOpenQuestion(null);
+                  }}
+                  placeholder="Cari pertanyaan (misal: verifikasi mentor, sesi, akun)..."
+                  className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 md:text-base"
+                />
+
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                  >
+                    Hapus
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Tab Kategori & Accordion List */}
-        <section className="py-12 sm:py-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            
-            {/* Navigasi Kategori */}
-            <div className="flex items-center justify-center gap-1.5 overflow-x-auto pb-2">
-              {kategoriList.map((kat) => (
-                <button
-                  key={kat}
-                  type="button"
-                  onClick={() => setActiveKategori(kat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
-                    activeKategori === kat
-                      ? 'bg-[#2563EB] text-white shadow-xs'
-                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  {kat === 'SEMUA' ? 'Semua Topik' : kat}
-                </button>
-              ))}
+        {/* FAQ CONTENT */}
+        <section className="mx-auto max-w-5xl px-4 py-14 md:py-16">
+
+          {/* CATEGORY FILTER */}
+          <div className="mb-12">
+            <div className="mb-5 text-center">
+              <h2 className="text-xl font-bold text-slate-900">
+                Jelajahi Berdasarkan Topik
+              </h2>
+              <p className="mt-2 text-sm text-slate-500">
+                Pilih kategori untuk menemukan jawaban yang kamu cari.
+              </p>
             </div>
 
-            {/* Accordion FAQ */}
-            {filteredFaq.length === 0 ? (
-              <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
-                <HelpCircle className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto" />
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                  Pertanyaan tidak ditemukan
-                </p>
-                <p className="text-xs text-slate-400">
-                  Coba gunakan kata kunci pencarian lain atau pilih kategori topik di atas.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3.5">
-                {filteredFaq.map((item, index) => {
-                  const isOpen = openIndex === index;
-                  return (
-                    <div
-                      key={index}
-                      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs transition"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setOpenIndex(isOpen ? null : index)}
-                        className="w-full p-5 text-left flex items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/70 text-[#2563EB] dark:text-blue-400">
-                            {item.kategori}
-                          </span>
-                          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                            {item.pertanyaan}
-                          </span>
-                        </div>
-                        <ChevronDown
-                          className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${
-                            isOpen ? 'rotate-180 text-[#2563EB]' : ''
-                          }`}
-                        />
-                      </button>
+            <div className="flex flex-wrap justify-center gap-3">
+              {categories.map((category) => {
+                const active = activeCategory === category;
 
-                      {isOpen && (
-                        <div className="px-5 pb-5 pt-1 border-t border-slate-100 dark:border-slate-800/60 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed animate-in fade-in duration-150">
-                          {item.jawaban}
-                        </div>
-                      )}
+                return (
+                  <button
+                    key={category}
+                    onClick={() => {
+                      setActiveCategory(category);
+                      setOpenQuestion(null);
+                    }}
+                    className={`rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      active
+                        ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-100'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* QUESTION LIST */}
+          <div className="space-y-10">
+
+            {filteredFAQ.length > 0 ? (
+              filteredFAQ.map((group) => {
+                const CategoryIcon =
+                  categoryIcons.find(
+                    (item) => item.name === group.category
+                  )?.icon || CircleHelp;
+
+                return (
+                  <div key={group.category}>
+
+                    {/* CATEGORY TITLE */}
+                    <div className="mb-5 flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                        <CategoryIcon size={22} />
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900">
+                          {group.category}
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                          {group.questions.length} pertanyaan
+                        </p>
+                      </div>
                     </div>
-                  );
-                })}
+
+                    {/* ACCORDION */}
+                    <div className="space-y-3">
+                      {group.questions.map((item) => {
+                        const isOpen =
+                          openQuestion === item.question;
+
+                        return (
+                          <div
+                            key={item.question}
+                            className={`overflow-hidden rounded-2xl border bg-white transition-all duration-200 ${
+                              isOpen
+                                ? 'border-blue-200 shadow-md shadow-blue-50'
+                                : 'border-slate-200 shadow-sm hover:border-blue-200'
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() =>
+                                toggleQuestion(item.question)
+                              }
+                              aria-expanded={isOpen}
+                              className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left md:px-7"
+                            >
+                              <span className="text-sm font-semibold leading-relaxed text-slate-800 md:text-base">
+                                {item.question}
+                              </span>
+
+                              <span
+                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all ${
+                                  isOpen
+                                    ? 'rotate-180 bg-blue-600 text-white'
+                                    : 'bg-blue-50 text-blue-600'
+                                }`}
+                              >
+                                <ChevronDown size={19} />
+                              </span>
+                            </button>
+
+                            {isOpen && (
+                              <div className="border-t border-slate-100 px-5 py-5 md:px-7">
+                                <p className="text-sm leading-7 text-slate-500 md:text-base">
+                                  {item.answer}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center">
+                <Search
+                  size={40}
+                  className="mx-auto text-slate-300"
+                />
+
+                <h3 className="mt-5 text-xl font-bold text-slate-800">
+                  Pertanyaan tidak ditemukan
+                </h3>
+
+                <p className="mt-2 text-sm text-slate-500">
+                  Coba gunakan kata kunci lain atau pilih kategori berbeda.
+                </p>
+
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setActiveCategory('Semua Topik');
+                  }}
+                  className="mt-5 font-semibold text-blue-600 hover:text-blue-700"
+                >
+                  Tampilkan Semua Pertanyaan
+                </button>
               </div>
             )}
+          </div>
+        </section>
 
-            {/* Kontak Bantuan Langsung */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="space-y-1 text-center sm:text-left">
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                  Masih memiliki pertanyaan lain yang belum terjawab?
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Tim bantuan mahasiswa Mentora siap membantu kendala teknis dan sesi belajarmu.
-                </p>
-              </div>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs shrink-0"
-              >
-                <MessageSquareShare className="w-4 h-4" />
-                <span>Pusat Bantuan Dashboard</span>
-              </Link>
+        {/* BOTTOM CTA */}
+        <section className="mx-auto max-w-7xl px-4 pb-16 md:pb-20">
+          <div className="flex flex-col items-center justify-between gap-7 rounded-3xl border border-blue-100 bg-blue-50 px-7 py-10 md:flex-row md:px-12 md:py-12">
+
+            <div className="max-w-2xl">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+                Masih memiliki pertanyaan lain?
+              </h2>
+
+              <p className="mt-4 text-base leading-relaxed text-slate-500 md:text-lg">
+                Tim bantuan mahasiswa Mentora siap membantu
+                kendala teknis dan sesi belajarmu.
+              </p>
             </div>
+
+            <Link
+              href="/bantuan"
+              className="inline-flex shrink-0 items-center justify-center gap-3 rounded-xl bg-blue-600 px-7 py-4 font-bold text-white shadow-lg shadow-blue-200 transition-all duration-200 hover:-translate-y-1 hover:bg-blue-700"
+            >
+              <ExternalLink size={20} />
+              Pusat Bantuan
+            </Link>
 
           </div>
         </section>
+
       </main>
 
       <Footer />
-    </div>
+    </>
   );
 }

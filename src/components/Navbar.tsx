@@ -1,414 +1,271 @@
-"use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import NextLink from "next/link";
-import MentoraLogo from "@/components/MentoraLogo";
-import { useRouter } from "next/navigation";
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+
 import {
-  Sparkles,
-  User,
-  LogOut,
-  Settings,
-  LayoutDashboard,
-  Moon,
-  Sun,
   ChevronDown,
-  BookOpen,
-  ShieldCheck,
-} from "lucide-react";
+  LayoutDashboard,
+  UserRound,
+  Menu,
+  X,
+  LogIn,
+} from 'lucide-react';
 
-interface CurrentUser {
-  id: number | string;
-  namaLengkap: string;
-  namaPanggilan?: string;
-  email: string;
-  role: string;
-  statusMentor: string;
-  totalPoin?: number;
-  fotoProfil?: string;
-}
+const navLinks = [
+  { label: 'Beranda', href: '/' },
+  { label: 'Tentang', href: '/tentang' },
+  { label: 'Fitur', href: '/#fitur' },
+  { label: 'Testimoni', href: '/testimoni' },
+  { label: 'FAQ', href: '/faq' },
+];
 
 export default function Navbar() {
-  const router = useRouter();
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
-  // Sync tema bawaan Mentora
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [activeHash, setActiveHash] = useState('');
+
+  // Membaca hash URL dan memperbarui menu aktif
   useEffect(() => {
-    const isDarkTheme =
-      document.documentElement.classList.contains("dark") ||
-      localStorage.getItem("theme") === "dark" ||
-      (!("theme" in localStorage) &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
-
-    setIsDark(isDarkTheme);
-    if (isDarkTheme) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-
-    const handleThemeChange = () => {
-      setIsDark(document.documentElement.classList.contains("dark"));
+    const syncHash = () => {
+      setActiveHash(window.location.hash);
     };
 
-    window.addEventListener("mentora-theme-change", handleThemeChange);
-    window.addEventListener("storage", handleThemeChange);
+    syncHash();
+
+    window.addEventListener('hashchange', syncHash);
+    window.addEventListener('popstate', syncHash);
+
     return () => {
-      window.removeEventListener("mentora-theme-change", handleThemeChange);
-      window.removeEventListener("storage", handleThemeChange);
+      window.removeEventListener('hashchange', syncHash);
+      window.removeEventListener('popstate', syncHash);
     };
-  }, []);
+  }, [pathname]);
 
-  // Sync sesi user dengan fallback lokal
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => {
-        if (res.ok) return res.json();
-        return null;
-      })
-      .then((data) => {
-        if (data && data.user) {
-          setUser(data.user);
-        } else {
-          const sessionData = localStorage.getItem("user_session");
-          if (sessionData) {
-            try {
-              setUser(JSON.parse(sessionData));
-            } catch {
-              setUser(null);
-            }
-          } else {
-            setUser(null);
-          }
-        }
-      })
-      .catch(() => {
-        const sessionData = localStorage.getItem("user_session");
-        if (sessionData) {
-          try {
-            setUser(JSON.parse(sessionData));
-          } catch {
-            setUser(null);
-          }
-        } else {
-          setUser(null);
-        }
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Tutup dropdown saat klik luar
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const toggleTheme = () => {
-    const nextDark = !isDark;
-    setIsDark(nextDark);
-    if (nextDark) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
+  // Menentukan menu yang sedang aktif
+  const isActive = (href: string) => {
+    if (href === '/#fitur') {
+      return pathname === '/' && activeHash === '#fitur';
     }
-    window.dispatchEvent(new Event("mentora-theme-change"));
+
+    if (href === '/') {
+      return pathname === '/' && activeHash !== '#fitur';
+    }
+
+    return pathname === href || pathname.startsWith(href + '/');
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch (_) {}
-    try {
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("user_session");
-    } catch (_) {}
-    setUser(null);
-    setIsMenuOpen(false);
-    router.push("/auth");
-    router.refresh();
+  const closeMenus = () => {
+    setMobileOpen(false);
+    setAccountOpen(false);
   };
 
-  const isAdmin = user?.role?.toLowerCase() === "admin";
+  const handleNavigation = (href: string) => {
+    setActiveHash(href === '/#fitur' ? '#fitur' : '');
+    closeMenus();
+  };
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-slate-200 transition-colors duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        {/* Sisi Kiri: Logo Icon 4 Titik & Nama Brand Mentora */}
-        <NextLink href="/" className="flex items-center gap-2.5 group">
-          <div className="group-hover:scale-105 transition-transform">
-            <MentoraLogo size={32} />
-          </div>
-          <span className="text-2xl font-extrabold tracking-tight text-black group-hover:text-[#2563EB] transition-colors">
-            Mentora
-          </span>
-        </NextLink>
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-slate-200 shadow-sm">
 
-        {/* Tengah: Navigasi Teks Hitam Pekat */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-bold text-black">
-          <NextLink
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div className="h-20 flex items-center justify-between gap-4">
+
+          {/* LOGO */}
+          <Link
             href="/"
-            className="text-[#2563EB] hover:text-blue-700 transition-colors"
+            onClick={() => handleNavigation('/')}
+            className="flex items-center gap-2.5 shrink-0"
           >
-            Beranda
-          </NextLink>
-          <NextLink
-            href="/tentang"
-            className="hover:text-[#2563EB] transition-colors"
-          >
-            Tentang
-          </NextLink>
-          <NextLink
-            href="/#fitur"
-            className="hover:text-[#2563EB] transition-colors"
-          >
-            Fitur
-          </NextLink>
-          <NextLink
-            href="/testimoni"
-            className="hover:text-[#2563EB] transition-colors"
-          >
-            Testimoni
-          </NextLink>
-          <NextLink
-            href="/faq"
-            className="hover:text-[#2563EB] transition-colors"
-          >
-            FAQ
-          </NextLink>
-          {user && (
-            <NextLink
-              href="/dashboard"
-              className="text-black font-bold flex items-center gap-1.5 hover:text-[#2563EB] transition-colors"
-            >
-              <LayoutDashboard className="w-4 h-4 text-[#2563EB]" />
-              Dashboard
-            </NextLink>
-          )}
-        </nav>
+            <Image
+              src="/Mentora.svg"
+              alt="Mentora Logo"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
 
-        {/* Sisi Kanan: Auth & Account Dropdown */}
-        <div className="flex items-center gap-3">
-          {loading ? (
-            <div className="w-28 h-9 bg-slate-200 rounded-full animate-pulse"></div>
-          ) : user ? (
-            <div className="relative" ref={dropdownRef}>
-              <button
-                type="button"
-                onClick={() => setIsMenuOpen((prev) => !prev)}
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white border border-slate-300 hover:border-black shadow-sm transition-all focus:outline-none"
-                aria-expanded={isMenuOpen}
-                aria-label="Menu Akun dan Pengaturan"
-              >
-                {user.fotoProfil ? (
-                  <img
-                    src={user.fotoProfil}
-                    alt={user.namaLengkap}
-                    className="w-7 h-7 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-xs">
-                    {(user.namaPanggilan || user.namaLengkap)
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
-                )}
-                <span className="text-sm font-bold text-black max-w-[120px] truncate">
-                  {user.namaPanggilan || user.namaLengkap.split(" ")[0]}
-                </span>
-                <span
-                  className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                    isAdmin
-                      ? "bg-purple-100 text-purple-800 border border-purple-300"
-                      : user.statusMentor === "APPROVED"
-                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                        : "bg-blue-100 text-[#2563EB] border border-blue-200"
+            <span className="text-2xl font-extrabold text-slate-950 tracking-tight">
+              Mentora
+            </span>
+          </Link>
+
+          {/* NAVBAR DESKTOP */}
+          <nav className="hidden lg:flex items-center gap-8">
+
+            {navLinks.map((item) => {
+              const active = isActive(item.href);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => handleNavigation(item.href)}
+                  aria-current={active ? 'page' : undefined}
+                  className={`text-sm font-bold transition-colors duration-200 ${
+                    active
+                      ? 'text-[#2563EB]'
+                      : 'text-slate-900 hover:text-[#2563EB]'
                   }`}
                 >
-                  {isAdmin
-                    ? "Admin"
-                    : user.statusMentor === "APPROVED"
-                      ? "Mentor"
-                      : "Mentee"}
-                </span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 text-black transition-transform duration-200 ${
-                    isMenuOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
+                  {item.label}
+                </Link>
+              );
+            })}
 
-              {/* Dropdown Menu Modal */}
-              {isMenuOpen && (
-                <div className="absolute right-0 mt-2.5 w-72 rounded-3xl bg-white border border-slate-200 shadow-2xl p-4 space-y-3 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  {/* Header Info Akun */}
-                  <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                    {user.fotoProfil ? (
-                      <img
-                        src={user.fotoProfil}
-                        alt={user.namaLengkap}
-                        className="w-10 h-10 rounded-2xl object-cover border border-slate-200"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-2xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-base shadow-xs">
-                        {(user.namaPanggilan || user.namaLengkap)
-                          .charAt(0)
-                          .toUpperCase()}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-extrabold text-black truncate">
-                        {user.namaLengkap}
-                      </p>
-                      <p className="text-[11px] text-slate-600 truncate">
-                        {user.email}
-                      </p>
-                      <div className="mt-1 flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#2563EB]">
-                          {isAdmin
-                            ? "👑 Admin Mentora"
-                            : user.statusMentor === "APPROVED"
-                              ? "⭐ Mentor Resmi"
-                              : "🎓 Mentee"}
-                        </span>
-                        {typeof user.totalPoin === "number" &&
-                          user.totalPoin > 0 && (
-                            <span className="text-[10px] font-bold text-black">
-                              • {user.totalPoin} Poin
-                            </span>
-                          )}
-                      </div>
-                    </div>
-                  </div>
+          </nav>
 
-                  {/* Navigasi Dropdown */}
-                  <div className="space-y-1">
-                    <NextLink
-                      href="/dashboard"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-black hover:bg-slate-100 transition"
-                    >
-                      <LayoutDashboard className="w-4 h-4 text-[#2563EB]" />
-                      <span>Dashboard Belajar</span>
-                    </NextLink>
+          {/* DASHBOARD DAN AKUN */}
+          <div className="hidden lg:flex items-center gap-5">
 
-                    {isAdmin && (
-                      <NextLink
-                        href="/admin/verifikasi-mentor"
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-800 hover:bg-emerald-50 transition"
-                      >
-                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                        <span>Verifikasi Mentor (Admin)</span>
-                      </NextLink>
-                    )}
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-sm font-bold text-slate-950 hover:text-[#2563EB] transition"
+            >
+              <LayoutDashboard className="w-5 h-5 text-[#2563EB]" />
+              Dashboard
+            </Link>
 
-                    <NextLink
-                      href="/dashboard?tab=profil"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-black hover:bg-slate-100 transition"
-                    >
-                      <Settings className="w-4 h-4 text-black" />
-                      <span>Pengaturan & Profil Akun</span>
-                    </NextLink>
+            <div className="relative">
 
-                    <NextLink
-                      href="/dashboard?tab=katalog"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-black hover:bg-slate-100 transition"
-                    >
-                      <Sparkles className="w-4 h-4 text-amber-500" />
-                      <span>Katalog Skill Exchange</span>
-                    </NextLink>
-                  </div>
-
-                  {/* Switch Dark Mode */}
-                  <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
-                    <div className="flex items-center gap-2 text-xs font-bold text-black">
-                      {isDark ? (
-                        <Moon className="w-4 h-4 text-indigo-500" />
-                      ) : (
-                        <Sun className="w-4 h-4 text-amber-500" />
-                      )}
-                      <span>{isDark ? "Mode Gelap" : "Mode Terang"}</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={toggleTheme}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isDark ? "bg-[#2563EB]" : "bg-slate-300"
-                      }`}
-                      aria-label="Switch Dark Mode"
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                          isDark ? "translate-x-5" : "translate-x-0"
-                        }`}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Logout */}
-                  <div className="border-t border-slate-100 pt-2">
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition text-left"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Keluar (Logout)</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
               <button
                 type="button"
-                onClick={toggleTheme}
-                title={
-                  isDark ? "Beralih ke Mode Terang" : "Beralih ke Mode Gelap"
-                }
-                className="p-2 rounded-full text-black hover:bg-slate-100 transition"
-                aria-label="Toggle Mode Gelap/Terang"
+                onClick={() => setAccountOpen(!accountOpen)}
+                aria-expanded={accountOpen}
+                className="flex items-center gap-3 px-4 py-2 rounded-full border border-slate-200 bg-white shadow-sm hover:bg-slate-50 transition"
               >
-                {isDark ? (
-                  <Sun className="w-4 h-4 text-amber-500" />
-                ) : (
-                  <Moon className="w-4 h-4" />
-                )}
+
+                <div className="w-9 h-9 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold">
+                  M
+                </div>
+
+                <div className="text-left">
+                  <p className="text-sm font-bold text-slate-900">
+                    Akun
+                  </p>
+
+                  <p className="text-[11px] text-emerald-600 font-semibold">
+                    Pengguna Mentora
+                  </p>
+                </div>
+
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-500 transition-transform ${
+                    accountOpen ? 'rotate-180' : ''
+                  }`}
+                />
+
               </button>
 
-              <NextLink
-                href="/auth?tab=masuk"
-                className="px-5 py-2 text-sm font-bold text-black hover:text-[#2563EB] transition-colors"
-              >
-                Masuk
-              </NextLink>
-              <NextLink
-                href="/auth?tab=daftar"
-                className="px-6 py-2.5 text-sm font-bold text-white bg-[#2563EB] hover:bg-blue-700 rounded-full shadow-sm hover:shadow transition-all"
-              >
-                Daftar
-              </NextLink>
-            </>
-          )}
+              {accountOpen && (
+                <div className="absolute right-0 top-full mt-3 w-52 bg-white rounded-2xl border border-slate-200 shadow-xl p-2">
+
+                  <Link
+                    href="/profile"
+                    onClick={closeMenus}
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]"
+                  >
+                    <UserRound className="w-4 h-4" />
+                    Profil Saya
+                  </Link>
+
+                  <Link
+                    href="/dashboard"
+                    onClick={closeMenus}
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    Dashboard
+                  </Link>
+
+                  <Link
+                    href="/auth"
+                    onClick={closeMenus}
+                    className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Masuk / Ganti Akun
+                  </Link>
+
+                </div>
+              )}
+
+            </div>
+          </div>
+
+          {/* MOBILE BUTTON */}
+          <button
+            type="button"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100"
+            aria-label="Buka menu navigasi"
+          >
+            {mobileOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
+
         </div>
+
+        {/* MOBILE NAVIGATION */}
+        {mobileOpen && (
+          <div className="lg:hidden border-t border-slate-100 py-4">
+
+            <nav className="flex flex-col gap-1">
+
+              {navLinks.map((item) => {
+                const active = isActive(item.href);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => handleNavigation(item.href)}
+                    className={`px-4 py-3 rounded-xl text-sm font-semibold ${
+                      active
+                        ? 'bg-blue-50 text-[#2563EB]'
+                        : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+
+            </nav>
+
+            <div className="mt-3 pt-3 border-t border-slate-100">
+
+              <Link
+                href="/dashboard"
+                onClick={closeMenus}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-[#2563EB] hover:bg-blue-50"
+              >
+                <LayoutDashboard className="w-5 h-5" />
+                Dashboard
+              </Link>
+
+              <Link
+                href="/profile"
+                onClick={closeMenus}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                <UserRound className="w-5 h-5" />
+                Profil Saya
+              </Link>
+
+            </div>
+          </div>
+        )}
+
       </div>
     </header>
   );
