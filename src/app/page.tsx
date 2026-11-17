@@ -86,7 +86,7 @@ export default function LandingPage() {
       <section className="relative isolate overflow-hidden bg-[#FAFAFB] min-h-[700px] lg:min-h-[720px] flex items-center">
         <div className="absolute inset-y-0 right-0 w-full lg:w-[75%] z-0 pointer-events-none">
           <Image
-            src="/images/mentora-hero.jpg"
+            src="/images/students-studying.jpg"
             alt="Mahasiswa belajar bersama"
             fill
             priority
