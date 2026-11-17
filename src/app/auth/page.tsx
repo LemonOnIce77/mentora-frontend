@@ -1,65 +1,81 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Star, ArrowRight, CheckCircle2, AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Star,
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Loader2,
+} from "lucide-react";
+import MentoraLogo from "@/components/MentoraLogo";
 
 function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'daftar' ? 'daftar' : 'masuk';
+  const initialTab = searchParams.get("tab") === "daftar" ? "daftar" : "masuk";
 
-  const [activeTab, setActiveTab] = useState<'masuk' | 'daftar'>(initialTab);
+  const [activeTab, setActiveTab] = useState<"masuk" | "daftar">(initialTab);
   const [showPassword, setShowPassword] = useState(false);
 
   // Form states
-  const [namaLengkap, setNamaLengkap] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [namaLengkap, setNamaLengkap] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Status states
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab === 'daftar' || tab === 'masuk') {
+    const tab = searchParams.get("tab");
+    if (tab === "daftar" || tab === "masuk") {
       setActiveTab(tab);
     }
   }, [searchParams]);
 
-  const handleTabChange = (tab: 'masuk' | 'daftar') => {
+  const handleTabChange = (tab: "masuk" | "daftar") => {
     setActiveTab(tab);
-    setErrorMsg('');
-    setSuccessMsg('');
+    setErrorMsg("");
+    setSuccessMsg("");
   };
 
   const handleGoogleAuth = async () => {
-    setErrorMsg('');
-    setSuccessMsg('');
+    setErrorMsg("");
+    setSuccessMsg("");
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'budi@mentora.com', password: 'password123' }),
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "budi@mentora.com",
+          password: "password123",
+        }),
       });
 
       const data = await res.json();
       if (res.ok) {
-        setSuccessMsg('✓ Berhasil masuk dengan Akun Google Kampus! Mengarahkan...');
+        setSuccessMsg(
+          "✓ Berhasil masuk dengan Akun Google Kampus! Mengarahkan...",
+        );
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push("/dashboard");
         }, 900);
       } else {
-        setErrorMsg(data.message || 'Gagal masuk dengan Google.');
+        setErrorMsg(data.message || "Gagal masuk dengan Google.");
       }
     } catch (err) {
-      setErrorMsg('Terjadi kendala jaringan saat menghubungkan ke akun Google.');
+      setErrorMsg(
+        "Terjadi kendala jaringan saat menghubungkan ke akun Google.",
+      );
     } finally {
       setLoading(false);
     }
@@ -67,27 +83,27 @@ function AuthContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg('');
-    setSuccessMsg('');
+    setErrorMsg("");
+    setSuccessMsg("");
     setLoading(true);
 
     try {
-      if (activeTab === 'daftar') {
+      if (activeTab === "daftar") {
         if (!namaLengkap || !email || !password) {
-          setErrorMsg('Semua kolom wajib diisi.');
+          setErrorMsg("Semua kolom wajib diisi.");
           setLoading(false);
           return;
         }
 
         if (password !== confirmPassword) {
-          setErrorMsg('Konfirmasi password tidak cocok.');
+          setErrorMsg("Konfirmasi password tidak cocok.");
           setLoading(false);
           return;
         }
 
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ namaLengkap, email, password }),
         });
 
@@ -95,30 +111,33 @@ function AuthContent() {
         try {
           data = await res.json();
         } catch {
-          data = { message: 'Server merespons di luar format JSON. Pastikan prisma client dan database dev aktif.' };
+          data = {
+            message:
+              "Server merespons di luar format JSON. Pastikan prisma client dan database dev aktif.",
+          };
         }
 
         if (!res.ok) {
-          setErrorMsg(data.message || 'Registrasi gagal. Silakan coba lagi.');
+          setErrorMsg(data.message || "Registrasi gagal. Silakan coba lagi.");
           setLoading(false);
           return;
         }
 
-        setSuccessMsg('Akun berhasil dibuat! Mengarahkan ke Onboarding...');
+        setSuccessMsg("Akun berhasil dibuat! Mengarahkan ke Onboarding...");
         setTimeout(() => {
-          router.push('/onboarding');
+          router.push("/onboarding");
         }, 1100);
       } else {
         // Login flow
         if (!email || !password) {
-          setErrorMsg('Email dan password wajib diisi.');
+          setErrorMsg("Email dan password wajib diisi.");
           setLoading(false);
           return;
         }
 
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         });
 
@@ -126,26 +145,35 @@ function AuthContent() {
         try {
           data = await res.json();
         } catch {
-          data = { message: 'Server merespons di luar format JSON. Pastikan prisma client dan database dev aktif.' };
+          data = {
+            message:
+              "Server merespons di luar format JSON. Pastikan prisma client dan database dev aktif.",
+          };
         }
 
         if (!res.ok) {
-          setErrorMsg(data.message || 'Email atau password yang Anda masukkan salah.');
+          setErrorMsg(
+            data.message || "Email atau password yang Anda masukkan salah.",
+          );
           setLoading(false);
           return;
         }
 
-        setSuccessMsg('Login berhasil! Mengarahkan...');
+        setSuccessMsg("Login berhasil! Mengarahkan...");
         setTimeout(() => {
-          if (!data.user.onboardingCompleted && data.user.role !== 'Admin') {
-            router.push('/onboarding');
+          if (!data.user.onboardingCompleted && data.user.role !== "Admin") {
+            router.push("/onboarding");
           } else {
-            router.push('/dashboard');
+            router.push("/dashboard");
           }
         }, 900);
       }
     } catch (err: any) {
-      setErrorMsg(err?.message && !err.message.includes('Unexpected') ? err.message : 'Terjadi kendala pada server autentikasi. Pastikan npm run dev aktif dan prisma ter-generate.');
+      setErrorMsg(
+        err?.message && !err.message.includes("Unexpected")
+          ? err.message
+          : "Terjadi kendala pada server autentikasi. Pastikan npm run dev aktif dan prisma ter-generate.",
+      );
     } finally {
       setLoading(false);
     }
@@ -153,23 +181,15 @@ function AuthContent() {
 
   return (
     <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-      
       {/* Left Column: Mentora Value Props & Graphics */}
       <div className="lg:col-span-6 space-y-8 pr-0 lg:pr-6">
         {/* Logo */}
-        <Link href="/" className="inline-flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-500 via-[#2563EB] to-indigo-500 flex items-center justify-center shadow-sm">
-            <div className="grid grid-cols-2 gap-0.5">
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-              <span className="w-2 h-2 rounded-full bg-white"></span>
-            </div>
-          </div>
-          <span className="text-2xl font-black tracking-tight text-slate-900">
+        <div className="flex items-center gap-2.5">
+          <MentoraLogo />
+          <span className="text-2xl font-extrabold text-slate-950 tracking-tight">
             Mentora
           </span>
-        </Link>
+        </div>
 
         {/* Heading */}
         <div className="space-y-3">
@@ -178,7 +198,8 @@ function AuthContent() {
             tumbuh <span className="text-[#2563EB]">lebih jauh</span>
           </h1>
           <p className="text-slate-600 text-base leading-relaxed max-w-lg">
-            Mentora adalah platform peer-to-peer untuk menemukan teman belajar, bertukar skill, dan berkembang bersama sesama mahasiswa.
+            Mentora adalah platform peer-to-peer untuk menemukan teman belajar,
+            bertukar skill, dan berkembang bersama sesama mahasiswa.
           </p>
         </div>
 
@@ -189,8 +210,12 @@ function AuthContent() {
               <Star className="w-4 h-4 fill-[#2563EB]" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900">Temukan teman belajar</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Dari kampus mana pun, untuk keahlian apa pun.</p>
+              <h4 className="text-sm font-bold text-slate-900">
+                Temukan teman belajar
+              </h4>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Dari kampus mana pun, untuk keahlian apa pun.
+              </p>
             </div>
           </div>
 
@@ -199,8 +224,12 @@ function AuthContent() {
               <Star className="w-4 h-4 fill-[#2563EB]" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900">Tukar pengetahuan</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Belajar langsung dan saling melengkapi bersama teman sebaya.</p>
+              <h4 className="text-sm font-bold text-slate-900">
+                Tukar pengetahuan
+              </h4>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Belajar langsung dan saling melengkapi bersama teman sebaya.
+              </p>
             </div>
           </div>
 
@@ -209,8 +238,12 @@ function AuthContent() {
               <Star className="w-4 h-4 fill-[#2563EB]" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900">Kembangkan potensimu</h4>
-              <p className="text-xs text-slate-500 mt-0.5">Bangun portofolio keaktifan resmi dan kumpulkan sertifikat.</p>
+              <h4 className="text-sm font-bold text-slate-900">
+                Kembangkan potensimu
+              </h4>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Bangun portofolio keaktifan resmi dan kumpulkan sertifikat.
+              </p>
             </div>
           </div>
         </div>
@@ -235,34 +268,33 @@ function AuthContent() {
       {/* Right Column: Card with Masuk / Daftar Tabs */}
       <div className="lg:col-span-6">
         <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-lg relative">
-          
           {/* Top Tabs Switcher */}
           <div className="flex border-b border-slate-200 mb-8">
             <button
               type="button"
-              onClick={() => handleTabChange('masuk')}
+              onClick={() => handleTabChange("masuk")}
               className={`flex-1 pb-3 text-center text-sm font-bold transition-all relative ${
-                activeTab === 'masuk'
-                  ? 'text-[#2563EB]'
-                  : 'text-slate-400 hover:text-slate-600'
+                activeTab === "masuk"
+                  ? "text-[#2563EB]"
+                  : "text-slate-400 hover:text-slate-600"
               }`}
             >
               Masuk
-              {activeTab === 'masuk' && (
+              {activeTab === "masuk" && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2563EB] rounded-full"></span>
               )}
             </button>
             <button
               type="button"
-              onClick={() => handleTabChange('daftar')}
+              onClick={() => handleTabChange("daftar")}
               className={`flex-1 pb-3 text-center text-sm font-bold transition-all relative ${
-                activeTab === 'daftar'
-                  ? 'text-[#2563EB]'
-                  : 'text-slate-400 hover:text-slate-600'
+                activeTab === "daftar"
+                  ? "text-[#2563EB]"
+                  : "text-slate-400 hover:text-slate-600"
               }`}
             >
               Daftar
-              {activeTab === 'daftar' && (
+              {activeTab === "daftar" && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2563EB] rounded-full"></span>
               )}
             </button>
@@ -271,12 +303,14 @@ function AuthContent() {
           {/* Greeting */}
           <div className="mb-6">
             <h2 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-              {activeTab === 'masuk' ? 'Selamat datang di Mentora! 👋' : 'Daftar akun Mentora! 🚀'}
+              {activeTab === "masuk"
+                ? "Selamat datang di Mentora! 👋"
+                : "Daftar akun Mentora! 🚀"}
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              {activeTab === 'masuk'
-                ? 'Masuk untuk melanjutkan perjalanan belajarmu.'
-                : 'Mulai perjalanan belajarmu bersama mahasiswa lainnya.'}
+              {activeTab === "masuk"
+                ? "Masuk untuk melanjutkan perjalanan belajarmu."
+                : "Mulai perjalanan belajarmu bersama mahasiswa lainnya."}
             </p>
           </div>
 
@@ -319,7 +353,11 @@ function AuthContent() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>{activeTab === 'masuk' ? 'Masuk dengan Google' : 'Daftar dengan Google'}</span>
+            <span>
+              {activeTab === "masuk"
+                ? "Masuk dengan Google"
+                : "Daftar dengan Google"}
+            </span>
           </button>
 
           {/* Divider */}
@@ -328,13 +366,13 @@ function AuthContent() {
               <div className="w-full border-t border-slate-200"></div>
             </div>
             <span className="relative px-3 bg-white text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-              atau {activeTab === 'masuk' ? 'masuk' : 'daftar'} dengan email
+              atau {activeTab === "masuk" ? "masuk" : "daftar"} dengan email
             </span>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {activeTab === 'daftar' && (
+            {activeTab === "daftar" && (
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Nama Lengkap
@@ -369,7 +407,7 @@ function AuthContent() {
                 <label className="block text-xs font-bold text-slate-700">
                   Password
                 </label>
-                {activeTab === 'masuk' && (
+                {activeTab === "masuk" && (
                   <span className="text-[11px] text-slate-400">
                     Minimal 6 karakter
                   </span>
@@ -377,7 +415,7 @@ function AuthContent() {
               </div>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password kamu"
@@ -389,12 +427,16 @@ function AuthContent() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
 
-            {activeTab === 'daftar' && (
+            {activeTab === "daftar" && (
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Konfirmasi Password
@@ -420,7 +462,9 @@ function AuthContent() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <span>{activeTab === 'masuk' ? 'Masuk' : 'Daftar Sekarang'}</span>
+                  <span>
+                    {activeTab === "masuk" ? "Masuk" : "Daftar Sekarang"}
+                  </span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -433,17 +477,21 @@ function AuthContent() {
               ✓
             </div>
             <p>
-              <span className="font-bold text-blue-950">Bergabung sebagai mentee (mahasiswa).</span> Anda dapat mengajukan diri menjadi mentor terverifikasi kapan pun melalui halaman profil.
+              <span className="font-bold text-blue-950">
+                Bergabung sebagai mentee (mahasiswa).
+              </span>{" "}
+              Anda dapat mengajukan diri menjadi mentor terverifikasi kapan pun
+              melalui halaman profil.
             </p>
           </div>
 
           {/* Footer switcher */}
           <div className="mt-6 text-center text-xs text-slate-500">
-            {activeTab === 'masuk' ? (
+            {activeTab === "masuk" ? (
               <p>
-                Belum punya akun?{' '}
+                Belum punya akun?{" "}
                 <button
-                  onClick={() => handleTabChange('daftar')}
+                  onClick={() => handleTabChange("daftar")}
                   className="font-bold text-[#2563EB] hover:underline"
                 >
                   Daftar sekarang
@@ -451,9 +499,9 @@ function AuthContent() {
               </p>
             ) : (
               <p>
-                Sudah punya akun?{' '}
+                Sudah punya akun?{" "}
                 <button
-                  onClick={() => handleTabChange('masuk')}
+                  onClick={() => handleTabChange("masuk")}
                   className="font-bold text-[#2563EB] hover:underline"
                 >
                   Masuk di sini
@@ -461,10 +509,8 @@ function AuthContent() {
               </p>
             )}
           </div>
-
         </div>
       </div>
-
     </div>
   );
 }
@@ -472,11 +518,13 @@ function AuthContent() {
 export default function AuthPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFB] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <Suspense fallback={
-        <div className="flex items-center justify-center p-12">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center p-12">
+            <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
+          </div>
+        }
+      >
         <AuthContent />
       </Suspense>
     </div>

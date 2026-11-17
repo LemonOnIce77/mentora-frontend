@@ -1,8 +1,27 @@
+
 import { NextResponse } from 'next/server';
 
 export async function POST() {
-  const response = NextResponse.json({ message: 'Logout berhasil.' });
-  response.cookies.delete('mentora_token');
-  response.cookies.delete('mentora_session');
+  const response = NextResponse.json({
+    success: true,
+    message: 'Logout berhasil.',
+  });
+
+  response.cookies.set('mentora_token', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+  });
+
+  response.cookies.set('mentora_session', '', {
+    httpOnly: false,
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+  });
+
   return response;
 }
