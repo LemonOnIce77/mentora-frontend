@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
 
     // 3. Bersihkan data skill
     const normalizeSkills = (skills: unknown[]): string[] => {
-      return [
-        ...new Set(
+      return Array.from(
+        new Set(
           skills
             .filter(
               (skill): skill is string =>
@@ -68,8 +68,8 @@ export async function POST(req: NextRequest) {
             )
             .map((skill) => skill.trim())
             .filter((skill) => skill.length > 0)
-        ),
-      ];
+        )
+      );
     };
 
     const learnSkills = normalizeSkills(skillsToLearn);

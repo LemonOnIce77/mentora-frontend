@@ -40,7 +40,8 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-      const applications = await prisma.mentorApplication.findMany({
+      const p = prisma as any;
+      const applications = await (p.mentor_applications || p.mentorApplication)?.findMany({
         include: {
           user: {
             select: {
@@ -54,6 +55,7 @@ export async function GET(req: NextRequest) {
               statusMentor: true,
             },
           },
+          users_mentor_applications_user_idTousers: true,
         },
         orderBy: { createdAt: 'desc' },
       });

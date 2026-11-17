@@ -31,13 +31,14 @@ export async function POST(
     const newStatus = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
 
     try {
-      const app = await prisma.mentorApplication.findUnique({
+      const p = prisma as any;
+      const app = await (p.mentor_applications || p.mentorApplication)?.findUnique({
         where: { id: applicationId },
-        include: { user: true },
+        include: { user: true, users_mentor_applications_user_idTousers: true },
       });
 
       if (app) {
-        const updatedApplication = await prisma.mentorApplication.update({
+        const updatedApplication = await (p.mentor_applications || p.mentorApplication)?.update({
           where: { id: applicationId },
           data: {
             status: newStatus,
@@ -46,13 +47,14 @@ export async function POST(
           },
         });
 
-        const updatedUser = await prisma.user.update({
-          where: { id: app.userId },
+        const targetUserId = app.userId ?? app.user_id;
+        const updatedUser = targetUserId ? await (p.users || p.user)?.update({
+          where: { id: targetUserId },
           data: {
             statusMentor: newStatus,
             ...(action === 'APPROVE' ? { role: 'Mentor' } : {}),
           },
-        });
+        }) : null;
 
         return NextResponse.json({
           message: action === 'APPROVE' ? 'Pengajuan mentor berhasil disetujui!' : 'Pengajuan mentor telah ditolak.',

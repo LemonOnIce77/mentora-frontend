@@ -51,7 +51,8 @@ export async function GET(req: NextRequest) {
     const searchQuery = searchParams.get('q');
 
     try {
-      const mentors = await prisma.user.findMany({
+      const p = prisma as any;
+      const mentors = await (p.users || p.user)?.findMany({
         where: {
           statusMentor: 'APPROVED',
           ...(searchQuery
