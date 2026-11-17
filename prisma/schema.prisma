@@ -1,172 +1,235 @@
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id                  Int          @id @default(autoincrement())
-  namaLengkap         String
-  namaPanggilan       String?
-  email               String       @unique
-  password            String
-  universitas         String?
-  prodi               String?
-  semester            String?
-  domisili            String?
-  tglLahir            String?
-  bio                 String?
-  fotoProfil          String?
-  modeSesi            String?      @default("Fleksibel") // Online, Offline, Fleksibel
-  onboardingCompleted Boolean      @default(false)
-  role                String       @default("Mentee") // Mentee, Mentor, Admin
-  statusMentor        String       @default("NONE") // NONE, PENDING, APPROVED, REJECTED
-  dokumenKredensial   String?
-  totalPoin           Int          @default(0)
-  latitude            Float?
-  longitude           Float?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-
-  skills              UserSkill[]
-  applications        MentorApplication[]
-  sentMessages        ChatMessage[]       @relation("SenderMessages")
-  receivedMessages    ChatMessage[]       @relation("ReceiverMessages")
-  reviewsGiven        Review[]            @relation("Reviewer")
-  reviewsReceived     Review[]            @relation("ReviewedUser")
-  poinHistory         RiwayatPoin[]
-  certificates        ECertificate[]
-  schedules           JadwalKetersediaan[]
-  mentorSessions      SesiExchange[]      @relation("MentorSessions")
-  menteeSessions      SesiExchange[]      @relation("MenteeSessions")
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
-model Skill {
-  id          Int         @id @default(autoincrement())
-  namaSkill   String      @unique
-  kategori    String      // Design, Tech, Business, Communication, Language, etc.
-  deskripsi   String?
-  users       UserSkill[]
-  sessions    SesiExchange[]
+model cache {
+  key        String @id @db.VarChar(255)
+  value      String @db.MediumText
+  expiration Int
+
+  @@index([expiration], map: "cache_expiration_index")
 }
 
-model UserSkill {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  skillId   Int
-  tipe      String   // "LEARN" (ingin dipelajari) | "TEACH" (sudah dimiliki)
-  level     String?  @default("Beginner") // Beginner, Intermediate, Advanced
-  createdAt DateTime @default(now())
+model cache_locks {
+  key        String @id @db.VarChar(255)
+  owner      String @db.VarChar(255)
+  expiration Int
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, skillId, tipe])
+  @@index([expiration], map: "cache_locks_expiration_index")
 }
 
-model MentorApplication {
-  id                   Int       @id @default(autoincrement())
-  userId               Int
-  skillsOffered        String    // JSON or comma separated skills
-  pengalamanMengajar   String?
-  dokumenUrl           String    // Path or base64 data URL
-  dokumenNama          String
-  status               String    @default("PENDING") // PENDING, APPROVED, REJECTED
-  catatanAdmin         String?
-  createdAt            DateTime  @default(now())
-  reviewedAt           DateTime?
-
-  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+model failed_jobs {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
+  connection String   @db.Text
+  queue      String   @db.Text
+  payload    String   @db.LongText
+  exception  String   @db.LongText
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
 }
 
-model JadwalKetersediaan {
-  id          Int           @id @default(autoincrement())
-  userId      Int
-  hari        String
-  jamMulai    String
-  jamSelesai  String
-  isAvailable Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  session     SesiExchange?
+model job_batches {
+  id             String  @id @db.VarChar(255)
+  name           String  @db.VarChar(255)
+  total_jobs     Int
+  pending_jobs   Int
+  failed_jobs    Int
+  failed_job_ids String  @db.LongText
+  options        String? @db.MediumText
+  cancelled_at   Int?
+  created_at     Int
+  finished_at    Int?
 }
 
-model SesiExchange {
-  id           Int                 @id @default(autoincrement())
-  mentorId     Int
-  menteeId     Int
-  skillId      Int
-  jadwalId     Int?                @unique
-  tanggalSesi  DateTime
-  jamMulai     String
-  jamSelesai   String
-  metode       String              // Online / Offline
-  lokasi       String?
-  status       String              @default("BOOKED") // BOOKED, COMPLETED, CANCELLED
-  createdAt    DateTime            @default(now())
+model jobs {
+  id           BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  queue        String @db.VarChar(255)
+  payload      String @db.LongText
+  attempts     Int    @db.UnsignedTinyInt
+  reserved_at  Int?   @db.UnsignedInt
+  available_at Int    @db.UnsignedInt
+  created_at   Int    @db.UnsignedInt
 
-  mentor       User                @relation("MentorSessions", fields: [mentorId], references: [id], onDelete: Cascade)
-  mentee       User                @relation("MenteeSessions", fields: [menteeId], references: [id], onDelete: Cascade)
-  skill        Skill               @relation(fields: [skillId], references: [id], onDelete: Cascade)
-  jadwal       JadwalKetersediaan? @relation(fields: [jadwalId], references: [id])
-  messages     ChatMessage[]
-  reviews      Review[]
-  poinHistory  RiwayatPoin[]
+  @@index([queue], map: "jobs_queue_index")
 }
 
-model ChatMessage {
-  id         Int           @id @default(autoincrement())
-  sesiId     Int?
-  pengirimId Int
-  penerimaId Int
-  pesan      String
-  waktuKirim DateTime      @default(now())
-  isRead     Boolean       @default(false)
+model mentor_applications {
+  id                                           BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id                                      BigInt                     @db.UnsignedBigInt
+  alasan_mengajar                              String                     @db.Text
+  bidang_keahlian                              String                     @db.VarChar(255)
+  tahun_pengalaman                             Int                        @default(1)
+  tautan_portofolio                            String?                    @db.VarChar(255)
+  status                                       mentor_applications_status @default(PENDING)
+  catatan_admin                                String?                    @db.Text
+  reviewed_by                                  BigInt?                    @db.UnsignedBigInt
+  reviewed_at                                  DateTime?                  @db.Timestamp(0)
+  created_at                                   DateTime?                  @db.Timestamp(0)
+  updated_at                                   DateTime?                  @db.Timestamp(0)
+  users_mentor_applications_reviewed_byTousers users?                     @relation("mentor_applications_reviewed_byTousers", fields: [reviewed_by], references: [id], onUpdate: Restrict, map: "mentor_applications_reviewed_by_foreign")
+  users_mentor_applications_user_idTousers     users                      @relation("mentor_applications_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "mentor_applications_user_id_foreign")
+  mentor_credentials                           mentor_credentials[]
 
-  sesi       SesiExchange? @relation(fields: [sesiId], references: [id], onDelete: Cascade)
-  pengirim   User          @relation("SenderMessages", fields: [pengirimId], references: [id], onDelete: Cascade)
-  penerima   User          @relation("ReceiverMessages", fields: [penerimaId], references: [id], onDelete: Cascade)
+  @@index([reviewed_by], map: "mentor_applications_reviewed_by_foreign")
+  @@index([status], map: "mentor_applications_status_index")
+  @@index([user_id, status], map: "mentor_applications_user_id_status_index")
 }
 
-model Review {
-  id             Int          @id @default(autoincrement())
-  sesiId         Int
-  reviewerId     Int
-  reviewedUserId Int
-  rating         Int
-  komentar       String?
-  createdAt      DateTime     @default(now())
+model mentor_credentials {
+  id                    BigInt                               @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id               BigInt                               @db.UnsignedBigInt
+  mentor_application_id BigInt?                              @db.UnsignedBigInt
+  jenis_dokumen         mentor_credentials_jenis_dokumen
+  judul_dokumen         String                               @db.VarChar(255)
+  file_path             String                               @db.VarChar(255)
+  file_name             String                               @db.VarChar(255)
+  file_size             BigInt                               @db.UnsignedBigInt
+  mime_type             String                               @db.VarChar(255)
+  status_verifikasi     mentor_credentials_status_verifikasi @default(PENDING)
+  created_at            DateTime?                            @db.Timestamp(0)
+  updated_at            DateTime?                            @db.Timestamp(0)
+  mentor_applications   mentor_applications?                 @relation(fields: [mentor_application_id], references: [id], onUpdate: Restrict, map: "mentor_credentials_mentor_application_id_foreign")
+  users                 users                                @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "mentor_credentials_user_id_foreign")
 
-  sesi           SesiExchange @relation(fields: [sesiId], references: [id], onDelete: Cascade)
-  reviewer       User         @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
-  reviewedUser   User         @relation("ReviewedUser", fields: [reviewedUserId], references: [id], onDelete: Cascade)
+  @@index([mentor_application_id], map: "mentor_credentials_mentor_application_id_foreign")
+  @@index([status_verifikasi], map: "mentor_credentials_status_verifikasi_index")
+  @@index([user_id, jenis_dokumen], map: "mentor_credentials_user_id_jenis_dokumen_index")
 }
 
-model RiwayatPoin {
-  id               Int           @id @default(autoincrement())
-  userId           Int
-  sesiId           Int?
-  jumlahPoin       Int
-  tipeTransaksi    String        // "ADD" (dapat poin) atau "DEDUCT" (tukar sertifikat)
-  keterangan       String
-  waktuTransaksi   DateTime      @default(now())
-
-  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sesi             SesiExchange? @relation(fields: [sesiId], references: [id])
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String @db.VarChar(255)
+  batch     Int
 }
 
-model ECertificate {
-  id               Int      @id @default(autoincrement())
-  userId           Int
-  nomorSertifikat  String   @unique
-  tanggalTerbit    DateTime @default(now())
-  poinDitebus      Int      @default(25)
-  fileUrl          String
-  status           String   @default("ISSUED")
+model password_reset_tokens {
+  email      String    @id @db.VarChar(255)
+  token      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+}
 
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model personal_access_tokens {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   BigInt    @db.UnsignedBigInt
+  name           String    @db.Text
+  token          String    @unique(map: "personal_access_tokens_token_unique") @db.VarChar(64)
+  abilities      String?   @db.Text
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @db.Timestamp(0)
+
+  @@index([expires_at], map: "personal_access_tokens_expires_at_index")
+  @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+}
+
+model sessions {
+  id            String  @id @db.VarChar(255)
+  user_id       BigInt? @db.UnsignedBigInt
+  ip_address    String? @db.VarChar(45)
+  user_agent    String? @db.Text
+  payload       String  @db.LongText
+  last_activity Int
+
+  @@index([last_activity], map: "sessions_last_activity_index")
+  @@index([user_id], map: "sessions_user_id_index")
+}
+
+model skills {
+  id          BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  nama_skill  String        @unique(map: "skills_nama_skill_unique") @db.VarChar(255)
+  kategori    String        @db.VarChar(255)
+  deskripsi   String?       @db.Text
+  icon        String?       @db.VarChar(255)
+  created_at  DateTime?     @db.Timestamp(0)
+  updated_at  DateTime?     @db.Timestamp(0)
+  user_skills user_skills[]
+
+  @@index([kategori], map: "skills_kategori_index")
+}
+
+model user_skills {
+  id                   BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id              BigInt            @db.UnsignedBigInt
+  skill_id             BigInt            @db.UnsignedBigInt
+  type                 user_skills_type
+  level                user_skills_level @default(pemula)
+  deskripsi_pengalaman String?           @db.Text
+  created_at           DateTime?         @db.Timestamp(0)
+  updated_at           DateTime?         @db.Timestamp(0)
+  skills               skills            @relation(fields: [skill_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "user_skills_skill_id_foreign")
+  users                users             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "user_skills_user_id_foreign")
+
+  @@unique([user_id, skill_id, type], map: "user_skill_type_unique")
+  @@index([skill_id], map: "user_skills_skill_id_foreign")
+  @@index([user_id, type], map: "user_skills_user_id_type_index")
+}
+
+model users {
+  id                                                         BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  nama_lengkap                                               String                @db.VarChar(255)
+  nama_panggilan                                             String?               @db.VarChar(255)
+  email                                                      String                @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at                                          DateTime?             @db.Timestamp(0)
+  password                                                   String                @db.VarChar(255)
+  universitas                                                String?               @db.VarChar(255)
+  prodi                                                      String?               @db.VarChar(255)
+  semester                                                   String?               @db.VarChar(255)
+  domisili                                                   String?               @db.VarChar(255)
+  tgl_lahir                                                  String?               @db.VarChar(255)
+  bio                                                        String?               @db.Text
+  foto_profil                                                String?               @db.VarChar(255)
+  mode_sesi                                                  String                @default("Fleksibel") @db.VarChar(255)
+  role                                                       String                @default("Mentee") @db.VarChar(255)
+  status_mentor                                              String                @default("NONE") @db.VarChar(255)
+  dokumen_kredensial                                         String?               @db.VarChar(255)
+  total_poin                                                 Int                   @default(0)
+  latitude                                                   Float?
+  longitude                                                  Float?
+  onboarding_completed                                       Boolean               @default(false)
+  remember_token                                             String?               @db.VarChar(100)
+  created_at                                                 DateTime?             @db.Timestamp(0)
+  updated_at                                                 DateTime?             @db.Timestamp(0)
+  mentor_applications_mentor_applications_reviewed_byTousers mentor_applications[] @relation("mentor_applications_reviewed_byTousers")
+  mentor_applications_mentor_applications_user_idTousers     mentor_applications[] @relation("mentor_applications_user_idTousers")
+  mentor_credentials                                         mentor_credentials[]
+  user_skills                                                user_skills[]
+
+  @@index([role], map: "users_role_index")
+  @@index([status_mentor], map: "users_status_mentor_index")
+}
+
+enum mentor_credentials_jenis_dokumen {
+  transkrip
+  sertifikat
+  portofolio
+}
+
+enum user_skills_type {
+  teach
+  learn
+}
+
+enum user_skills_level {
+  pemula
+  menengah
+  mahir
+}
+
+enum mentor_applications_status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum mentor_credentials_status_verifikasi {
+  PENDING
+  VALID
+  INVALID
 }
