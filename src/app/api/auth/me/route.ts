@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth';
 
@@ -5,29 +6,46 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
-    // 1. Coba verifikasi lewat JWT token
-    const authUser = await getAuthUser(req);
-    if (authUser) {
-      return NextResponse.json({ user: authUser });
-    }
+    const user = await getAuthUser(req);
 
-    // 2. Coba baca sesi cookie alternatif jika ada
-    const sessionCookie = req.cookies.get('mentora_session')?.value;
-    if (sessionCookie) {
-      try {
-        const parsed = JSON.parse(sessionCookie);
-        if (parsed && parsed.email) {
-          return NextResponse.json({ user: parsed });
+    if (!user) {
+      return NextResponse.json(
+        {
+          user: null,
+          message: 'Sesi tidak valid. Silakan login kembali.',
+        },
+        {
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-store',
+          },
         }
-      } catch (err) {
-        // Abaikan bila format cookie rusak
-      }
+      );
     }
 
-    // Tidak ada sesi aktif
-    return NextResponse.json({ user: null });
+    return NextResponse.json(
+      {
+        success: true,
+        user,
+      },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control':
+            'no-store, no-cache, must-revalidate',
+        },
+      }
+    );
+
   } catch (error) {
-    console.error('Error fetching auth user session:', error);
-    return NextResponse.json({ user: null });
+    console.error('Auth me error:', error);
+
+    return NextResponse.json(
+      {
+        user: null,
+        message: 'Gagal mengambil data pengguna.',
+      },
+      { status: 500 }
+    );
   }
 }

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import {
   User,
   Shield,
@@ -28,7 +28,7 @@ import {
   MapPin,
   ChevronRight,
   Filter,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface CurrentUser {
   id: number;
@@ -100,22 +100,24 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'mentors' | 'profile' | 'skills' | 'apply' | 'admin'>('mentors');
+  const [activeTab, setActiveTab] = useState<
+    "mentors" | "profile" | "skills" | "apply" | "admin"
+  >("mentors");
 
   // Mentors list state
   const [mentors, setMentors] = useState<MentorUser[]>([]);
-  const [searchMentorQuery, setSearchMentorQuery] = useState('');
-  const [selectedSkillFilter, setSelectedSkillFilter] = useState('');
+  const [searchMentorQuery, setSearchMentorQuery] = useState("");
+  const [selectedSkillFilter, setSelectedSkillFilter] = useState("");
 
   // Admin applications state
   const [applications, setApplications] = useState<MentorApplication[]>([]);
   const [adminLoading, setAdminLoading] = useState(false);
 
   // Mentor application form state
-  const [applySkills, setApplySkills] = useState('');
-  const [applyExperience, setApplyExperience] = useState('');
-  const [applyDocName, setApplyDocName] = useState('');
-  const [applyDocUrl, setApplyDocUrl] = useState('');
+  const [applySkills, setApplySkills] = useState("");
+  const [applyExperience, setApplyExperience] = useState("");
+  const [applyDocName, setApplyDocName] = useState("");
+  const [applyDocUrl, setApplyDocUrl] = useState("");
   const [applyLoading, setApplyLoading] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
 
@@ -133,20 +135,20 @@ export default function DashboardPage() {
     latitude?: number | null;
     longitude?: number | null;
   }>({
-    namaLengkap: '',
-    namaPanggilan: '',
-    universitas: '',
-    prodi: '',
-    semester: '',
-    domisili: '',
-    bio: '',
+    namaLengkap: "",
+    namaPanggilan: "",
+    universitas: "",
+    prodi: "",
+    semester: "",
+    domisili: "",
+    bio: "",
     latitude: null,
     longitude: null,
   });
 
   const handleDetectLocation = () => {
     if (!navigator.geolocation) {
-      alert('Browser Anda tidak mendukung fitur Geolocation API.');
+      alert("Browser Anda tidak mendukung fitur Geolocation API.");
       return;
     }
     setDetectingLocation(true);
@@ -158,48 +160,115 @@ export default function DashboardPage() {
           ...prev,
           latitude: lat,
           longitude: lng,
-          domisili: prev.domisili || 'Bandung, Jawa Barat',
+          domisili: prev.domisili || "Bandung, Jawa Barat",
         }));
         setDetectingLocation(false);
-        alert(`Lokasi GPS berhasil dideteksi: (${lat}, ${lng}) untuk fitur nearby!`);
+        alert(
+          `Lokasi GPS berhasil dideteksi: (${lat}, ${lng}) untuk fitur nearby!`,
+        );
       },
       () => {
         setDetectingLocation(false);
         // Fallback simulated GPS coordinates for Telkom University
         setProfileForm((prev) => ({
           ...prev,
-          latitude: -6.9740,
+          latitude: -6.974,
           longitude: 107.6303,
-          domisili: prev.domisili || 'Dayeuhkolot, Bandung',
+          domisili: prev.domisili || "Dayeuhkolot, Bandung",
         }));
-        alert('Izin lokasi browser tidak diberikan. Menggunakan koordinat simulasi kampus Bandung (-6.9740, 107.6303).');
+        alert(
+          "Izin lokasi browser tidak diberikan. Menggunakan koordinat simulasi kampus Bandung (-6.9740, 107.6303).",
+        );
       },
-      { timeout: 8000 }
+      { timeout: 8000 },
     );
   };
 
   const loadUserData = async () => {
     try {
-      const res = await fetch('/api/auth/me');
-      if (!res.ok) {
-        router.push('/auth');
+      const [authRes, profileRes, skillsRes] = await Promise.all([
+        fetch("/api/auth/me", { cache: "no-store" }),
+        fetch("/api/profile", { cache: "no-store" }),
+        fetch("/api/profile/skills", { cache: "no-store" }),
+      ]);
+
+      if (!authRes.ok) {
+        router.push("/auth");
         return;
       }
-      const data = await res.json();
-      setUser(data.user);
+
+      const authData = await authRes.json();
+      const authUser = authData.user ?? {};
+
+      const profileData = profileRes.ok ? await profileRes.json() : {};
+
+      const skillsData = skillsRes.ok ? await skillsRes.json() : {};
+
+      const profile = profileData.profile ?? authUser;
+
+      // Konversi format skill database ke format dashboard
+      const skillsFromAPI = [
+        ...(skillsData.skillsToLearn ?? []).map((s: any) => ({
+          id: Number(s.id),
+          tipe: "LEARN",
+          level: s.level,
+          skill: {
+            id: Number(s.id),
+            namaSkill: s.namaSkill,
+            kategori: "",
+          },
+        })),
+
+        ...(skillsData.skillsPossessed ?? []).map((s: any) => ({
+          id: Number(s.id),
+          tipe: "TEACH",
+          level: s.level,
+          skill: {
+            id: Number(s.id),
+            namaSkill: s.namaSkill,
+            kategori: "",
+          },
+        })),
+      ];
+
+      // Fallback jika data skill tersedia dari auth API
+      const fallbackSkills = (authUser.skills ?? []).map((s: any) => ({
+        ...s,
+        tipe:
+          String(s.type ?? s.tipe).toLowerCase() === "learn"
+            ? "LEARN"
+            : "TEACH",
+        skill: s.skill ?? s.skills,
+      }));
+
+      const mergedUser = {
+        ...authUser,
+        ...profile,
+        id: Number(profile.id ?? authUser.id),
+        namaLengkap: profile.namaLengkap ?? authUser.namaLengkap ?? "",
+        email: profile.email ?? authUser.email ?? "",
+        role: authUser.role ?? profile.role ?? "Mentee",
+        statusMentor: authUser.statusMentor ?? profile.statusMentor ?? "NONE",
+        totalPoin: Number(authUser.totalPoin ?? profile.totalPoin ?? 0),
+        skills: skillsFromAPI.length > 0 ? skillsFromAPI : fallbackSkills,
+      };
+
+      setUser(mergedUser);
+
       setProfileForm({
-        namaLengkap: data.user.namaLengkap || '',
-        namaPanggilan: data.user.namaPanggilan || '',
-        universitas: data.user.universitas || '',
-        prodi: data.user.prodi || '',
-        semester: data.user.semester || '',
-        domisili: data.user.domisili || '',
-        bio: data.user.bio || '',
-        latitude: data.user.latitude ?? null,
-        longitude: data.user.longitude ?? null,
+        namaLengkap: mergedUser.namaLengkap,
+        namaPanggilan: mergedUser.namaPanggilan ?? "",
+        universitas: mergedUser.universitas ?? "",
+        prodi: mergedUser.prodi ?? "",
+        semester: mergedUser.semester ?? "",
+        domisili: mergedUser.domisili ?? "",
+        bio: mergedUser.bio ?? "",
+        latitude: mergedUser.latitude ?? null,
+        longitude: mergedUser.longitude ?? null,
       });
     } catch (err) {
-      router.push('/auth');
+      console.error("LOAD DASHBOARD ERROR:", err);
+      alert("Gagal mengambil data pengguna.");
     } finally {
       setLoading(false);
     }
@@ -207,10 +276,10 @@ export default function DashboardPage() {
 
   const loadMentors = async () => {
     try {
-      let url = '/api/mentor/list';
+      let url = "/api/mentor/list";
       const params = new URLSearchParams();
-      if (searchMentorQuery) params.append('q', searchMentorQuery);
-      if (selectedSkillFilter) params.append('skill', selectedSkillFilter);
+      if (searchMentorQuery) params.append("q", searchMentorQuery);
+      if (selectedSkillFilter) params.append("skill", selectedSkillFilter);
       if (params.toString()) url += `?${params.toString()}`;
 
       const res = await fetch(url);
@@ -224,10 +293,10 @@ export default function DashboardPage() {
   };
 
   const loadAdminApplications = async () => {
-    if (!user || user.role !== 'Admin') return;
+    if (!user || user.role !== "Admin") return;
     setAdminLoading(true);
     try {
-      const res = await fetch('/api/admin/applications');
+      const res = await fetch("/api/admin/applications");
       if (res.ok) {
         const data = await res.json();
         setApplications(data.applications || []);
@@ -248,7 +317,7 @@ export default function DashboardPage() {
   }, [searchMentorQuery, selectedSkillFilter]);
 
   useEffect(() => {
-    if (user?.role === 'Admin') {
+    if (user?.role === "Admin") {
       loadAdminApplications();
     }
   }, [user]);
@@ -257,19 +326,19 @@ export default function DashboardPage() {
   const handleApplyMentor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!applySkills || !applyDocName) {
-      alert('Mohon isi skill yang ditawarkan dan nama dokumen transkrip.');
+      alert("Mohon isi skill yang ditawarkan dan nama dokumen transkrip.");
       return;
     }
     setApplyLoading(true);
     try {
-      const res = await fetch('/api/mentor/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/mentor/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           skillsOffered: applySkills,
           pengalamanMengajar: applyExperience,
           dokumenNama: applyDocName,
-          dokumenUrl: applyDocUrl || '/uploads/dummy_transkrip.pdf',
+          dokumenUrl: applyDocUrl || "/uploads/dummy_transkrip.pdf",
         }),
       });
 
@@ -278,27 +347,30 @@ export default function DashboardPage() {
         await loadUserData();
       } else {
         const d = await res.json();
-        alert(d.message || 'Gagal mengirim pengajuan.');
+        alert(d.message || "Gagal mengirim pengajuan.");
       }
     } catch (err) {
-      alert('Terjadi kesalahan pada server.');
+      alert("Terjadi kesalahan pada server.");
     } finally {
       setApplyLoading(false);
     }
   };
 
   // Handle Admin Review (Approve / Reject)
-  const handleReviewApplication = async (appId: number, action: 'APPROVE' | 'REJECT') => {
+  const handleReviewApplication = async (
+    appId: number,
+    action: "APPROVE" | "REJECT",
+  ) => {
     const confirmMsg =
-      action === 'APPROVE'
-        ? 'Apakah Anda yakin ingin menyetujui dan mengaktifkan akun pengguna ini menjadi Mentor?'
-        : 'Apakah Anda yakin ingin menolak pengajuan ini?';
+      action === "APPROVE"
+        ? "Apakah Anda yakin ingin menyetujui dan mengaktifkan akun pengguna ini menjadi Mentor?"
+        : "Apakah Anda yakin ingin menolak pengajuan ini?";
     if (!confirm(confirmMsg)) return;
 
     try {
       const res = await fetch(`/api/admin/applications/${appId}/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
 
@@ -306,52 +378,55 @@ export default function DashboardPage() {
         await loadAdminApplications();
         await loadMentors();
         alert(
-          action === 'APPROVE'
-            ? '✓ Berhasil disetujui! Pengguna kini berstatus Mentor aktif.'
-            : 'Pengajuan telah ditolak.'
+          action === "APPROVE"
+            ? "✓ Berhasil disetujui! Pengguna kini berstatus Mentor aktif."
+            : "Pengajuan telah ditolak.",
         );
       } else {
-        alert('Gagal memproses review.');
+        alert("Gagal memproses review.");
       }
     } catch (err) {
-      alert('Terjadi kesalahan server.');
+      alert("Terjadi kesalahan server.");
     }
   };
 
   // Handle Profile Update
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
-      const res = await fetch('/api/profile/onboarding/step1', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(profileForm),
       });
-      if (res.ok) {
-        await loadUserData();
-        setEditProfileMode(false);
-        alert('Profil berhasil diperbarui!');
-      } else {
-        alert('Gagal memperbarui profil.');
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Gagal memperbarui profil.");
+        return;
       }
+
+      await loadUserData();
+
+      setEditProfileMode(false);
+
+      alert("Profil berhasil diperbarui!");
     } catch (err) {
-      alert('Terjadi kesalahan server.');
+      console.error("SAVE PROFILE ERROR:", err);
+      alert("Terjadi kesalahan saat menyimpan profil.");
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFB]">
-        <div className="flex flex-col items-center gap-3 text-slate-500">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
-          <p className="text-sm font-semibold">Memuat dashboard Mentora...</p>
-        </div>
-      </div>
-    );
-  }
+  const taughtSkills =
+    user?.skills?.filter((s: any) => s.tipe === "TEACH") || [];
 
-  const taughtSkills = user?.skills?.filter((s: any) => s.tipe === 'TEACH') || [];
-const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || [];
+  const learnedSkills =
+    user?.skills?.filter((s: any) => s.tipe === "LEARN") || [];
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
@@ -359,7 +434,6 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
 
       {/* Main App Container */}
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-        
         {/* Top Profile Summary Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
@@ -372,11 +446,14 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 />
               ) : (
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-100 to-blue-200 text-[#2563EB] flex items-center justify-center font-bold text-2xl shadow-sm">
-                  {(user?.namaPanggilan || user?.namaLengkap || 'U').charAt(0)}
+                  {(user?.namaPanggilan || user?.namaLengkap || "U").charAt(0)}
                 </div>
               )}
-              {user?.statusMentor === 'APPROVED' && (
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1 shadow-xs" title="Mentor Terverifikasi">
+              {user?.statusMentor === "APPROVED" && (
+                <div
+                  className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1 shadow-xs"
+                  title="Mentor Terverifikasi"
+                >
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
               )}
@@ -390,33 +467,34 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 {/* Role / Status Badge */}
                 <span
                   className={`text-xs font-bold px-3 py-1 rounded-full ${
-                    user?.role === 'Admin'
-                      ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                      : user?.statusMentor === 'APPROVED'
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1'
-                      : user?.statusMentor === 'PENDING'
-                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                      : 'bg-blue-50 text-[#2563EB] border border-blue-200'
+                    user?.role === "Admin"
+                      ? "bg-purple-100 text-purple-700 border border-purple-200"
+                      : user?.statusMentor === "APPROVED"
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1"
+                        : user?.statusMentor === "PENDING"
+                          ? "bg-amber-100 text-amber-800 border border-amber-200"
+                          : "bg-blue-50 text-[#2563EB] border border-blue-200"
                   }`}
                 >
-                  {user?.role === 'Admin'
-                    ? '👑 Admin Mentora'
-                    : user?.statusMentor === 'APPROVED'
-                    ? '⭐ Mentor Terverifikasi'
-                    : user?.statusMentor === 'PENDING'
-                    ? '⏳ Pengajuan Mentor Pending'
-                    : '🎓 Mahasiswa / Mentee'}
+                  {user?.role === "Admin"
+                    ? "👑 Admin Mentora"
+                    : user?.statusMentor === "APPROVED"
+                      ? "⭐ Mentor Terverifikasi"
+                      : user?.statusMentor === "PENDING"
+                        ? "⏳ Pengajuan Mentor Pending"
+                        : "🎓 Mahasiswa / Mentee"}
                 </span>
               </div>
 
               <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 mt-2">
                 <span className="flex items-center gap-1 font-medium">
                   <GraduationCap className="w-3.5 h-3.5 text-slate-400" />
-                  {user?.universitas || 'Belum diatur'} {user?.prodi ? `• ${user.prodi}` : ''}
+                  {user?.universitas || "Belum diatur"}{" "}
+                  {user?.prodi ? `• ${user.prodi}` : ""}
                 </span>
                 <span className="flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                  {user?.domisili || 'Indonesia'}
+                  {user?.domisili || "Indonesia"}
                 </span>
                 <span className="flex items-center gap-1 font-bold text-[#2563EB]">
                   <Award className="w-3.5 h-3.5" />
@@ -428,20 +506,22 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
 
           {/* Quick Upgrade / Mentor CTA banner on the right */}
           <div className="flex items-center gap-3">
-            {user?.role !== 'Admin' && user?.statusMentor !== 'APPROVED' && (
+            {user?.role !== "Admin" && user?.statusMentor !== "APPROVED" && (
               <button
-                onClick={() => setActiveTab('apply')}
+                onClick={() => setActiveTab("apply")}
                 className="px-5 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>
-                  {user?.statusMentor === 'PENDING' ? 'Status Pengajuan Mentor' : 'Ajukan Jadi Mentor'}
+                  {user?.statusMentor === "PENDING"
+                    ? "Status Pengajuan Mentor"
+                    : "Ajukan Jadi Mentor"}
                 </span>
               </button>
             )}
 
             <button
-              onClick={() => router.push('/onboarding')}
+              onClick={() => router.push("/onboarding")}
               className="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
             >
               Ulangi Onboarding
@@ -452,11 +532,11 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
         {/* Tab Navigation Menu */}
         <div className="flex border-b border-slate-200 mb-8 overflow-x-auto gap-2">
           <button
-            onClick={() => setActiveTab('mentors')}
+            onClick={() => setActiveTab("mentors")}
             className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === 'mentors'
-                ? 'border-[#2563EB] text-[#2563EB]'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+              activeTab === "mentors"
+                ? "border-[#2563EB] text-[#2563EB]"
+                : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
             <BookOpen className="w-4 h-4" />
@@ -464,11 +544,11 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
           </button>
 
           <button
-            onClick={() => setActiveTab('profile')}
+            onClick={() => setActiveTab("profile")}
             className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === 'profile'
-                ? 'border-[#2563EB] text-[#2563EB]'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+              activeTab === "profile"
+                ? "border-[#2563EB] text-[#2563EB]"
+                : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
             <User className="w-4 h-4" />
@@ -476,24 +556,24 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
           </button>
 
           <button
-            onClick={() => setActiveTab('skills')}
+            onClick={() => setActiveTab("skills")}
             className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === 'skills'
-                ? 'border-[#2563EB] text-[#2563EB]'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+              activeTab === "skills"
+                ? "border-[#2563EB] text-[#2563EB]"
+                : "border-transparent text-slate-500 hover:text-slate-800"
             }`}
           >
             <Layers className="w-4 h-4" />
             <span>Pengelolaan Skill</span>
           </button>
 
-          {user?.role !== 'Admin' && (
+          {user?.role !== "Admin" && (
             <button
-              onClick={() => router.push('/mentor/apply')}
+              onClick={() => router.push("/mentor/apply")}
               className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-                activeTab === 'apply'
-                  ? 'border-[#2563EB] text-[#2563EB]'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
+                activeTab === "apply"
+                  ? "border-[#2563EB] text-[#2563EB]"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -501,20 +581,21 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
             </button>
           )}
 
-          {user?.role === 'Admin' && (
+          {user?.role === "Admin" && (
             <button
-              onClick={() => setActiveTab('admin')}
+              onClick={() => setActiveTab("admin")}
               className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-                activeTab === 'admin'
-                  ? 'border-purple-600 text-purple-700'
-                  : 'border-transparent text-purple-600 hover:text-purple-800'
+                activeTab === "admin"
+                  ? "border-purple-600 text-purple-700"
+                  : "border-transparent text-purple-600 hover:text-purple-800"
               }`}
             >
               <Shield className="w-4 h-4" />
               <span>Admin Verifikasi Mentor</span>
-              {applications.filter((a) => a.status === 'PENDING').length > 0 && (
+              {applications.filter((a) => a.status === "PENDING").length >
+                0 && (
                 <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center font-bold">
-                  {applications.filter((a) => a.status === 'PENDING').length}
+                  {applications.filter((a) => a.status === "PENDING").length}
                 </span>
               )}
             </button>
@@ -522,9 +603,8 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
         </div>
 
         {/* ================= TAB 1: DAFTAR MENTOR (UC-F1-05) ================= */}
-        {activeTab === 'mentors' && (
+        {activeTab === "mentors" && (
           <div className="space-y-6">
-            
             {/* Search and Filters */}
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="relative w-full md:w-96">
@@ -540,25 +620,37 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
 
               {/* Preset Skill Filter Pills */}
               <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto">
-                <span className="text-xs font-bold text-slate-400 whitespace-nowrap">Filter Skill:</span>
+                <span className="text-xs font-bold text-slate-400 whitespace-nowrap">
+                  Filter Skill:
+                </span>
                 <button
-                  onClick={() => setSelectedSkillFilter('')}
+                  onClick={() => setSelectedSkillFilter("")}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-                    selectedSkillFilter === ''
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    selectedSkillFilter === ""
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
                   Semua
                 </button>
-                {['UI/UX Design', 'Programming', 'Figma', 'Data Analysis', 'Design Thinking'].map((sk) => (
+                {[
+                  "UI/UX Design",
+                  "Programming",
+                  "Figma",
+                  "Data Analysis",
+                  "Design Thinking",
+                ].map((sk) => (
                   <button
                     key={sk}
-                    onClick={() => setSelectedSkillFilter(sk === selectedSkillFilter ? '' : sk)}
+                    onClick={() =>
+                      setSelectedSkillFilter(
+                        sk === selectedSkillFilter ? "" : sk,
+                      )
+                    }
                     className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
                       selectedSkillFilter === sk
-                        ? 'bg-[#2563EB] text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        ? "bg-[#2563EB] text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     }`}
                   >
                     {sk}
@@ -584,13 +676,20 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                         />
                       ) : (
                         <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold text-lg">
-                          {(mentor.namaPanggilan || mentor.namaLengkap).charAt(0)}
+                          {(mentor.namaPanggilan || mentor.namaLengkap).charAt(
+                            0,
+                          )}
                         </div>
                       )}
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h3 className="font-bold text-slate-900 text-base">{mentor.namaLengkap}</h3>
-                          <span className="text-emerald-500" title="Terverifikasi Admin Mentora">
+                          <h3 className="font-bold text-slate-900 text-base">
+                            {mentor.namaLengkap}
+                          </h3>
+                          <span
+                            className="text-emerald-500"
+                            title="Terverifikasi Admin Mentora"
+                          >
                             <CheckCircle2 className="w-4 h-4 fill-emerald-500 text-white" />
                           </span>
                         </div>
@@ -598,13 +697,17 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                           {mentor.prodi} • {mentor.universitas}
                         </p>
                         <p className="text-[11px] text-slate-400 mt-0.5">
-                          📍 {mentor.domisili || 'Indonesia'} • Mode: <span className="font-semibold text-slate-700">{mentor.modeSesi || 'Fleksibel'}</span>
+                          📍 {mentor.domisili || "Indonesia"} • Mode:{" "}
+                          <span className="font-semibold text-slate-700">
+                            {mentor.modeSesi || "Fleksibel"}
+                          </span>
                         </p>
                       </div>
                     </div>
 
                     <p className="text-xs text-slate-600 line-clamp-2 mb-4 leading-relaxed">
-                      {mentor.bio || 'Siap berbagi ilmu dan berdiskusi seputar materi perkuliahan.'}
+                      {mentor.bio ||
+                        "Siap berbagi ilmu dan berdiskusi seputar materi perkuliahan."}
                     </p>
 
                     {/* Skills offered */}
@@ -632,7 +735,11 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     </span>
 
                     <button
-                      onClick={() => alert(`Fitur booking sesi dengan Mentor ${mentor.namaLengkap} masuk dalam cakupan Sprint 2 (Fase 2: Skill Exchange & Reservasi).`)}
+                      onClick={() =>
+                        alert(
+                          `Fitur booking sesi dengan Mentor ${mentor.namaLengkap} masuk dalam cakupan Sprint 2 (Fase 2: Skill Exchange & Reservasi).`,
+                        )
+                      }
                       className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition flex items-center gap-1"
                     >
                       <span>Booking Sesi</span>
@@ -646,21 +753,28 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
             {mentors.length === 0 && (
               <div className="text-center py-16 bg-white rounded-3xl border border-slate-200">
                 <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="text-base font-bold text-slate-700">Tidak ada mentor ditemukan</h3>
-                <p className="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau filter skill.</p>
+                <h3 className="text-base font-bold text-slate-700">
+                  Tidak ada mentor ditemukan
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Coba sesuaikan kata kunci pencarian atau filter skill.
+                </p>
               </div>
             )}
-
           </div>
         )}
 
         {/* ================= TAB 2: MANAJEMEN PROFIL (FR-02) ================= */}
-        {activeTab === 'profile' && (
+        {activeTab === "profile" && (
           <div className="max-w-3xl mx-auto bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Data Profil Pengguna</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Kelola informasi data diri untuk keperluan pertukaran ilmu.</p>
+                <h2 className="text-xl font-bold text-slate-900">
+                  Data Profil Pengguna
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Kelola informasi data diri untuk keperluan pertukaran ilmu.
+                </p>
               </div>
               <button
                 type="button"
@@ -668,70 +782,104 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 transition"
               >
                 <Edit3 className="w-3.5 h-3.5 text-[#2563EB]" />
-                <span>{editProfileMode ? 'Batal Edit' : 'Edit Profil'}</span>
+                <span>{editProfileMode ? "Batal Edit" : "Edit Profil"}</span>
               </button>
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Nama Lengkap
+                  </label>
                   <input
                     type="text"
                     disabled={!editProfileMode}
                     value={profileForm.namaLengkap}
-                    onChange={(e) => setProfileForm({ ...profileForm, namaLengkap: e.target.value })}
+                    onChange={(e) =>
+                      setProfileForm({
+                        ...profileForm,
+                        namaLengkap: e.target.value,
+                      })
+                    }
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Nama Panggilan</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Nama Panggilan
+                  </label>
                   <input
                     type="text"
                     disabled={!editProfileMode}
                     value={profileForm.namaPanggilan}
-                    onChange={(e) => setProfileForm({ ...profileForm, namaPanggilan: e.target.value })}
+                    onChange={(e) =>
+                      setProfileForm({
+                        ...profileForm,
+                        namaPanggilan: e.target.value,
+                      })
+                    }
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Universitas</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Universitas
+                  </label>
                   <input
                     type="text"
                     disabled={!editProfileMode}
                     value={profileForm.universitas}
-                    onChange={(e) => setProfileForm({ ...profileForm, universitas: e.target.value })}
+                    onChange={(e) =>
+                      setProfileForm({
+                        ...profileForm,
+                        universitas: e.target.value,
+                      })
+                    }
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Program Studi</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Program Studi
+                  </label>
                   <input
                     type="text"
                     disabled={!editProfileMode}
                     value={profileForm.prodi}
-                    onChange={(e) => setProfileForm({ ...profileForm, prodi: e.target.value })}
+                    onChange={(e) =>
+                      setProfileForm({ ...profileForm, prodi: e.target.value })
+                    }
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Semester</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Semester
+                  </label>
                   <input
                     type="text"
                     disabled={!editProfileMode}
                     value={profileForm.semester}
-                    onChange={(e) => setProfileForm({ ...profileForm, semester: e.target.value })}
+                    onChange={(e) =>
+                      setProfileForm({
+                        ...profileForm,
+                        semester: e.target.value,
+                      })
+                    }
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-slate-700">Domisili & Lokasi (Nearby)</label>
+                    <label className="block text-xs font-bold text-slate-700">
+                      Domisili & Lokasi (Nearby)
+                    </label>
                     {editProfileMode && (
                       <button
                         type="button"
@@ -740,7 +888,11 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                         className="text-[11px] font-bold text-[#2563EB] hover:text-blue-700 flex items-center gap-1 transition"
                       >
                         <MapPin className="w-3 h-3" />
-                        <span>{detectingLocation ? 'Mendeteksi...' : 'Deteksi GPS Browser'}</span>
+                        <span>
+                          {detectingLocation
+                            ? "Mendeteksi..."
+                            : "Deteksi GPS Browser"}
+                        </span>
                       </button>
                     )}
                   </div>
@@ -748,25 +900,37 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     type="text"
                     disabled={!editProfileMode}
                     value={profileForm.domisili}
-                    onChange={(e) => setProfileForm({ ...profileForm, domisili: e.target.value })}
+                    onChange={(e) =>
+                      setProfileForm({
+                        ...profileForm,
+                        domisili: e.target.value,
+                      })
+                    }
                     placeholder="mis. Bandung, Jawa Barat"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                   />
                   {profileForm.latitude && profileForm.longitude && (
                     <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                      <span>✓ Koordinat Terkunci: {profileForm.latitude}, {profileForm.longitude} (Fitur Nearby Aktif)</span>
+                      <span>
+                        ✓ Koordinat Terkunci: {profileForm.latitude},{" "}
+                        {profileForm.longitude} (Fitur Nearby Aktif)
+                      </span>
                     </p>
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Bio Singkat</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Bio Singkat
+                </label>
                 <textarea
                   rows={3}
                   disabled={!editProfileMode}
                   value={profileForm.bio}
-                  onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                  onChange={(e) =>
+                    setProfileForm({ ...profileForm, bio: e.target.value })
+                  }
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
                 />
               </div>
@@ -786,12 +950,15 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
         )}
 
         {/* ================= TAB 3: PENGELOLAAN SKILL (FR-03) ================= */}
-        {activeTab === 'skills' && (
+        {activeTab === "skills" && (
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-900 mb-1">Pengelolaan Skill Pengguna</h2>
+              <h2 className="text-xl font-bold text-slate-900 mb-1">
+                Pengelolaan Skill Pengguna
+              </h2>
               <p className="text-xs text-slate-500 mb-6">
-                Data keahlian yang kamu kuasai untuk diajarkan dan materi yang ingin kamu pelajari.
+                Data keahlian yang kamu kuasai untuk diajarkan dan materi yang
+                ingin kamu pelajari.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -811,7 +978,9 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                       </span>
                     ))}
                     {learnedSkills.length === 0 && (
-                      <p className="text-xs text-slate-400">Belum ada skill yang ditambahkan.</p>
+                      <p className="text-xs text-slate-400">
+                        Belum ada skill yang ditambahkan.
+                      </p>
                     )}
                   </div>
                 </div>
@@ -832,7 +1001,9 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                       </span>
                     ))}
                     {taughtSkills.length === 0 && (
-                      <p className="text-xs text-slate-400">Belum ada skill yang ditambahkan.</p>
+                      <p className="text-xs text-slate-400">
+                        Belum ada skill yang ditambahkan.
+                      </p>
                     )}
                   </div>
                 </div>
@@ -840,7 +1011,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
 
               <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
                 <button
-                  onClick={() => router.push('/onboarding')}
+                  onClick={() => router.push("/onboarding")}
                   className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
@@ -852,7 +1023,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
         )}
 
         {/* ================= TAB 4: PENGAJUAN AKUN MENTOR (FR-04, FR-05) ================= */}
-        {activeTab === 'apply' && user?.role !== 'Admin' && (
+        {activeTab === "apply" && user?.role !== "Admin" && (
           <div className="max-w-3xl mx-auto bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
             <div className="mb-6">
               <span className="text-xs font-bold text-[#2563EB] uppercase tracking-wider">
@@ -862,11 +1033,12 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 Pengajuan Akun Mentor & Unggah Kredensial
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                Sesuai pada proposal Mentora, unggah bukti kompetensi (transkrip nilai/portofolio) untuk diverifikasi oleh Admin.
+                Sesuai pada proposal Mentora, unggah bukti kompetensi (transkrip
+                nilai/portofolio) untuk diverifikasi oleh Admin.
               </p>
             </div>
 
-            {user?.statusMentor === 'APPROVED' ? (
+            {user?.statusMentor === "APPROVED" ? (
               <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto text-xl">
                   ✓
@@ -875,22 +1047,31 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                   Selamat! Akun Anda telah Terverifikasi sebagai Mentor
                 </h3>
                 <p className="text-xs text-emerald-700 max-w-md mx-auto leading-relaxed">
-                  Profil dan keahlian Anda kini telah dipublikasikan di direktori mentor sehingga mahasiswa lain dapat memilih Anda untuk sesi belajar.
+                  Profil dan keahlian Anda kini telah dipublikasikan di
+                  direktori mentor sehingga mahasiswa lain dapat memilih Anda
+                  untuk sesi belajar.
                 </p>
               </div>
-            ) : user?.statusMentor === 'PENDING' ? (
+            ) : user?.statusMentor === "PENDING" ? (
               <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200 space-y-3">
                 <div className="flex items-center gap-3">
                   <Clock className="w-6 h-6 text-amber-600 shrink-0" />
                   <div>
-                    <h3 className="text-sm font-bold text-amber-900">Pengajuan Mentor Sedang Ditinjau</h3>
+                    <h3 className="text-sm font-bold text-amber-900">
+                      Pengajuan Mentor Sedang Ditinjau
+                    </h3>
                     <p className="text-xs text-amber-700 mt-0.5">
-                      Dokumen kredensial: <span className="font-semibold">{user.dokumenKredensial || 'Transkrip_Nilai.pdf'}</span>
+                      Dokumen kredensial:{" "}
+                      <span className="font-semibold">
+                        {user.dokumenKredensial || "Transkrip_Nilai.pdf"}
+                      </span>
                     </p>
                   </div>
                 </div>
                 <p className="text-xs text-slate-600 bg-white p-3.5 rounded-xl border border-amber-200/60 leading-relaxed">
-                  Tim Admin Mentora sedang memvalidasi kesesuaian nilai dan kualifikasi keahlianmu. Status akunmu akan otomatis berubah setelah disetujui.
+                  Tim Admin Mentora sedang memvalidasi kesesuaian nilai dan
+                  kualifikasi keahlianmu. Status akunmu akan otomatis berubah
+                  setelah disetujui.
                 </p>
               </div>
             ) : (
@@ -898,13 +1079,16 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 {applySuccess && (
                   <div className="p-4 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-medium flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    <span>Pengajuan berhasil dikirim! Menunggu validasi Admin.</span>
+                    <span>
+                      Pengajuan berhasil dikirim! Menunggu validasi Admin.
+                    </span>
                   </div>
                 )}
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Skill yang Ingin Kamu Ajarkan (FR-04) <span className="text-rose-500">*</span>
+                    Skill yang Ingin Kamu Ajarkan (FR-04){" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -914,7 +1098,9 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     required
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
                   />
-                  <p className="text-[11px] text-slate-400 mt-1">Pisahkan dengan koma jika lebih dari satu.</p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Pisahkan dengan koma jika lebih dari satu.
+                  </p>
                 </div>
 
                 <div>
@@ -933,17 +1119,22 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 {/* Upload Dokumen Kredensial (FR-05) */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Upload Dokumen Kredensial<span className="text-rose-500">*</span>
+                    Upload Dokumen Kredensial
+                    <span className="text-rose-500">*</span>
                   </label>
                   <div className="border-2 border-dashed border-slate-200 hover:border-[#2563EB] rounded-2xl p-6 text-center transition bg-slate-50/50">
                     <FileText className="w-8 h-8 text-[#2563EB] mx-auto mb-2" />
                     <p className="text-xs font-semibold text-slate-700">
-                      {applyDocName ? `Dokumen terpilih: ${applyDocName}` : 'Pilih Transkrip Nilai / Sertifikat Keahlian (PDF)'}
+                      {applyDocName
+                        ? `Dokumen terpilih: ${applyDocName}`
+                        : "Pilih Transkrip Nilai / Sertifikat Keahlian (PDF)"}
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Format file: PDF, JPG, PNG (Maks 5MB)</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Format file: PDF, JPG, PNG (Maks 5MB)
+                    </p>
                     <label className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-xs">
                       <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
-                      <span>{applyDocName ? 'Ganti File' : 'Browse File'}</span>
+                      <span>{applyDocName ? "Ganti File" : "Browse File"}</span>
                       <input
                         type="file"
                         accept=".pdf,image/*"
@@ -951,7 +1142,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                           const file = e.target.files?.[0];
                           if (file) {
                             setApplyDocName(file.name);
-                            setApplyDocUrl('/uploads/' + file.name);
+                            setApplyDocUrl("/uploads/" + file.name);
                           }
                         }}
                         className="hidden"
@@ -963,7 +1154,12 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100 text-xs text-slate-700 flex items-start gap-2.5 leading-relaxed">
                   <Sparkles className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" />
                   <p>
-                    Dengan mengajukan diri sebagai Mentor, Anda bersedia membagikan ilmu kepada mentee lain dan berhak memperoleh <span className="font-bold text-[#2563EB]">+5 EduPoints</span> per sesi belajar yang selesai.
+                    Dengan mengajukan diri sebagai Mentor, Anda bersedia
+                    membagikan ilmu kepada mentee lain dan berhak memperoleh{" "}
+                    <span className="font-bold text-[#2563EB]">
+                      +5 EduPoints
+                    </span>{" "}
+                    per sesi belajar yang selesai.
                   </p>
                 </div>
 
@@ -973,7 +1169,9 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                     disabled={applyLoading}
                     className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60"
                   >
-                    {applyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    {applyLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : null}
                     <span>Kirim Pengajuan Akun Mentor</span>
                   </button>
                 </div>
@@ -983,7 +1181,7 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
         )}
 
         {/* ================= TAB 5: ADMIN PANEL (FR-06, FR-07) ================= */}
-        {activeTab === 'admin' && user?.role === 'Admin' && (
+        {activeTab === "admin" && user?.role === "Admin" && (
           <div className="space-y-6">
             <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex items-center justify-between">
               <div>
@@ -994,7 +1192,8 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                   Verifikasi Pengajuan Mentor
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Validasi transkrip nilai dan kredensial calon mentor sebelum status aktif dipublikasikan.
+                  Validasi transkrip nilai dan kredensial calon mentor sebelum
+                  status aktif dipublikasikan.
                 </p>
               </div>
               <button
@@ -1014,15 +1213,19 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-2.5">
-                      <h3 className="font-bold text-slate-900 text-base">{app.user.namaLengkap}</h3>
-                      <span className="text-xs text-slate-400">({app.user.email})</span>
+                      <h3 className="font-bold text-slate-900 text-base">
+                        {app.user.namaLengkap}
+                      </h3>
+                      <span className="text-xs text-slate-400">
+                        ({app.user.email})
+                      </span>
                       <span
                         className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                          app.status === 'APPROVED'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : app.status === 'REJECTED'
-                            ? 'bg-rose-100 text-rose-800'
-                            : 'bg-amber-100 text-amber-800'
+                          app.status === "APPROVED"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : app.status === "REJECTED"
+                              ? "bg-rose-100 text-rose-800"
+                              : "bg-amber-100 text-amber-800"
                         }`}
                       >
                         {app.status}
@@ -1031,14 +1234,26 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
 
                     <div className="text-xs text-slate-600 space-y-1">
                       <p>
-                        🎓 <span className="font-semibold">{app.user.universitas}</span> • {app.user.prodi} (Semester {app.user.semester})
+                        🎓{" "}
+                        <span className="font-semibold">
+                          {app.user.universitas}
+                        </span>{" "}
+                        • {app.user.prodi} (Semester {app.user.semester})
                       </p>
                       <p>
-                        💡 <span className="font-semibold text-slate-800">Skill yang ditawarkan:</span> {app.skillsOffered}
+                        💡{" "}
+                        <span className="font-semibold text-slate-800">
+                          Skill yang ditawarkan:
+                        </span>{" "}
+                        {app.skillsOffered}
                       </p>
                       {app.pengalamanMengajar && (
                         <p>
-                          📝 <span className="font-semibold text-slate-800">Pengalaman:</span> {app.pengalamanMengajar}
+                          📝{" "}
+                          <span className="font-semibold text-slate-800">
+                            Pengalaman:
+                          </span>{" "}
+                          {app.pengalamanMengajar}
                         </p>
                       )}
                       <p className="flex items-center gap-1.5 text-blue-600 font-semibold pt-1">
@@ -1050,10 +1265,12 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
 
                   {/* Admin Actions */}
                   <div className="flex items-center gap-3 shrink-0">
-                    {app.status === 'PENDING' ? (
+                    {app.status === "PENDING" ? (
                       <>
                         <button
-                          onClick={() => handleReviewApplication(app.id, 'APPROVE')}
+                          onClick={() =>
+                            handleReviewApplication(app.id, "APPROVE")
+                          }
                           className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
                         >
                           <Check className="w-4 h-4 stroke-[3]" />
@@ -1061,7 +1278,9 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
                         </button>
 
                         <button
-                          onClick={() => handleReviewApplication(app.id, 'REJECT')}
+                          onClick={() =>
+                            handleReviewApplication(app.id, "REJECT")
+                          }
                           className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition flex items-center gap-1.5"
                         >
                           <XCircle className="w-4 h-4" />
@@ -1085,7 +1304,6 @@ const learnedSkills = user?.skills?.filter((s: any) => s.tipe === 'LEARN') || []
             </div>
           </div>
         )}
-
       </div>
 
       <Footer />

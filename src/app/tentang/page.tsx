@@ -1,11 +1,13 @@
-import React from "react";
+
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
 import {
   Users,
   Target,
-  Sparkles,
   ArrowRight,
   HeartHandshake,
   ShieldCheck,
@@ -15,6 +17,14 @@ import {
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+
+interface CurrentUser {
+  id: number;
+  namaLengkap: string;
+  email: string;
+  role: string;
+  statusMentor: string;
+}
 
 const nilaiUtama = [
   {
@@ -59,15 +69,47 @@ const statistik = [
 ];
 
 export default function TentangPage() {
+  // Status autentikasi pengguna
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Memeriksa apakah pengguna sudah login
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          setCurrentUser(null);
+          return;
+        }
+
+        const data = await res.json();
+
+        setCurrentUser(data.user || null);
+      } catch (error) {
+        console.error("Gagal memeriksa sesi pengguna:", error);
+        setCurrentUser(null);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+
+    checkLogin();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAFB] text-slate-800">
       <Navbar />
 
       <main className="flex-1">
-        {/* HERO SECTION */}
 
+        {/* HERO SECTION */}
         <section className="relative min-h-[560px] flex items-center justify-center overflow-hidden bg-[#FAFAFB]">
-          {/* Background Foto Kelompok */}
+
           <div className="absolute inset-0">
             <Image
               src="/images/about-team.jpg"
@@ -78,53 +120,44 @@ export default function TentangPage() {
               className="object-cover object-center"
             />
 
-            {/* Overlay putih transparan */}
             <div className="absolute inset-0 bg-white/40" />
 
-            {/* Gradasi agar foto menyatu dengan background */}
-            <div
-              className="absolute inset-0 bg-gradient-to-b
-      from-[#FAFAFB]/80 via-transparent to-[#FAFAFB]"
-            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#FAFAFB]/80 via-transparent to-[#FAFAFB]" />
           </div>
 
-          {/* Konten */}
           <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 text-center">
-            <span
-              className="inline-flex rounded-full border border-blue-100
-      bg-white/80 px-5 py-2 text-sm font-bold text-blue-600 mb-7"
-            >
+
+            <span className="inline-flex rounded-full border border-blue-100 bg-white/80 px-5 py-2 text-sm font-bold text-blue-600 mb-7">
               ✨ TENTANG INISIATIF MENTORA
             </span>
 
-            <h1
-              className="text-4xl md:text-6xl font-extrabold
-      leading-tight tracking-tight text-slate-900"
-            >
+            <h1 className="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight text-slate-900">
               Menghubungkan Potensi,
               <span className="block text-blue-600">
                 Berkembang Bersama Lewat Kolaborasi.
               </span>
             </h1>
 
-            <p
-              className="mt-7 max-w-3xl mx-auto text-lg
-      leading-relaxed text-slate-700"
-            >
+            <p className="mt-7 max-w-3xl mx-auto text-lg leading-relaxed text-slate-700">
               Mentora adalah platform peer-to-peer skill exchange yang dirancang
               khusus bagi mahasiswa untuk saling berbagi keahlian, mendiskusikan
               tugas proyek, dan mempersiapkan jenjang karier secara kolaboratif.
             </p>
+
           </div>
         </section>
 
         {/* VISI DAN MISI */}
         <section className="py-16 sm:py-20 border-b border-slate-200">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
               {/* VISI */}
               <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between gap-6">
+
                 <div className="space-y-4">
+
                   <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center">
                     <Target className="w-6 h-6" />
                   </div>
@@ -139,16 +172,20 @@ export default function TentangPage() {
                     memiliki akses setara untuk meningkatkan keahlian tanpa
                     batasan biaya formalitas bimbingan belajar konvensional.
                   </p>
+
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 text-xs font-semibold text-slate-400">
                   Kolaboratif • Aksesibel • Berkelanjutan
                 </div>
+
               </div>
 
               {/* MISI */}
               <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between gap-6">
+
                 <div className="space-y-4">
+
                   <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                     <GraduationCap className="w-6 h-6" />
                   </div>
@@ -158,6 +195,7 @@ export default function TentangPage() {
                   </h2>
 
                   <ul className="space-y-3 text-sm text-slate-600">
+
                     <li className="flex items-start gap-2">
                       <span className="text-[#2563EB] font-bold">•</span>
                       <span>
@@ -182,21 +220,28 @@ export default function TentangPage() {
                         pengajaran.
                       </span>
                     </li>
+
                   </ul>
+
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 text-xs font-semibold text-slate-400">
                   Transparansi • Pembelajaran Praktis
                 </div>
+
               </div>
+
             </div>
           </div>
         </section>
 
         {/* NILAI UTAMA */}
         <section className="py-16 sm:py-20 bg-blue-50/30 border-b border-slate-200">
+
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+
             <div className="text-center space-y-3 max-w-xl mx-auto">
+
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
                 Mengapa Memilih Mentora?
               </h2>
@@ -205,9 +250,11 @@ export default function TentangPage() {
                 Pilar keunggulan sistem yang kami bangun untuk mendukung
                 perkembangan belajar mahasiswa.
               </p>
+
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
               {nilaiUtama.map((item, index) => {
                 const IconComponent = item.icon;
 
@@ -216,6 +263,7 @@ export default function TentangPage() {
                     key={index}
                     className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
                   >
+
                     <div className="w-11 h-11 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center mb-5">
                       <IconComponent className="w-5 h-5" />
                     </div>
@@ -227,19 +275,25 @@ export default function TentangPage() {
                     <p className="text-xs text-slate-500 leading-relaxed">
                       {item.desc}
                     </p>
+
                   </div>
                 );
               })}
+
             </div>
           </div>
         </section>
 
         {/* STATISTIK */}
         <section className="py-14 sm:py-16 bg-white border-b border-slate-200">
+
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+
               {statistik.map((stat, index) => (
                 <div key={index} className="space-y-2">
+
                   <p className="text-3xl sm:text-4xl font-extrabold text-[#2563EB]">
                     {stat.angka}
                   </p>
@@ -247,42 +301,70 @@ export default function TentangPage() {
                   <p className="text-xs sm:text-sm text-slate-500 font-medium">
                     {stat.label}
                   </p>
+
                 </div>
               ))}
+
             </div>
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="py-16 sm:py-20">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-              Siap Bertukar Keterampilan Hari Ini?
-            </h2>
+        {/* CTA DINAMIS BERDASARKAN STATUS LOGIN */}
+        {!checkingAuth && (
+          <section className="py-16 sm:py-20">
 
-            <p className="text-sm text-slate-600">
-              Bergabunglah bersama mahasiswa lainnya dan perluas pengalaman
-              belajarmu bersama Mentora.
-            </p>
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
 
-            <div className="flex flex-wrap justify-center gap-3 pt-2">
-              <Link
-                href="/auth?tab=daftar"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold transition shadow-sm"
-              >
-                Daftar Akun Mentora
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+                {currentUser
+                  ? "Siap Bertukar Keterampilan Hari Ini?"
+                  : "Siap Bergabung dengan Mentora?"}
+              </h2>
 
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100 text-sm font-bold transition"
-              >
-                Kembali ke Beranda
-              </Link>
+              <p className="text-sm text-slate-600">
+                {currentUser
+                  ? `Halo, ${currentUser.namaLengkap}! Lanjutkan perjalanan belajarmu dan temukan kesempatan berbagi ilmu bersama mahasiswa lainnya.`
+                  : "Bergabunglah bersama mahasiswa lainnya dan perluas pengalaman belajarmu bersama Mentora."}
+              </p>
+
+              <div className="flex flex-wrap justify-center gap-3 pt-2">
+
+                {currentUser ? (
+
+                  // Jika sudah login
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold transition shadow-sm"
+                  >
+                    Buka Dashboard
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+
+                ) : (
+
+                  // Jika belum login
+                  <Link
+                    href="/auth?tab=daftar"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold transition shadow-sm"
+                  >
+                    Daftar Akun Mentora
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+
+                )}
+
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100 text-sm font-bold transition"
+                >
+                  Kembali ke Beranda
+                </Link>
+
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
+
       </main>
 
       <Footer />

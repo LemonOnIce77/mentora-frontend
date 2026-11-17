@@ -1,119 +1,178 @@
+
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/profile: Lihat data profil (FR-02)
+const profileSelect = {
+  id: true,
+  nama_lengkap: true,
+  nama_panggilan: true,
+  email: true,
+  universitas: true,
+  prodi: true,
+  semester: true,
+  domisili: true,
+  tgl_lahir: true,
+  bio: true,
+  foto_profil: true,
+  mode_sesi: true,
+  latitude: true,
+  longitude: true,
+  onboarding_completed: true,
+};
+
+function formatProfile(user: any) {
+  return {
+    id: user.id.toString(),
+    namaLengkap: user.nama_lengkap ?? '',
+    namaPanggilan: user.nama_panggilan ?? '',
+    email: user.email ?? '',
+    universitas: user.universitas ?? '',
+    prodi: user.prodi ?? '',
+    semester: user.semester ?? '',
+    domisili: user.domisili ?? '',
+    tglLahir: user.tgl_lahir ?? '',
+    bio: user.bio ?? '',
+    fotoProfil: user.foto_profil ?? '',
+    modeSesi: user.mode_sesi ?? 'Fleksibel',
+    latitude: user.latitude,
+    longitude: user.longitude,
+    onboardingCompleted: user.onboarding_completed,
+  };
+}
+
+// GET PROFILE DARI DATABASE
 export async function GET(req: NextRequest) {
   try {
     const authUser = await getAuthUser(req);
-    if (!authUser) {
-      return NextResponse.json({ message: 'Tidak terautentikasi' }, { status: 401 });
+
+    if (!authUser?.id) {
+      return NextResponse.json(
+        { message: 'Tidak terautentikasi.' },
+        { status: 401 }
+      );
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { id: BigInt(authUser.id) },
+      select: profileSelect,
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { message: 'Pengguna tidak ditemukan.' },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
       success: true,
-      profile: authUser,
+      profile: formatProfile(user),
     });
   } catch (error) {
-    return NextResponse.json({ message: 'Gagal mengambil data profil' }, { status: 500 });
+    console.error('GET PROFILE ERROR:', error);
+
+    return NextResponse.json(
+      { message: 'Gagal mengambil data profil.' },
+      { status: 500 }
+    );
   }
 }
 
-// PUT /api/profile: Pembaruan data profil dan lokasi (FR-02)
+// UPDATE PROFILE KE DATABASE
 export async function PUT(req: NextRequest) {
   try {
     const authUser = await getAuthUser(req);
-    if (!authUser) {
-      return NextResponse.json({ message: 'Tidak terautentikasi' }, { status: 401 });
+
+    if (!authUser?.id) {
+      return NextResponse.json(
+        { message: 'Tidak terautentikasi.' },
+        { status: 401 }
+      );
     }
 
     const body = await req.json();
-    const {
-      namaLengkap,
-      namaPanggilan,
-      universitas,
-      prodi,
-      semester,
-      domisili,
-      tglLahir,
-      bio,
-      fotoProfil,
-      latitude,
-      longitude,
-      modeSesi,
-    } = body;
 
-    const updatedProfileData = {
-      ...authUser,
-      ...(namaLengkap ? { namaLengkap: namaLengkap.trim() } : {}),
-      ...(namaPanggilan !== undefined ? { namaPanggilan: namaPanggilan?.trim() } : {}),
-      ...(universitas !== undefined ? { universitas: universitas?.trim() } : {}),
-      ...(prodi !== undefined ? { prodi: prodi?.trim() } : {}),
-      ...(semester !== undefined ? { semester: semester?.trim() } : {}),
-      ...(domisili !== undefined ? { domisili: domisili?.trim() } : {}),
-      ...(tglLahir !== undefined ? { tglLahir: tglLahir?.trim() } : {}),
-      ...(bio !== undefined ? { bio: bio?.trim() } : {}),
-      ...(fotoProfil !== undefined ? { fotoProfil } : {}),
-      ...(latitude !== undefined ? { latitude: Number(latitude) } : {}),
-      ...(longitude !== undefined ? { longitude: Number(longitude) } : {}),
-      ...(modeSesi !== undefined ? { modeSesi } : {}),
+    const nullableString = (value: unknown) => {
+      if (value === undefined) return undefined;
+      if (value === null) return null;
+
+      const result = String(value).trim();
+      return result === '' ? null : result;
     };
 
-    // 1. Coba update ke Prisma DB jika ada
-    try {
-      const updatedUser = await prisma.user.update({
-        where: { id: authUser.id },
-        data: {
-          ...(namaLengkap ? { namaLengkap: namaLengkap.trim() } : {}),
-          ...(namaPanggilan !== undefined ? { namaPanggilan: namaPanggilan?.trim() } : {}),
-          ...(universitas !== undefined ? { universitas: universitas?.trim() } : {}),
-          ...(prodi !== undefined ? { prodi: prodi?.trim() } : {}),
-          ...(semester !== undefined ? { semester: semester?.trim() } : {}),
-          ...(domisili !== undefined ? { domisili: domisili?.trim() } : {}),
-          ...(tglLahir !== undefined ? { tglLahir: tglLahir?.trim() } : {}),
-          ...(bio !== undefined ? { bio: bio?.trim() } : {}),
-          ...(fotoProfil !== undefined ? { fotoProfil } : {}),
-          ...(latitude !== undefined ? { latitude: Number(latitude) } : {}),
-          ...(longitude !== undefined ? { longitude: Number(longitude) } : {}),
-          ...(modeSesi !== undefined ? { modeSesi } : {}),
-        },
-      });
+    const data: Prisma.usersUpdateInput = {};
 
-      const response = NextResponse.json({
-        success: true,
-        message: 'Data profil berhasil diperbarui.',
-        profile: updatedUser,
-      });
-
-      response.cookies.set('mentora_session', JSON.stringify(updatedUser), {
-        httpOnly: false,
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-
-      return response;
-    } catch (dbError) {
-      console.warn('Prisma update warning, using session update fallback:', dbError);
+    if (body.namaLengkap !== undefined) {
+      data.nama_lengkap = String(body.namaLengkap).trim();
     }
 
-    // 2. Fallback update via session cookie
-    const response = NextResponse.json({
+    if (body.namaPanggilan !== undefined) {
+      data.nama_panggilan = nullableString(body.namaPanggilan);
+    }
+
+    if (body.universitas !== undefined) {
+      data.universitas = nullableString(body.universitas);
+    }
+
+    if (body.prodi !== undefined) {
+      data.prodi = nullableString(body.prodi);
+    }
+
+    if (body.semester !== undefined) {
+      data.semester = nullableString(body.semester);
+    }
+
+    if (body.domisili !== undefined) {
+      data.domisili = nullableString(body.domisili);
+    }
+
+    if (body.tglLahir !== undefined) {
+      data.tgl_lahir = nullableString(body.tglLahir);
+    }
+
+    if (body.bio !== undefined) {
+      data.bio = nullableString(body.bio);
+    }
+
+    if (body.fotoProfil !== undefined) {
+      data.foto_profil = nullableString(body.fotoProfil);
+    }
+
+    if (body.modeSesi !== undefined) {
+      data.mode_sesi = body.modeSesi;
+    }
+
+    if (body.latitude !== undefined) {
+      data.latitude =
+        body.latitude === null ? null : Number(body.latitude);
+    }
+
+    if (body.longitude !== undefined) {
+      data.longitude =
+        body.longitude === null ? null : Number(body.longitude);
+    }
+
+    const updatedUser = await prisma.users.update({
+      where: { id: BigInt(authUser.id) },
+      data,
+      select: profileSelect,
+    });
+
+    return NextResponse.json({
       success: true,
-      message: 'Data profil berhasil diperbarui.',
-      profile: updatedProfileData,
+      message: 'Profil berhasil diperbarui.',
+      profile: formatProfile(updatedUser),
     });
-
-    response.cookies.set('mentora_session', JSON.stringify(updatedProfileData), {
-      httpOnly: false,
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    return response;
   } catch (error) {
-    console.error('Error updating profile:', error);
-    return NextResponse.json({ message: 'Gagal memperbarui profil' }, { status: 500 });
+    console.error('UPDATE PROFILE ERROR:', error);
+
+    return NextResponse.json(
+      { message: 'Gagal memperbarui profil.' },
+      { status: 500 }
+    );
   }
 }

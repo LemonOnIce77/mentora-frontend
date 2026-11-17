@@ -16,9 +16,9 @@ const DEFAULT_SKILLS = [
 
 export async function GET() {
   try {
-    const skills = await prisma.skill.findMany({
-      orderBy: { namaSkill: 'asc' },
-    });
+const skills = await prisma.skills.findMany({
+  orderBy: { nama_skill: 'asc' },
+});
     if (skills && skills.length > 0) {
       return NextResponse.json({ skills });
     }
@@ -38,11 +38,11 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const skill = await prisma.skill.upsert({
-        where: { namaSkill: namaSkill.trim() },
+      const skill = await prisma.skills.upsert({
+        where: { nama_skill: namaSkill.trim() },
         update: {},
         create: {
-          namaSkill: namaSkill.trim(),
+          nama_skill: namaSkill.trim(),
           kategori: kategori || 'General',
           deskripsi: deskripsi || `Keahlian ${namaSkill.trim()}`,
         },

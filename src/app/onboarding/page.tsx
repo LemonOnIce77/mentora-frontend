@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Sparkles,
   Camera,
@@ -15,21 +15,21 @@ import {
   Upload,
   Plus,
   Loader2,
-} from 'lucide-react';
+} from "lucide-react";
 
 const PRESET_SKILLS = [
-  'UI/UX Design',
-  'Figma',
-  'Programming',
-  'Data Analysis',
-  'Public Speaking',
-  'English',
-  'Marketing',
-  'Design Thinking',
-  'Web Development',
-  'Business Management',
-  'Machine Learning',
-  'Graphic Design',
+  "UI/UX Design",
+  "Figma",
+  "Programming",
+  "Data Analysis",
+  "Public Speaking",
+  "English",
+  "Marketing",
+  "Design Thinking",
+  "Web Development",
+  "Business Management",
+  "Machine Learning",
+  "Graphic Design",
 ];
 
 export default function OnboardingPage() {
@@ -39,59 +39,96 @@ export default function OnboardingPage() {
   const [initialLoading, setInitialLoading] = useState(true);
 
   // Step 1: Data Diri State
-  const [namaLengkap, setNamaLengkap] = useState('Aulia Rahisa Putri');
-  const [namaPanggilan, setNamaPanggilan] = useState('Aulia');
-  const [universitas, setUniversitas] = useState('Universitas Telkom');
-  const [prodi, setProdi] = useState('Desain Komunikasi Visual');
-  const [semester, setSemester] = useState('4 (Semester Empat)');
-  const [domisili, setDomisili] = useState('Depok, Jawa Barat');
-  const [tglLahir, setTglLahir] = useState('14 Agustus 2003');
-  const [bio, setBio] = useState('Mahasiswa DKV yang tertarik dengan desain, branding, dan pengembangan UI.');
-  const [fotoProfil, setFotoProfil] = useState<string>('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80');
+  // Nama lengkap dapat diambil dari data registrasi; data profil lainnya diisi pengguna.
+  const [namaLengkap, setNamaLengkap] = useState("");
+  const [namaPanggilan, setNamaPanggilan] = useState("");
+  const [universitas, setUniversitas] = useState("");
+  const [prodi, setProdi] = useState("");
+  const [semester, setSemester] = useState("");
+  const [domisili, setDomisili] = useState("");
+  const [tglLahir, setTglLahir] = useState("");
+  const [bio, setBio] = useState("");
+  const [fotoProfil, setFotoProfil] = useState<string>("");
 
   // Step 2: Minat & Skill State
-  const [skillsToLearn, setSkillsToLearn] = useState<string[]>(['UI/UX Design', 'Design Thinking']);
-  const [skillsPossessed, setSkillsPossessed] = useState<string[]>(['Figma', 'UI/UX Design']);
-  const [modeSesi, setModeSesi] = useState<'Online' | 'Offline' | 'Fleksibel'>('Online');
-  const [customSkillInput, setCustomSkillInput] = useState('');
+  // Pengguna memilih sendiri skill yang ingin dipelajari dan yang sudah dikuasai.
+  const [skillsToLearn, setSkillsToLearn] = useState<string[]>([]);
+  const [skillsPossessed, setSkillsPossessed] = useState<string[]>([]);
+  const [modeSesi, setModeSesi] = useState<"Online" | "Offline" | "Fleksibel">(
+    "Fleksibel",
+  );
+  const [customSkillInput, setCustomSkillInput] = useState("");
 
   // Fetch current user if logged in
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => {
-        if (!res.ok) {
-          router.push('/auth');
-          return null;
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data && data.user) {
-          if (data.user.namaLengkap) setNamaLengkap(data.user.namaLengkap);
-          if (data.user.namaPanggilan) setNamaPanggilan(data.user.namaPanggilan);
-          if (data.user.universitas) setUniversitas(data.user.universitas);
-          if (data.user.prodi) setProdi(data.user.prodi);
-          if (data.user.semester) setSemester(data.user.semester);
-          if (data.user.domisili) setDomisili(data.user.domisili);
-          if (data.user.tglLahir) setTglLahir(data.user.tglLahir);
-          if (data.user.bio) setBio(data.user.bio);
-          if (data.user.fotoProfil) setFotoProfil(data.user.fotoProfil);
-          if (data.user.modeSesi) setModeSesi(data.user.modeSesi);
 
-          // User skills if available
-          if (data.user.skills && data.user.skills.length > 0) {
-            const learn = data.user.skills
-              .filter((s: any) => s.tipe === 'LEARN')
-              .map((s: any) => s.skill.namaSkill);
-            const teach = data.user.skills
-              .filter((s: any) => s.tipe === 'TEACH')
-              .map((s: any) => s.skill.namaSkill);
-            if (learn.length) setSkillsToLearn(learn);
-            if (teach.length) setSkillsPossessed(teach);
-          }
+  useEffect(() => {
+    let active = true;
+
+    const loadUserData = async () => {
+      try {
+        // Ambil profil terbaru dari database
+        const res = await fetch("/api/profile");
+
+        if (res.status === 401) {
+          router.push("/auth");
+          return;
         }
-      })
-      .finally(() => setInitialLoading(false));
+
+        if (!res.ok) {
+          throw new Error("Gagal mengambil profil");
+        }
+
+        const data = await res.json();
+        const user = data.profile;
+
+        if (!active || !user) return;
+
+        setNamaLengkap(user.namaLengkap ?? "");
+        setNamaPanggilan(user.namaPanggilan ?? "");
+        setUniversitas(user.universitas ?? "");
+        setProdi(user.prodi ?? "");
+        setSemester(user.semester ?? "");
+        setDomisili(user.domisili ?? "");
+        setTglLahir(user.tglLahir ?? "");
+        setBio(user.bio ?? "");
+        setFotoProfil(user.fotoProfil ?? "");
+
+        if (user.modeSesi) {
+          setModeSesi(user.modeSesi);
+        }
+
+        // Ambil skill pengguna
+        const skillRes = await fetch("/api/profile/skills");
+
+        if (skillRes.ok) {
+          const skillData = await skillRes.json();
+
+          if (!active) return;
+
+          setSkillsToLearn(
+            (skillData.skillsToLearn ?? []).map(
+              (skill: any) => skill.namaSkill,
+            ),
+          );
+
+          setSkillsPossessed(
+            (skillData.skillsPossessed ?? []).map(
+              (skill: any) => skill.namaSkill,
+            ),
+          );
+        }
+      } catch (error) {
+        console.error("Gagal memuat data onboarding:", error);
+      } finally {
+        if (active) setInitialLoading(false);
+      }
+    };
+
+    loadUserData();
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   // Handle Photo Upload simulated / FileReader
@@ -99,7 +136,7 @@ export default function OnboardingPage() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        alert('Ukuran foto maksimal 2MB');
+        alert("Ukuran foto maksimal 2MB");
         return;
       }
       const reader = new FileReader();
@@ -114,9 +151,9 @@ export default function OnboardingPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/profile/onboarding/step1', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/profile/onboarding/step1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           namaLengkap,
           namaPanggilan,
@@ -131,12 +168,12 @@ export default function OnboardingPage() {
       });
       if (res.ok) {
         setCurrentStep(2);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        alert('Gagal menyimpan profil.');
+        alert("Gagal menyimpan profil.");
       }
     } catch (err) {
-      alert('Terjadi kesalahan pada server.');
+      alert("Terjadi kesalahan pada server.");
     } finally {
       setLoading(false);
     }
@@ -144,13 +181,13 @@ export default function OnboardingPage() {
 
   const toggleLearnSkill = (skill: string) => {
     setSkillsToLearn((prev) =>
-      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill],
     );
   };
 
   const togglePossessedSkill = (skill: string) => {
     setSkillsPossessed((prev) =>
-      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill],
     );
   };
 
@@ -160,19 +197,19 @@ export default function OnboardingPage() {
     if (!skillsToLearn.includes(s)) {
       setSkillsToLearn((prev) => [...prev, s]);
     }
-    setCustomSkillInput('');
+    setCustomSkillInput("");
   };
 
   const handleFinalSubmit = async () => {
     if (skillsToLearn.length === 0) {
-      alert('Pilih minimal 1 skill yang ingin kamu pelajari.');
+      alert("Pilih minimal 1 skill yang ingin kamu pelajari.");
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/profile/onboarding/step2', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/profile/onboarding/step2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           skillsToLearn,
           skillsPossessed,
@@ -181,12 +218,12 @@ export default function OnboardingPage() {
       });
 
       if (res.ok) {
-        router.push('/dashboard');
+        router.push("/dashboard");
       } else {
-        alert('Gagal menyelesaikan onboarding.');
+        alert("Gagal menyelesaikan onboarding.");
       }
     } catch (err) {
-      alert('Terjadi kesalahan pada server.');
+      alert("Terjadi kesalahan pada server.");
     } finally {
       setLoading(false);
     }
@@ -217,7 +254,9 @@ export default function OnboardingPage() {
                 <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
               </div>
             </div>
-            <span className="text-xl font-extrabold text-slate-900">Mentora</span>
+            <span className="text-xl font-extrabold text-slate-900">
+              Mentora
+            </span>
           </Link>
 
           {/* Stepper Progress bar matching mockup */}
@@ -227,13 +266,19 @@ export default function OnboardingPage() {
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   currentStep === 1
-                    ? 'bg-[#2563EB] text-white'
-                    : 'bg-emerald-500 text-white'
+                    ? "bg-[#2563EB] text-white"
+                    : "bg-emerald-500 text-white"
                 }`}
               >
-                {currentStep === 2 ? '✓' : '1'}
+                {currentStep === 2 ? "✓" : "1"}
               </div>
-              <span className={currentStep === 1 ? 'text-slate-900 font-bold' : 'text-slate-500'}>
+              <span
+                className={
+                  currentStep === 1
+                    ? "text-slate-900 font-bold"
+                    : "text-slate-500"
+                }
+              >
                 Data Diri
               </span>
             </div>
@@ -245,13 +290,19 @@ export default function OnboardingPage() {
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   currentStep === 2
-                    ? 'bg-[#2563EB] text-white'
-                    : 'bg-slate-200 text-slate-500'
+                    ? "bg-[#2563EB] text-white"
+                    : "bg-slate-200 text-slate-500"
                 }`}
               >
                 2
               </div>
-              <span className={currentStep === 2 ? 'text-slate-900 font-bold' : 'text-slate-400'}>
+              <span
+                className={
+                  currentStep === 2
+                    ? "text-slate-900 font-bold"
+                    : "text-slate-400"
+                }
+              >
                 Minat & Skill
               </span>
             </div>
@@ -271,11 +322,9 @@ export default function OnboardingPage() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-10">
-        
         {/* ================= STEP 1: DATA DIRI ================= */}
         {currentStep === 1 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            
             {/* Left Column: Context & Guidelines */}
             <div className="lg:col-span-5 space-y-6">
               <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#2563EB] text-xs font-bold tracking-wider uppercase">
@@ -288,7 +337,8 @@ export default function OnboardingPage() {
               </h1>
 
               <p className="text-sm text-slate-600 leading-relaxed">
-                Data ini membantu Mentora memberi rekomendasi partner dan sesi belajar yang lebih relevan.
+                Data ini membantu Mentora memberi rekomendasi partner dan sesi
+                belajar yang lebih relevan.
               </p>
 
               <div className="pt-2 font-handwriting text-2xl font-bold text-slate-800 -rotate-2">
@@ -306,23 +356,33 @@ export default function OnboardingPage() {
                 <ul className="text-xs text-slate-500 space-y-1.5 pl-1">
                   <li>• Rekomendasi partner belajar lebih relevan</li>
                   <li>• Pencocokan kampus & jurusan sesuai kurikulum</li>
-                  <li>• Pengalaman belajar tatap muka / daring lebih personal</li>
+                  <li>
+                    • Pengalaman belajar tatap muka / daring lebih personal
+                  </li>
                 </ul>
               </div>
             </div>
 
             {/* Right Column: Form (Informasi Profil) */}
             <div className="lg:col-span-7">
-              <form onSubmit={handleStep1Submit} className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-6">
-                
+              <form
+                onSubmit={handleStep1Submit}
+                className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-6"
+              >
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Informasi Profil</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Mulai dengan informasi dasar tentang dirimu.</p>
+                  <h2 className="text-xl font-bold text-slate-900">
+                    Informasi Profil
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Mulai dengan informasi dasar tentang dirimu.
+                  </p>
                 </div>
 
                 {/* Foto Profil Upload */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-2">Foto Profil</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">
+                    Foto Profil
+                  </label>
                   <div className="flex items-center gap-5">
                     <div className="relative group">
                       {fotoProfil ? (
@@ -348,7 +408,9 @@ export default function OnboardingPage() {
                           className="hidden"
                         />
                       </label>
-                      <p className="text-[11px] text-slate-400 mt-1">JPG, PNG maks. 2MB</p>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        JPG, PNG maks. 2MB
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -482,25 +544,23 @@ export default function OnboardingPage() {
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition disabled:opacity-60"
                   >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : null}
                     <span>Lanjut ke Minat & Skill</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
-
               </form>
             </div>
-
           </div>
         )}
 
         {/* ================= STEP 2: MINAT & SKILL ================= */}
         {currentStep === 2 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            
             {/* Left Area: Skill Selectors */}
             <div className="lg:col-span-8 space-y-8">
-              
               <div>
                 <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#2563EB] text-xs font-bold tracking-wider uppercase mb-2">
                   PILIH AKTIVITAS KEMAMPUAN LEBIH CEPAT
@@ -509,15 +569,20 @@ export default function OnboardingPage() {
                   Pilih skill yang ingin kamu pelajari
                 </h1>
                 <p className="text-xs text-slate-500 mt-1">
-                  Pilih minimal 1 (disarankan 3) agar rekomendasi teman belajar di Mentora lebih tepat.
+                  Pilih minimal 1 (disarankan 3) agar rekomendasi teman belajar
+                  di Mentora lebih tepat.
                 </p>
               </div>
 
               {/* Section 1: Skill yang Ingin Dipelajari */}
               <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Skill yang Ingin Kamu Pelajari</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Pilih skill yang sedang ingin kamu kuasai saat ini.</p>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Skill yang Ingin Kamu Pelajari
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Pilih skill yang sedang ingin kamu kuasai saat ini.
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2.5">
@@ -530,11 +595,13 @@ export default function OnboardingPage() {
                         onClick={() => toggleLearnSkill(skill)}
                         className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
                           isSelected
-                            ? 'bg-blue-50 text-[#2563EB] border-2 border-[#2563EB] shadow-xs'
-                            : 'bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300'
+                            ? "bg-blue-50 text-[#2563EB] border-2 border-[#2563EB] shadow-xs"
+                            : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300"
                         }`}
                       >
-                        {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        {isSelected && (
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        )}
                         <span>{skill}</span>
                       </button>
                     );
@@ -550,7 +617,7 @@ export default function OnboardingPage() {
                     placeholder="Tambah skill lain..."
                     className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-1 focus:ring-[#2563EB] outline-none"
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         e.preventDefault();
                         handleAddCustomSkill();
                       }
@@ -570,8 +637,13 @@ export default function OnboardingPage() {
               {/* Section 2: Skill yang Sudah Dimiliki */}
               <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Skill yang Sudah Kamu Miliki</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Boleh dipilih lebih dari satu. Ini membantu pencocokan skill dua arah (barter ilmu).</p>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Skill yang Sudah Kamu Miliki
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Boleh dipilih lebih dari satu. Ini membantu pencocokan skill
+                    dua arah (barter ilmu).
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2.5">
@@ -584,11 +656,13 @@ export default function OnboardingPage() {
                         onClick={() => togglePossessedSkill(skill)}
                         className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
                           isSelected
-                            ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-500 shadow-xs'
-                            : 'bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300'
+                            ? "bg-emerald-50 text-emerald-700 border-2 border-emerald-500 shadow-xs"
+                            : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300"
                         }`}
                       >
-                        {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        {isSelected && (
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        )}
                         <span>{skill}</span>
                       </button>
                     );
@@ -599,20 +673,24 @@ export default function OnboardingPage() {
               {/* Section 3: Mode Sesi yang Disukai */}
               <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Mode Sesi yang Kamu Sukai</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Pilih preferensi pelaksanaan sesi belajar.</p>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Mode Sesi yang Kamu Sukai
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Pilih preferensi pelaksanaan sesi belajar.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  {(['Online', 'Offline', 'Fleksibel'] as const).map((mode) => (
+                  {(["Online", "Offline", "Fleksibel"] as const).map((mode) => (
                     <button
                       key={mode}
                       type="button"
                       onClick={() => setModeSesi(mode)}
                       className={`py-3 px-4 rounded-xl text-xs font-bold text-center border transition-all ${
                         modeSesi === mode
-                          ? 'border-[#2563EB] bg-blue-50 text-[#2563EB] shadow-xs'
-                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                          ? "border-[#2563EB] bg-blue-50 text-[#2563EB] shadow-xs"
+                          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                       }`}
                     >
                       {mode}
@@ -632,12 +710,10 @@ export default function OnboardingPage() {
                   <span>Kembali</span>
                 </button>
               </div>
-
             </div>
 
             {/* Right Column: Tips & Complete Action */}
             <div className="lg:col-span-4 space-y-5">
-              
               {/* Blue Card Graphic */}
               <div className="bg-[#2563EB] text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
                 <div className="relative z-10 space-y-4">
@@ -661,13 +737,16 @@ export default function OnboardingPage() {
                   <span>Tips Belajar</span>
                 </div>
                 <p className="leading-relaxed">
-                  Fokus dulu ke skill yang benar-benar ingin kamu pelajari. Pilihan ini bisa diubah kapan saja lewat halaman Profil.
+                  Fokus dulu ke skill yang benar-benar ingin kamu pelajari.
+                  Pilihan ini bisa diubah kapan saja lewat halaman Profil.
                 </p>
               </div>
 
               {/* Yellow Tip Box */}
               <div className="p-5 rounded-2xl bg-[#FEF08A]/70 border border-amber-300 text-xs text-slate-800 space-y-2">
-                <h4 className="font-bold text-amber-900">Tips memilih skill:</h4>
+                <h4 className="font-bold text-amber-900">
+                  Tips memilih skill:
+                </h4>
                 <ol className="list-decimal list-inside space-y-1 text-slate-700 leading-relaxed">
                   <li>Pilih minat yang paling relevan</li>
                   <li>Kelompokkan skill yang sudah kamu kuasai</li>
@@ -686,12 +765,9 @@ export default function OnboardingPage() {
                 <span>Selesai & Masuk Mentora</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-
             </div>
-
           </div>
         )}
-
       </main>
     </div>
   );

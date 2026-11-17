@@ -1,105 +1,133 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
+    // 1. Validasi autentikasi
     const authUser = await getAuthUser(req);
-    if (!authUser) {
-      return NextResponse.json({ message: 'Tidak terautentikasi' }, { status: 401 });
+
+    if (!authUser || !authUser.id) {
+      return NextResponse.json(
+        { message: 'Tidak terautentikasi.' },
+        { status: 401 }
+      );
     }
 
+    // 2. Ambil data dari frontend
     const body = await req.json();
-    const { skillsOffered, pengalamanMengajar, dokumenUrl, dokumenNama } = body;
 
-    if (!dokumenNama || !skillsOffered) {
+    const {
+      skillsOffered,
+      pengalamanMengajar,
+      dokumenNama,
+    } = body;
+
+    // 3. Validasi data
+    const cleanSkills =
+      typeof skillsOffered === 'string'
+        ? skillsOffered.trim()
+        : Array.isArray(skillsOffered)
+          ? skillsOffered.join(', ').trim()
+          : '';
+
+    const cleanExperience =
+      typeof pengalamanMengajar === 'string'
+        ? pengalamanMengajar.trim()
+        : '';
+
+    const cleanDocName =
+      typeof dokumenNama === 'string'
+        ? dokumenNama.trim()
+        : '';
+
+    if (!cleanSkills || !cleanDocName) {
       return NextResponse.json(
-        { message: 'Skill yang diajukan dan dokumen kredensial (transkrip/sertifikat) wajib disertakan.' },
+        {
+          message: 'Skill dan dokumen kredensial wajib diisi.',
+        },
         { status: 400 }
       );
     }
 
-    const cleanSkills = typeof skillsOffered === 'string' ? skillsOffered.trim() : skillsOffered.join(', ');
+    const userId = BigInt(authUser.id);
 
-    // 1. Coba simpan ke database Prisma jika tersedia
-    try {
-      const application = await prisma.mentorApplication.create({
+    // 4. Buat alasan pengajuan
+    const alasanMengajar =
+      `Saya ingin menjadi mentor untuk membagikan keahlian di bidang ${cleanSkills}.` +
+      (cleanExperience
+        ? ` Pengalaman mengajar: ${cleanExperience}`
+        : '');
+
+    // 5. Simpan menggunakan transaksi database
+    const result = await prisma.$transaction(async (tx) => {
+
+      // Simpan pengajuan mentor
+      const application = await tx.mentor_applications.create({
         data: {
-          userId: authUser.id,
-          skillsOffered: cleanSkills,
-          pengalamanMengajar: pengalamanMengajar || '',
-          dokumenUrl: dokumenUrl || `/uploads/${dokumenNama}`,
-          dokumenNama: dokumenNama,
+          user_id: userId,
+          alasan_mengajar: alasanMengajar,
+          bidang_keahlian: cleanSkills,
           status: 'PENDING',
         },
       });
 
-      const updatedUser = await prisma.user.update({
-        where: { id: authUser.id },
+      // Update status pengguna
+      const updatedUser = await tx.users.update({
+        where: {
+          id: userId,
+        },
         data: {
-          statusMentor: 'PENDING',
-          dokumenKredensial: dokumenNama,
+          status_mentor: 'PENDING',
+          dokumen_kredensial: cleanDocName,
+        },
+        select: {
+          id: true,
+          nama_lengkap: true,
+          status_mentor: true,
+          dokumen_kredensial: true,
         },
       });
 
-      const response = NextResponse.json({
-        message: 'Pengajuan akun Mentor berhasil dikirim! Tim Admin akan memverifikasi dokumen Anda.',
+      return {
         application,
-        user: updatedUser,
-      });
-
-      // Update sesi cookie aktif
-      const updatedSession = {
-        ...authUser,
-        statusMentor: 'PENDING',
-        dokumenKredensial: dokumenNama,
+        updatedUser,
       };
-      response.cookies.set('mentora_session', JSON.stringify(updatedSession), {
-        httpOnly: false,
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-
-      return response;
-    } catch (dbError) {
-      console.warn('Prisma create application warning, using session fallback:', dbError);
-    }
-
-    // 2. Fallback session update
-    const mockApp = {
-      id: Math.floor(Date.now() / 1000),
-      userId: authUser.id,
-      skillsOffered: cleanSkills,
-      pengalamanMengajar: pengalamanMengajar || '',
-      dokumenUrl: dokumenUrl || `/uploads/${dokumenNama}`,
-      dokumenNama: dokumenNama,
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-    };
-
-    const updatedSession = {
-      ...authUser,
-      statusMentor: 'PENDING',
-      dokumenKredensial: dokumenNama,
-    };
-
-    const response = NextResponse.json({
-      message: 'Pengajuan akun Mentor berhasil dikirim! Tim Admin akan memverifikasi dokumen Anda.',
-      application: mockApp,
-      user: updatedSession,
     });
 
-    response.cookies.set('mentora_session', JSON.stringify(updatedSession), {
-      httpOnly: false,
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
+    // 6. Kirim respons
+    return NextResponse.json({
+      success: true,
+      message: 'Pengajuan akun Mentor berhasil dikirim!',
+
+      application: {
+        id: result.application.id.toString(),
+        user_id: result.application.user_id.toString(),
+        bidang_keahlian: result.application.bidang_keahlian,
+        alasan_mengajar: result.application.alasan_mengajar,
+        status: result.application.status,
+      },
+
+      user: {
+        id: result.updatedUser.id.toString(),
+        namaLengkap: result.updatedUser.nama_lengkap,
+        statusMentor: result.updatedUser.status_mentor,
+        dokumenKredensial:
+          result.updatedUser.dokumen_kredensial,
+      },
     });
 
-    return response;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error applying for mentor:', error);
+
     return NextResponse.json(
-      { message: 'Gagal mengajukan upgrade akun mentor.' },
+      {
+        success: false,
+        message: 'Gagal mengajukan upgrade akun mentor.',
+      },
       { status: 500 }
     );
   }
