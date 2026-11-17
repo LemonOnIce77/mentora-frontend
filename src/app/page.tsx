@@ -42,15 +42,20 @@ export default function LandingPage() {
           cache: "no-store",
         });
 
-        if (!response.ok) {
-          if (isMounted) setCurrentUser(null);
+        const result = response.ok ? await response.json() : null;
+        if (result?.user) {
+          if (isMounted) setCurrentUser(result.user);
           return;
         }
-
-        const result = await response.json();
-        if (isMounted) setCurrentUser(result?.user ?? null);
       } catch (error) {
         console.error("Gagal memeriksa sesi di Beranda:", error);
+      }
+
+      // Sama seperti navbar: gunakan sesi browser sebagai fallback bila API belum mengembalikan user.
+      try {
+        const savedUser = localStorage.getItem("user_session");
+        if (isMounted) setCurrentUser(savedUser ? JSON.parse(savedUser) : null);
+      } catch {
         if (isMounted) setCurrentUser(null);
       } finally {
         if (isMounted) setCheckingAuth(false);

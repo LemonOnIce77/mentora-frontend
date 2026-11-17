@@ -313,6 +313,12 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("tab") === "skills") {
+      setActiveTab("skills");
+    }
+  }, []);
+
+  useEffect(() => {
     loadMentors();
   }, [searchMentorQuery, selectedSkillFilter]);
 
@@ -506,6 +512,15 @@ export default function DashboardPage() {
 
           {/* Quick Upgrade / Mentor CTA banner on the right */}
           <div className="flex items-center gap-3">
+            {user?.role !== "Admin" && (
+              <button
+                onClick={() => router.push("/matching")}
+                className="px-4 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-2"
+              >
+                <Search className="w-4 h-4" />
+                <span>Cari Partner Belajar</span>
+              </button>
+            )}
             {user?.role !== "Admin" && user?.statusMentor !== "APPROVED" && (
               <button
                 onClick={() => setActiveTab("apply")}
