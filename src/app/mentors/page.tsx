@@ -196,7 +196,7 @@ export default function MentorsListPage() {
                       <img
                         src={mentor.fotoProfil}
                         alt={mentor.namaLengkap}
-                        className="w-14 h-14 rounded-2xl object-cover border border-blue-100 shrink-0"
+                        className="w-14 h-14 rounded-2xl object-cover object-top border border-blue-100 shrink-0"
                       />
                     ) : (
                       <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-extrabold text-xl shrink-0">

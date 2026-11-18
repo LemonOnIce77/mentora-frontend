@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  ChevronDown, LayoutDashboard, UserRound, Menu, X, LogIn, LogOut, UserPlus,
+  ChevronDown, LayoutDashboard, UserRound, Menu, X, LogIn, LogOut, UserPlus, MessageSquare, Calendar,
 } from "lucide-react";
 
 const navLinks = [
@@ -210,6 +210,9 @@ export default function Navbar() {
                     <Link href="/dashboard" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
                       <LayoutDashboard className="w-4 h-4" /> Dashboard
                     </Link>
+                    <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
+                      <MessageSquare className="w-4 h-4" /> Pesan & Diskusi
+                    </Link>
                     <button type="button" onClick={handleLogout} disabled={logoutLoading} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-red-600 hover:bg-red-50 disabled:opacity-60">
                       <LogOut className="w-4 h-4" /> {logoutLoading ? "Keluar..." : "Keluar"}
                     </button>
@@ -259,6 +262,9 @@ export default function Navbar() {
                   </Link>
                   <Link href="/dashboard" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-[#2563EB] hover:bg-blue-50">
                     <LayoutDashboard className="w-5 h-5" /> Dashboard
+                  </Link>
+                  <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                    <MessageSquare className="w-5 h-5" /> Pesan & Diskusi
                   </Link>
                   <button type="button" onClick={handleLogout} disabled={logoutLoading} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60">
                     <LogOut className="w-5 h-5" /> {logoutLoading ? "Keluar..." : "Keluar"}

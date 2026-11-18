@@ -147,13 +147,25 @@ export async function PUT(req: NextRequest) {
     }
 
     if (body.latitude !== undefined) {
-      data.latitude =
-        body.latitude === null ? null : Number(body.latitude);
+      if (body.latitude === null || body.latitude === '') {
+        data.latitude = null;
+      } else {
+        const parsed = Number(body.latitude);
+        data.latitude = isNaN(parsed) ? null : parsed;
+      }
     }
 
     if (body.longitude !== undefined) {
-      data.longitude =
-        body.longitude === null ? null : Number(body.longitude);
+      if (body.longitude === null || body.longitude === '') {
+        data.longitude = null;
+      } else {
+        const parsed = Number(body.longitude);
+        data.longitude = isNaN(parsed) ? null : parsed;
+      }
+    }
+
+    if (body.onboardingCompleted !== undefined) {
+      data.onboarding_completed = Boolean(body.onboardingCompleted);
     }
 
     const updatedUser = await prisma.users.update({

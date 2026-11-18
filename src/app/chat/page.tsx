@@ -1,76 +1,536 @@
 'use client';
 
-import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, MessageCircle, Send, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Loader2,
+  MapPin,
+  MessageCircle,
+  Send,
+  ShieldCheck,
+  Video,
+  Sparkles,
+} from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-type ChatMessage = { id: string; senderId: string; content: string; createdAt: string };
-type ChatRoom = { id: string; participantIds: string[]; partnerId: string; partnerName: string; messages: ChatMessage[] };
+type ChatMessage = {
+  id: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+};
+
+type ChatRoom = {
+  id: string;
+  participantIds: string[];
+  partnerId: string;
+  partnerName: string;
+  partnerPhoto?: string;
+  messages: ChatMessage[];
+};
+
+type BookedSession = {
+  id: string;
+  mentorId: number | string;
+  mentorName: string;
+  mentorPhoto?: string;
+  skill: string;
+  tanggalSesi: string;
+  jamMulai: string;
+  jamSelesai: string;
+  metode: string;
+  lokasi: string;
+  topik?: string;
+  status: string;
+  createdAt: string;
+};
+
 const STORAGE_KEY = 'mentora_chat_rooms';
+const BOOKINGS_KEY = 'mentora_booked_sessions';
 
 export default function ChatPage() {
   const router = useRouter();
   const [partnerId, setPartnerId] = useState('');
   const [partnerName, setPartnerName] = useState('Partner belajar');
   const [userId, setUserId] = useState('');
-  const [room, setRoom] = useState<ChatRoom | null>(null);
+  const [userName, setUserName] = useState('');
+  const [allRooms, setAllRooms] = useState<ChatRoom[]>([]);
+  const [currentRoom, setCurrentRoom] = useState<ChatRoom | null>(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
+  const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Ambil query param dari URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setPartnerId(params.get('partnerId') || '');
-    setPartnerName(params.get('name') || 'Partner belajar');
+    const pId = params.get('partnerId') || '';
+    const pName = params.get('name') || '';
+    if (pId) setPartnerId(pId);
+    if (pName) setPartnerName(decodeURIComponent(pName));
   }, []);
 
+  // Muat data sesi auth dan rooms
   useEffect(() => {
     let cancelled = false;
-    const loadRoom = async () => {
+
+    const loadData = async () => {
       try {
         const res = await fetch('/api/auth/me');
-        if (!res.ok) { router.replace('/auth'); return; }
-        const data = await res.json();
-        if (!data.user) { router.replace('/auth'); return; }
-        const currentId = String(data.user.id);
-        if (cancelled) return;
-        setUserId(currentId);
-        const stored: ChatRoom[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        if (partnerId && partnerId !== currentId) {
-          let selected = stored.find((item) => item.participantIds.includes(currentId) && item.participantIds.includes(partnerId));
-          if (!selected) {
-            selected = { id: `room-${[currentId, partnerId].sort().join('-')}`, participantIds: [currentId, partnerId], partnerId, partnerName, messages: [] };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify([...stored, selected]));
-          }
-          if (!selected.participantIds.includes(currentId)) { setDenied(true); return; }
-          setRoom(selected);
-        } else {
-          const own = stored.find((item) => item.participantIds.includes(currentId));
-          if (own && !own.participantIds.includes(currentId)) setDenied(true);
-          else if (own) setRoom(own);
+        if (!res.ok) {
+          router.replace('/auth');
+          return;
         }
-      } catch (error) { console.error('Gagal membuka ruang diskusi:', error); }
-      finally { if (!cancelled) setLoading(false); }
+        const data = await res.json();
+        if (!data.user) {
+          router.replace('/auth');
+          return;
+        }
+
+        const currentId = String(data.user.id);
+        const currentName = data.user.namaLengkap || data.user.namaPanggilan || 'Saya';
+        if (cancelled) return;
+
+        setUserId(currentId);
+        setUserName(currentName);
+
+        // Ambil riwayat chat dari localStorage
+        let stored: ChatRoom[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+        // Ambil data booking sesi untuk menghubungkan room
+        const storedBookings: BookedSession[] = JSON.parse(
+          localStorage.getItem(BOOKINGS_KEY) || '[]'
+        );
+        setBookedSessions(storedBookings);
+
+        // Jika ada booking tapi belum ada room, otomatis inisialisasi room dari booking
+        storedBookings.forEach((b) => {
+          const mId = String(b.mentorId);
+          const exists = stored.find(
+            (r) => r.participantIds.includes(currentId) && r.participantIds.includes(mId)
+          );
+          if (!exists) {
+            const newRoom: ChatRoom = {
+              id: `room-${[currentId, mId].sort().join('-')}`,
+              participantIds: [currentId, mId],
+              partnerId: mId,
+              partnerName: b.mentorName,
+              partnerPhoto: b.mentorPhoto,
+              messages: [
+                {
+                  id: `welcome-${Date.now()}-${mId}`,
+                  senderId: mId,
+                  content: `Halo! Sesi belajar untuk materi ${b.skill} sudah dijadwalkan pada ${b.tanggalSesi} pukul ${b.jamMulai} - ${b.jamSelesai} WIB. Silakan diskusikan persiapan atau pertanyaanmu di sini ya!`,
+                  createdAt: b.createdAt || new Date().toISOString(),
+                },
+              ],
+            };
+            stored = [newRoom, ...stored];
+          }
+        });
+
+        // Jika ada partnerId di URL
+        if (partnerId && partnerId !== currentId) {
+          let selected = stored.find(
+            (item) => item.participantIds.includes(currentId) && item.participantIds.includes(partnerId)
+          );
+
+          if (!selected) {
+            const relatedBooking = storedBookings.find((b) => String(b.mentorId) === partnerId);
+            selected = {
+              id: `room-${[currentId, partnerId].sort().join('-')}`,
+              participantIds: [currentId, partnerId],
+              partnerId,
+              partnerName,
+              partnerPhoto: relatedBooking?.mentorPhoto || '',
+              messages: [],
+            };
+            stored = [selected, ...stored];
+          }
+
+          if (!selected.participantIds.includes(currentId)) {
+            setDenied(true);
+            return;
+          }
+
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+          setAllRooms(stored);
+          setCurrentRoom(selected);
+        } else {
+          // Jika tidak ada partnerId di URL, buka room pertama yang tersedia
+          const myRooms = stored.filter((r) => r.participantIds.includes(currentId));
+          setAllRooms(stored);
+          if (myRooms.length > 0) {
+            setCurrentRoom(myRooms[0]);
+            setPartnerId(myRooms[0].partnerId);
+            setPartnerName(myRooms[0].partnerName);
+          }
+        }
+      } catch (error) {
+        console.error('Gagal membuka ruang diskusi:', error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     };
-    loadRoom();
-    return () => { cancelled = true; };
+
+    loadData();
+    return () => {
+      cancelled = true;
+    };
   }, [router, partnerId, partnerName]);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [room?.messages.length]);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [currentRoom?.messages.length]);
+
+  // Cari sesi yang relevan dengan partner yang sedang dibuka
+  const activeSession = useMemo(() => {
+    if (!currentRoom) return null;
+    return bookedSessions.find(
+      (b) => String(b.mentorId) === String(currentRoom.partnerId) && b.status === 'BOOKED'
+    );
+  }, [bookedSessions, currentRoom]);
+
+  const selectRoom = (room: ChatRoom) => {
+    setCurrentRoom(room);
+    setPartnerId(room.partnerId);
+    setPartnerName(room.partnerName);
+    window.history.replaceState(
+      {},
+      '',
+      `/chat?partnerId=${room.partnerId}&name=${encodeURIComponent(room.partnerName)}`
+    );
+  };
 
   const sendMessage = (event?: FormEvent) => {
     event?.preventDefault();
     const content = message.trim();
-    if (!content || !room || !room.participantIds.includes(userId)) return;
-    const next = { ...room, messages: [...room.messages, { id: `${Date.now()}`, senderId: userId, content, createdAt: new Date().toISOString() }] };
-    const stored: ChatRoom[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored.map((item) => item.id === next.id ? next : item)));
-    setRoom(next); setMessage('');
-  };
-  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } };
+    if (!content || !currentRoom || !currentRoom.participantIds.includes(userId)) return;
 
-  return <div className="min-h-screen flex flex-col bg-[#FAFAFB]"><Navbar /><main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col"><div className="mb-5 flex items-center justify-between"><button onClick={() => router.push('/matching')} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-[#2563EB]"><ArrowLeft className="h-4 w-4" />Cari partner lain</button><span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">Pesan tersimpan di perangkat ini</span></div><section className="flex-1 overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm min-h-[560px] flex flex-col">{loading ? <div className="flex flex-1 items-center justify-center gap-3 text-slate-500"><Loader2 className="h-5 w-5 animate-spin" />Membuka ruang diskusi...</div> : denied ? <div className="m-auto max-w-lg p-8 text-center"><ShieldCheck className="mx-auto h-12 w-12 text-rose-500" /><h1 className="mt-3 text-xl font-bold text-slate-900">Akses Ditolak</h1><p className="mt-2 text-sm text-slate-600">Percakapan ini bersifat privat antara dua pengguna yang terlibat.</p></div> : room ? <><header className="flex items-center gap-3 border-b border-slate-100 p-5"><div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-[#2563EB]"><MessageCircle className="h-5 w-5" /></div><div><h1 className="font-bold text-slate-900">{room.partnerName}</h1><p className="text-xs text-slate-500">Diskusi pertukaran skill</p></div></header><div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/70 p-5"><div className="mx-auto max-w-xl rounded-2xl border border-blue-100 bg-blue-50 p-4 text-center text-xs leading-relaxed text-blue-800">Diskusi pertukaran skill dimulai. Sepakati topik materi dan jadwal sesi belajar kalian di sini.</div>{room.messages.map((item) => <div key={item.id} className={`flex ${item.senderId === userId ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${item.senderId === userId ? 'rounded-tr-sm bg-[#2563EB] text-white' : 'rounded-tl-sm border border-slate-200/60 bg-slate-100 text-slate-800'}`}><p className="whitespace-pre-wrap">{item.content}</p><time className={`mt-1 block text-right text-[10px] ${item.senderId === userId ? 'text-blue-100' : 'text-slate-400'}`}>{new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</time></div></div>)}<div ref={messagesEndRef} /></div><form onSubmit={sendMessage} className="flex items-end gap-3 border-t border-slate-100 p-4"><textarea value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={handleKeyDown} rows={2} placeholder="Tulis pesan... (Enter untuk mengirim)" className="max-h-32 min-h-12 flex-1 resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100" /><button type="submit" disabled={!message.trim()} aria-label="Kirim pesan" className="rounded-xl bg-[#2563EB] p-3 text-white hover:bg-blue-700 disabled:opacity-50"><Send className="h-5 w-5" /></button></form></> : <div className="m-auto max-w-lg p-8 text-center"><MessageCircle className="mx-auto h-12 w-12 text-slate-300" /><h1 className="mt-3 text-xl font-bold text-slate-900">Belum ada ruang diskusi</h1><p className="mt-2 text-sm text-slate-500">Pilih partner belajar terlebih dahulu untuk memulai percakapan.</p><button onClick={() => router.push('/matching')} className="mt-5 rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white hover:bg-blue-700">Cari Partner Belajar</button></div>}</section></main><Footer /></div>;
+    const newMessage: ChatMessage = {
+      id: `${Date.now()}`,
+      senderId: userId,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    const nextRoom = {
+      ...currentRoom,
+      messages: [...currentRoom.messages, newMessage],
+    };
+
+    const stored: ChatRoom[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const updatedStored = stored.map((item) => (item.id === nextRoom.id ? nextRoom : item));
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedStored));
+    setAllRooms(updatedStored);
+    setCurrentRoom(nextRoom);
+    setMessage('');
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
+      <Navbar />
+
+      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col">
+        {/* Top Header Bar */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#2563EB] transition"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Kembali ke Dashboard</span>
+            </Link>
+            <span className="text-slate-300">|</span>
+            <span className="text-xs font-semibold text-slate-500">
+              Ruang Diskusi & Sesi Belajar
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Real-time Chat Aktif</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Main Chat Box Container */}
+        <section className="flex-1 overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm min-h-[620px] flex flex-col md:flex-row">
+          {loading ? (
+            <div className="flex flex-1 items-center justify-center gap-3 text-slate-500">
+              <Loader2 className="h-6 w-6 animate-spin text-[#2563EB]" />
+              <span className="text-sm font-semibold">Membuka ruang diskusi...</span>
+            </div>
+          ) : denied ? (
+            <div className="m-auto max-w-lg p-8 text-center">
+              <ShieldCheck className="mx-auto h-12 w-12 text-rose-500" />
+              <h1 className="mt-3 text-xl font-bold text-slate-900">Akses Ditolak</h1>
+              <p className="mt-2 text-sm text-slate-600">
+                Percakapan ini bersifat privat antara dua pengguna yang terlibat.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Sidebar Daftar Percakapan (Inbox) */}
+              <aside className="w-full md:w-80 border-r border-slate-100 flex flex-col bg-slate-50/50">
+                <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                  <h2 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-[#2563EB]" />
+                    <span>Daftar Percakapan</span>
+                  </h2>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#2563EB]">
+                    {allRooms.length}
+                  </span>
+                </div>
+
+                {/* List Room */}
+                <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+                  {allRooms.length > 0 ? (
+                    allRooms.map((r) => {
+                      const isSelected = currentRoom?.id === r.id;
+                      const lastMsg = r.messages[r.messages.length - 1];
+                      return (
+                        <button
+                          key={r.id}
+                          onClick={() => selectRoom(r)}
+                          className={`w-full p-4 text-left transition flex items-start gap-3 ${
+                            isSelected
+                              ? 'bg-blue-50/80 border-l-4 border-[#2563EB]'
+                              : 'hover:bg-slate-100/70'
+                          }`}
+                        >
+                          {r.partnerPhoto ? (
+                            <img
+                              src={r.partnerPhoto}
+                              alt={r.partnerName}
+                              className="w-11 h-11 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 shadow-sm">
+                              {r.partnerName.charAt(0)}
+                            </div>
+                          )}
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <h3
+                                className={`text-xs font-bold truncate ${
+                                  isSelected ? 'text-[#2563EB]' : 'text-slate-900'
+                                }`}
+                              >
+                                {r.partnerName}
+                              </h3>
+                              {lastMsg && (
+                                <time className="text-[10px] text-slate-400 shrink-0">
+                                  {new Date(lastMsg.createdAt).toLocaleTimeString('id-ID', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </time>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                              {lastMsg ? lastMsg.content : 'Belum ada pesan...'}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div className="p-8 text-center text-xs text-slate-400">
+                      <p>Belum ada percakapan aktif.</p>
+                      <Link
+                        href="/dashboard"
+                        className="inline-block mt-3 px-3 py-1.5 rounded-lg bg-[#2563EB] text-white text-[11px] font-bold"
+                      >
+                        Cari Mentor
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </aside>
+
+              {/* Area Chat Room Aktif */}
+              <div className="flex-1 flex flex-col min-w-0">
+                {currentRoom ? (
+                  <>
+                    {/* Header Chat */}
+                    <header className="p-4 sm:px-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {currentRoom.partnerPhoto ? (
+                          <img
+                            src={currentRoom.partnerPhoto}
+                            alt={currentRoom.partnerName}
+                            className="w-10 h-10 rounded-2xl object-cover border border-slate-200"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-2xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold">
+                            {currentRoom.partnerName.charAt(0)}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h1 className="font-extrabold text-slate-900 text-sm truncate flex items-center gap-1.5">
+                            <span>{currentRoom.partnerName}</span>
+                            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                          </h1>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            Diskusi pertukaran skill & koordinasi sesi belajar
+                          </p>
+                        </div>
+                      </div>
+
+                      <Link
+                        href={`/mentors/${currentRoom.partnerId}`}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-700 transition shrink-0 hidden sm:inline-block"
+                      >
+                        Lihat Profil Mentor
+                      </Link>
+                    </header>
+
+                    {/* Banner Info Sesi yang Dipesan */}
+                    {activeSession && (
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+                            <Calendar className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                              <span>Sesi Belajar: {activeSession.skill}</span>
+                              <span className="px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">
+                                Terkonfirmasi
+                              </span>
+                            </p>
+                            <p className="text-[11px] text-slate-600 flex items-center gap-2 mt-0.5">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-slate-400" />
+                                {activeSession.tanggalSesi} ({activeSession.jamMulai} -{' '}
+                                {activeSession.jamSelesai} WIB)
+                              </span>
+                              <span>•</span>
+                              <span className="flex items-center gap-1">
+                                {activeSession.metode === 'Online' ? (
+                                  <Video className="w-3 h-3 text-blue-500" />
+                                ) : (
+                                  <MapPin className="w-3 h-3 text-emerald-500" />
+                                )}
+                                {activeSession.metode}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="text-[11px] text-blue-700 font-semibold bg-white px-2.5 py-1 rounded-lg border border-blue-200/80 shadow-2xs">
+                          {activeSession.lokasi}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Chat Messages Stream */}
+                    <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/60 p-4 sm:p-6">
+                      <div className="mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-3.5 text-center text-xs leading-relaxed text-slate-600 shadow-2xs">
+                        <Sparkles className="w-4 h-4 text-[#2563EB] mx-auto mb-1" />
+                        Ruang diskusi privat bersama{' '}
+                        <strong className="text-slate-800">{currentRoom.partnerName}</strong>.
+                        Sepakati topik materi, media belajar, dan persiapan sesi di sini.
+                      </div>
+
+                      {currentRoom.messages.map((item) => {
+                        const isMe = item.senderId === userId;
+                        return (
+                          <div
+                            key={item.id}
+                            className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div
+                              className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-2xs ${
+                                isMe
+                                  ? 'rounded-tr-xs bg-[#2563EB] text-white'
+                                  : 'rounded-tl-xs border border-slate-200/70 bg-white text-slate-800'
+                              }`}
+                            >
+                              <p className="whitespace-pre-wrap">{item.content}</p>
+                              <time
+                                className={`mt-1 block text-right text-[10px] font-medium ${
+                                  isMe ? 'text-blue-100' : 'text-slate-400'
+                                }`}
+                              >
+                                {new Date(item.createdAt).toLocaleTimeString('id-ID', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </time>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Chat Input Bar */}
+                    <form
+                      onSubmit={sendMessage}
+                      className="flex items-end gap-2.5 border-t border-slate-100 p-3 sm:p-4 bg-white"
+                    >
+                      <textarea
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        rows={1}
+                        placeholder="Tulis pesan... (Enter untuk kirim)"
+                        className="max-h-28 min-h-11 flex-1 resize-y rounded-2xl border border-slate-200 px-4 py-2.5 text-xs sm:text-sm outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
+                      />
+                      <button
+                        type="submit"
+                        disabled={!message.trim()}
+                        aria-label="Kirim pesan"
+                        className="h-11 w-11 rounded-2xl bg-[#2563EB] text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center shrink-0 transition shadow-sm hover:shadow-md"
+                      >
+                        <Send className="h-4 w-4" />
+                      </button>
+                    </form>
+                  </>
+                ) : (
+                  <div className="m-auto max-w-sm p-8 text-center">
+                    <MessageCircle className="mx-auto h-12 w-12 text-slate-300 mb-3" />
+                    <h3 className="text-base font-bold text-slate-900">
+                      Pilih Percakapan
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Pilih salah satu pesan di sidebar kiri atau booking sesi belajar baru.
+                    </p>
+                    <Link
+                      href="/dashboard"
+                      className="mt-4 inline-block px-5 py-2.5 rounded-xl bg-[#2563EB] text-white text-xs font-bold hover:bg-blue-700 transition"
+                    >
+                      Jelajahi Mentor
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      </main>
+
+      <Footer />
+    </div>
+  );
 }

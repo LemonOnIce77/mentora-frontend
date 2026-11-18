@@ -184,11 +184,11 @@ model users {
   domisili                                                   String?               @db.VarChar(255)
   tgl_lahir                                                  String?               @db.VarChar(255)
   bio                                                        String?               @db.Text
-  foto_profil                                                String?               @db.VarChar(255)
+  foto_profil                                                String?               @db.LongText
   mode_sesi                                                  String                @default("Fleksibel") @db.VarChar(255)
   role                                                       String                @default("Mentee") @db.VarChar(255)
   status_mentor                                              String                @default("NONE") @db.VarChar(255)
-  dokumen_kredensial                                         String?               @db.VarChar(255)
+  dokumen_kredensial                                         String?               @db.LongText
   total_poin                                                 Int                   @default(0)
   latitude                                                   Float?
   longitude                                                  Float?

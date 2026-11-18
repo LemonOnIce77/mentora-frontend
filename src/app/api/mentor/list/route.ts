@@ -51,14 +51,13 @@ export async function GET(req: NextRequest) {
     const searchQuery = searchParams.get('q');
 
     try {
-      const p = prisma as any;
-      const mentors = await (p.users || p.user)?.findMany({
+      const mentors = await prisma.users.findMany({
         where: {
-          statusMentor: 'APPROVED',
+          status_mentor: 'APPROVED',
           ...(searchQuery
             ? {
                 OR: [
-                  { namaLengkap: { contains: searchQuery } },
+                  { nama_lengkap: { contains: searchQuery } },
                   { universitas: { contains: searchQuery } },
                   { prodi: { contains: searchQuery } },
                 ],
@@ -67,34 +66,57 @@ export async function GET(req: NextRequest) {
         },
         select: {
           id: true,
-          namaLengkap: true,
-          namaPanggilan: true,
+          nama_lengkap: true,
+          nama_panggilan: true,
           universitas: true,
           prodi: true,
           semester: true,
           domisili: true,
           bio: true,
-          fotoProfil: true,
+          foto_profil: true,
           role: true,
-          statusMentor: true,
-          totalPoin: true,
-          modeSesi: true,
-          skills: {
-            where: { tipe: 'TEACH' },
-            include: { skill: true },
+          status_mentor: true,
+          total_poin: true,
+          mode_sesi: true,
+          user_skills: {
+            where: { type: 'teach' },
+            include: { skills: true },
           },
         },
-        orderBy: { totalPoin: 'desc' },
+        orderBy: { total_poin: 'desc' },
       });
 
       if (mentors && mentors.length > 0) {
-        let filtered = mentors;
+        let mappedMentors = mentors.map((m) => ({
+          id: Number(m.id),
+          namaLengkap: m.nama_lengkap,
+          namaPanggilan: m.nama_panggilan ?? '',
+          universitas: m.universitas ?? '',
+          prodi: m.prodi ?? '',
+          semester: m.semester ?? '',
+          domisili: m.domisili ?? '',
+          bio: m.bio ?? '',
+          fotoProfil: m.foto_profil ?? '',
+          role: m.role,
+          statusMentor: m.status_mentor,
+          totalPoin: m.total_poin,
+          modeSesi: m.mode_sesi,
+          skills: m.user_skills.map((us) => ({
+            id: Number(us.id),
+            skill: {
+              id: Number(us.skills.id),
+              namaSkill: us.skills.nama_skill,
+              kategori: us.skills.kategori,
+            },
+          })),
+        }));
+
         if (skillQuery) {
-          filtered = mentors.filter((m: any) =>
-            m.skills.some((s: any) => s.skill.namaSkill.toLowerCase().includes(skillQuery.toLowerCase()))
+          mappedMentors = mappedMentors.filter((m) =>
+            m.skills.some((s) => s.skill.namaSkill.toLowerCase().includes(skillQuery.toLowerCase()))
           );
         }
-        return NextResponse.json({ mentors: filtered });
+        return NextResponse.json({ mentors: mappedMentors });
       }
     } catch (dbError) {
       console.warn('Prisma mentor list warning, using default mentors:', dbError);

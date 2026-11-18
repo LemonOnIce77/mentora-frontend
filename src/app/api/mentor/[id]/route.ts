@@ -54,42 +54,41 @@ export async function GET(
   }
 
   try {
-    const p = prisma as any;
-    const user = await (p.users || p.user)?.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: BigInt(id) },
       include: {
         user_skills: {
-          include: { skills: true, skill: true },
+          include: { skills: true },
         },
       },
     });
 
     if (user) {
-      const skills = (user.user_skills || []).map((us: any) => ({
+      const skills = (user.user_skills || []).map((us) => ({
         id: Number(us.id),
-        tipe: us.type || us.tipe,
+        tipe: us.type,
         level: us.level,
         skill: {
-          id: Number(us.skills?.id || us.skill?.id || us.skill_id),
-          namaSkill: us.skills?.nama_skill || us.skill?.namaSkill || us.skill?.nama_skill || 'Skill',
-          kategori: us.skills?.kategori || us.skill?.kategori || 'Umum',
+          id: Number(us.skills.id),
+          namaSkill: us.skills.nama_skill,
+          kategori: us.skills.kategori || 'Umum',
         },
       }));
 
       const mentor = {
         id: Number(user.id),
-        namaLengkap: user.nama_lengkap || user.namaLengkap,
-        namaPanggilan: user.nama_panggilan || user.namaPanggilan,
+        namaLengkap: user.nama_lengkap,
+        namaPanggilan: user.nama_panggilan || '',
         email: user.email,
-        universitas: user.universitas,
-        prodi: user.prodi,
-        semester: user.semester,
-        domisili: user.domisili,
-        bio: user.bio,
-        fotoProfil: user.foto_profil || user.fotoProfil,
-        totalPoin: user.total_poin ?? user.totalPoin ?? 0,
-        modeSesi: user.mode_sesi || user.modeSesi || 'Fleksibel',
-        statusMentor: user.status_mentor || user.statusMentor || 'APPROVED',
+        universitas: user.universitas || '',
+        prodi: user.prodi || '',
+        semester: user.semester || '',
+        domisili: user.domisili || '',
+        bio: user.bio || '',
+        fotoProfil: user.foto_profil || '',
+        totalPoin: user.total_poin,
+        modeSesi: user.mode_sesi,
+        statusMentor: user.status_mentor,
         skills,
       };
 

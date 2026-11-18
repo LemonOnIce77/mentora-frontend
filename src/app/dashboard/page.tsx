@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import BookingModal, { BookingMentor } from "@/components/BookingModal";
 import {
   User,
   Shield,
@@ -28,6 +30,8 @@ import {
   MapPin,
   ChevronRight,
   Filter,
+  MessageCircle,
+  Video,
 } from "lucide-react";
 
 interface CurrentUser {
@@ -96,13 +100,56 @@ interface MentorUser {
   }>;
 }
 
+interface BookedSession {
+  id: string;
+  mentorId: number | string;
+  mentorName: string;
+  mentorPhoto?: string;
+  skill: string;
+  tanggalSesi: string;
+  jamMulai: string;
+  jamSelesai: string;
+  metode: string;
+  lokasi: string;
+  topik?: string;
+  status: string;
+  createdAt: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    "mentors" | "profile" | "skills" | "apply" | "admin"
+    "mentors" | "sessions" | "profile" | "skills" | "apply" | "admin"
   >("mentors");
+  const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
+  const [bookingMentor, setBookingMentor] = useState<BookingMentor | null>(null);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+
+  // Load booked sessions from localStorage
+  const loadBookedSessions = () => {
+    try {
+      const data: BookedSession[] = JSON.parse(
+        localStorage.getItem("mentora_booked_sessions") || "[]",
+      );
+      setBookedSessions(data);
+    } catch {
+      setBookedSessions([]);
+    }
+  };
+
+  useEffect(() => {
+    loadBookedSessions();
+  }, [isBookingOpen]);
+
+  const handleCancelSession = (sessionId: string) => {
+    if (confirm("Apakah kamu yakin ingin membatalkan reservasi sesi belajar ini?")) {
+      const updated = bookedSessions.filter((s) => s.id !== sessionId);
+      localStorage.setItem("mentora_booked_sessions", JSON.stringify(updated));
+      setBookedSessions(updated);
+    }
+  };
 
   // Mentors list state
   const [mentors, setMentors] = useState<MentorUser[]>([]);
@@ -511,7 +558,15 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Upgrade / Mentor CTA banner on the right */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => router.push("/chat")}
+              className="px-4 py-2.5 rounded-2xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center gap-2 shadow-2xs"
+            >
+              <MessageCircle className="w-4 h-4 text-[#2563EB]" />
+              <span>Pesan & Diskusi</span>
+            </button>
+
             {user?.role !== "Admin" && (
               <button
                 onClick={() => router.push("/matching")}
@@ -556,6 +611,23 @@ export default function DashboardPage() {
           >
             <BookOpen className="w-4 h-4" />
             <span>Daftar Mentor</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("sessions")}
+            className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
+              activeTab === "sessions"
+                ? "border-[#2563EB] text-[#2563EB]"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Riwayat Sesi Belajar</span>
+            {bookedSessions.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-blue-100 text-[#2563EB] text-[10px] font-extrabold">
+                {bookedSessions.length}
+              </span>
+            )}
           </button>
 
           <button
@@ -687,7 +759,7 @@ export default function DashboardPage() {
                         <img
                           src={mentor.fotoProfil}
                           alt={mentor.namaLengkap}
-                          className="w-14 h-14 rounded-2xl object-cover border border-blue-100 shadow-xs"
+                          className="w-14 h-14 rounded-2xl object-cover object-top border border-blue-100 shadow-xs"
                         />
                       ) : (
                         <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold text-lg">
@@ -743,23 +815,31 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                     <span className="text-xs font-bold text-amber-600 flex items-center gap-1">
                       <Award className="w-3.5 h-3.5" />
-                      {mentor.totalPoin} Poin Keaktifan
+                      {mentor.totalPoin} Poin
                     </span>
 
-                    <button
-                      onClick={() =>
-                        alert(
-                          `Fitur booking sesi dengan Mentor ${mentor.namaLengkap} masuk dalam cakupan Sprint 2 (Fase 2: Skill Exchange & Reservasi).`,
-                        )
-                      }
-                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition flex items-center gap-1"
-                    >
-                      <span>Booking Sesi</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/mentors/${mentor.id}`}
+                        className="px-3 py-2 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold transition hover:bg-slate-50"
+                      >
+                        Profil
+                      </Link>
+
+                      <button
+                        onClick={() => {
+                          setBookingMentor(mentor);
+                          setIsBookingOpen(true);
+                        }}
+                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition flex items-center gap-1 shadow-sm"
+                      >
+                        <span>Booking Sesi</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -774,6 +854,152 @@ export default function DashboardPage() {
                 <p className="text-xs text-slate-400 mt-1">
                   Coba sesuaikan kata kunci pencarian atau filter skill.
                 </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ================= TAB RIWAYAT SESI BELAJAR ================= */}
+        {activeTab === "sessions" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-[#2563EB]" />
+                  <span>Riwayat & Jadwal Sesi Belajar</span>
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Daftar sesi belajar yang telah kamu reservasi bersama mentor.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setActiveTab("mentors")}
+                className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2 self-start sm:self-auto shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Booking Sesi Baru</span>
+              </button>
+            </div>
+
+            {bookedSessions.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {bookedSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                  >
+                    <div>
+                      {/* Header Kartu */}
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-3">
+                          {session.mentorPhoto ? (
+                            <img
+                              src={session.mentorPhoto}
+                              alt={session.mentorName}
+                              className="w-12 h-12 rounded-2xl object-cover border border-slate-200"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-2xl bg-blue-100 text-[#2563EB] font-bold text-lg flex items-center justify-center">
+                              {session.mentorName.charAt(0)}
+                            </div>
+                          )}
+                          <div>
+                            <h3 className="font-bold text-slate-900 text-sm">
+                              {session.mentorName}
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                              Materi: <strong className="text-[#2563EB]">{session.skill}</strong>
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                          Terkonfirmasi
+                        </span>
+                      </div>
+
+                      {/* Detail Waktu & Lokasi */}
+                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 text-xs text-slate-700 mb-4">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                          <span>
+                            <strong>Tanggal:</strong> {session.tanggalSesi}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+                          <span>
+                            <strong>Pukul:</strong> {session.jamMulai} - {session.jamSelesai} WIB
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {session.metode === "Online" ? (
+                            <Video className="w-4 h-4 text-blue-500 shrink-0" />
+                          ) : (
+                            <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
+                          )}
+                          <span>
+                            <strong>Metode:</strong> {session.metode} ({session.lokasi})
+                          </span>
+                        </div>
+                        {session.topik && (
+                          <div className="pt-2 border-t border-slate-200/60 text-[11px] text-slate-600">
+                            <strong>Topik:</strong> {session.topik}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tombol Aksi */}
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => handleCancelSession(session.id)}
+                        className="text-xs font-semibold text-rose-500 hover:text-rose-700 transition px-2 py-1"
+                      >
+                        Batalkan
+                      </button>
+
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/mentors/${session.mentorId}`}
+                          className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition"
+                        >
+                          Profil
+                        </Link>
+                        <button
+                          onClick={() =>
+                            router.push(
+                              `/chat?partnerId=${session.mentorId}&name=${encodeURIComponent(
+                                session.mentorName,
+                              )}`,
+                            )
+                          }
+                          className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>Buka Chat</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-white rounded-3xl border border-slate-200">
+                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-base font-bold text-slate-800">
+                  Belum Ada Sesi Belajar yang Dipesan
+                </h3>
+                <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                  Kamu belum melakukan reservasi mentoring. Jelajahi daftar mentor untuk memilih sesi pertukaran skill.
+                </p>
+                <button
+                  onClick={() => setActiveTab("mentors")}
+                  className="mt-4 px-5 py-2.5 rounded-xl bg-[#2563EB] text-white text-xs font-bold hover:bg-blue-700 transition"
+                >
+                  Lihat Daftar Mentor
+                </button>
               </div>
             )}
           </div>
@@ -1320,6 +1546,12 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      <BookingModal
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+        mentor={bookingMentor}
+      />
 
       <Footer />
     </div>

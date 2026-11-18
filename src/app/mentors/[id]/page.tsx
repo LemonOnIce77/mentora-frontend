@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import BookingModal from '@/components/BookingModal';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -55,6 +56,7 @@ export default function MentorDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [mentor, setMentor] = useState<MentorDetail | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   useEffect(() => {
     const fetchMentorDetail = async () => {
@@ -145,11 +147,11 @@ export default function MentorDetailPage() {
     <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
       <Navbar />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 space-y-6">
         <div>
           <Link
             href="/mentors"
-            className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#2563EB] transition"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:text-[#2563EB] hover:border-blue-200 shadow-2xs transition"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali ke Daftar Mentor</span>
@@ -157,67 +159,79 @@ export default function MentorDetailPage() {
         </div>
 
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="h-28 bg-gradient-to-r from-blue-600 to-indigo-600 relative" />
+          {/* Banner Header dengan gradient modern */}
+          <div className="h-36 sm:h-44 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 relative z-0">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none" />
+          </div>
 
-          <div className="px-6 sm:px-8 pb-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 mb-6">
-              <div className="flex items-end gap-4">
+          <div className="relative z-10 px-6 sm:px-8 pb-8">
+            {/* Foto Profil & Badges Bar */}
+            <div className="relative z-20 flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 mb-6">
+              <div className="relative z-30 flex items-end gap-4 sm:gap-5">
                 {mentor.fotoProfil ? (
                   <img
                     src={mentor.fotoProfil}
                     alt={mentor.namaLengkap}
-                    className="w-24 h-24 rounded-3xl object-cover border-4 border-white shadow-md bg-white"
+                    className="relative z-30 w-28 h-28 sm:w-32 sm:h-32 rounded-3xl object-cover object-top border-4 border-white shadow-xl bg-white shrink-0 ring-1 ring-slate-900/5"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-3xl bg-blue-100 text-[#2563EB] border-4 border-white shadow-md flex items-center justify-center font-extrabold text-3xl">
+                  <div className="relative z-30 w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-blue-600 text-white border-4 border-white shadow-xl flex items-center justify-center font-extrabold text-3xl sm:text-4xl shrink-0">
                     {(mentor.namaPanggilan || mentor.namaLengkap).charAt(0)}
                   </div>
                 )}
 
-                <div className="pb-1">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Mentor Aktif Terverifikasi</span>
+                <div className="pb-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold shadow-2xs">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Mentor Terverifikasi</span>
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="px-4 py-2 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-700 text-xs font-extrabold flex items-center gap-1.5">
-                  <Award className="w-4 h-4" />
+              <div className="flex items-center gap-2.5 pb-2">
+                <div className="px-4 py-2 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-700 text-xs font-extrabold flex items-center gap-1.5 shadow-2xs">
+                  <Award className="w-4 h-4 text-amber-600" />
                   <span>{mentor.totalPoin || 0} EduPoints</span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2 pb-6 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                  {mentor.namaLengkap}
-                </h1>
-                <CheckCircle2 className="w-5 h-5 fill-emerald-500 text-white shrink-0" />
+            {/* Nama & Info Akademik */}
+            <div className="space-y-3 pb-6 border-b border-slate-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                    {mentor.namaLengkap}
+                  </h1>
+                  <CheckCircle2 className="w-5 h-5 fill-emerald-500 text-white shrink-0" />
+                </div>
+
+                {mentor.namaPanggilan && (
+                  <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                    Nama Panggilan: <span className="text-slate-600">{mentor.namaPanggilan}</span>
+                  </p>
+                )}
               </div>
 
-              {mentor.namaPanggilan && (
-                <p className="text-xs font-semibold text-slate-400">
-                  Panggilan: {mentor.namaPanggilan}
-                </p>
-              )}
-
-              <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-600">
-                <span className="flex items-center gap-1.5 font-semibold">
+              {/* Chips Info */}
+              <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs text-slate-600">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/70 font-semibold text-slate-800">
                   <GraduationCap className="w-4 h-4 text-[#2563EB]" />
-                  {mentor.universitas || 'Universitas belum dicantumkan'}
-                  {mentor.prodi ? ` • ${mentor.prodi}` : ''}
-                  {mentor.semester ? ` (Semester ${mentor.semester})` : ''}
+                  <span>
+                    {mentor.universitas || 'Universitas belum diatur'}
+                    {mentor.prodi ? ` • ${mentor.prodi}` : ''}
+                    {mentor.semester ? ` (Semester ${mentor.semester})` : ''}
+                  </span>
                 </span>
-                <span className="flex items-center gap-1.5">
+
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/70 font-medium text-slate-700">
                   <MapPin className="w-4 h-4 text-slate-400" />
-                  {mentor.domisili || 'Indonesia'}
+                  <span>{mentor.domisili || 'Indonesia'}</span>
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-slate-400" />
-                  Mode Sesi: <strong className="text-slate-800">{mentor.modeSesi || 'Online / Fleksibel'}</strong>
+
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200/60 font-semibold text-blue-800">
+                  <Calendar className="w-4 h-4 text-blue-500" />
+                  <span>Mode: {mentor.modeSesi || 'Online / Fleksibel'}</span>
                 </span>
               </div>
             </div>
@@ -270,12 +284,10 @@ export default function MentorDetailPage() {
 
             <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-xs text-slate-400">
-                Profil ditampilkan dalam mode baca.
+                Pilih waktu yang sesuai untuk memulai mentoring.
               </p>
               <button
-                onClick={() =>
-                  alert(`Permintaan sesi belajar dengan ${mentor.namaLengkap} siap dilanjutkan ke tahap reservasi.`)
-                }
+                onClick={() => setIsBookingOpen(true)}
                 className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center justify-center gap-2"
               >
                 <MessageSquare className="w-4 h-4" />
@@ -285,6 +297,12 @@ export default function MentorDetailPage() {
           </div>
         </div>
       </main>
+
+      <BookingModal
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+        mentor={mentor}
+      />
 
       <Footer />
     </div>
