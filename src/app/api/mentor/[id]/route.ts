@@ -64,7 +64,12 @@ export async function GET(
     });
 
     if (user) {
-      const skills = (user.user_skills || []).map((us) => ({
+      const skills = (user.user_skills || []).map((us: {
+        id: bigint;
+        type: string;
+        level: string;
+        skills: { id: bigint; nama_skill: string; kategori: string | null };
+      }) => ({
         id: Number(us.id),
         tipe: us.type,
         level: us.level,
