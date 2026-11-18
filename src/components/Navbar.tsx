@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  ChevronDown, LayoutDashboard, UserRound, Menu, X, LogIn, LogOut, UserPlus, MessageSquare, Calendar,
+  ChevronDown, LayoutDashboard, UserRound, Menu, X, LogIn, LogOut, UserPlus, MessageSquare, Calendar, ShieldCheck,
 } from "lucide-react";
 
 const navLinks = [
@@ -14,6 +14,11 @@ const navLinks = [
   { label: "Fitur", href: "/#fitur" },
   { label: "Testimoni", href: "/testimoni" },
   { label: "FAQ", href: "/faq" },
+];
+
+const adminNavLinks = [
+  { label: "Dashboard Admin", href: "/dashboard" },
+  { label: "Portal Admin", href: "/admin" },
 ];
 
 interface CurrentUser {
@@ -93,6 +98,8 @@ export default function Navbar() {
   const initial = displayName.trim().charAt(0).toUpperCase() || "U";
   const photo = profile?.fotoProfil || profile?.foto_profil || null;
   const role = profile?.role || "Pengguna Mentora";
+  const isAdmin = profile?.role === "Admin";
+  const visibleNavLinks = isAdmin ? adminNavLinks : navLinks;
 
   const isActive = (href: string) => {
     if (href === "/#fitur") return pathname === "/" && activeHash === "#fitur";
@@ -159,7 +166,7 @@ export default function Navbar() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8">
-            {navLinks.map((item) => {
+            {visibleNavLinks.map((item) => {
               const active = isActive(item.href);
               return (
                 <Link
@@ -204,15 +211,17 @@ export default function Navbar() {
                         <p className="text-xs text-slate-500 truncate">{profile.email || ""}</p>
                       </div>
                     </div>
-                    <Link href="/profile" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
+                    {!isAdmin && <Link href="/profile" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
                       <UserRound className="w-4 h-4" /> Profil Saya
-                    </Link>
+                    </Link>}
                     <Link href="/dashboard" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
-                      <LayoutDashboard className="w-4 h-4" /> Dashboard
+                      <LayoutDashboard className="w-4 h-4" /> {isAdmin ? "Dashboard Admin" : "Dashboard"}
                     </Link>
-                    <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
+                    {isAdmin ? <Link href="/admin" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-purple-700 hover:bg-purple-50">
+                      <ShieldCheck className="w-4 h-4" /> Portal Admin
+                    </Link> : <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
                       <MessageSquare className="w-4 h-4" /> Pesan & Diskusi
-                    </Link>
+                    </Link>}
                     <button type="button" onClick={handleLogout} disabled={logoutLoading} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-red-600 hover:bg-red-50 disabled:opacity-60">
                       <LogOut className="w-4 h-4" /> {logoutLoading ? "Keluar..." : "Keluar"}
                     </button>
@@ -235,7 +244,7 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="lg:hidden border-t border-slate-100 py-4">
             <nav className="flex flex-col gap-1">
-              {navLinks.map((item) => {
+              {visibleNavLinks.map((item) => {
                 const active = isActive(item.href);
                 return (
                   <Link key={item.href} href={item.href} onClick={() => handleNavigation(item.href)} className={`px-4 py-3 rounded-xl text-sm font-semibold ${active ? "bg-blue-50 text-[#2563EB]" : "text-slate-700 hover:bg-slate-50"}`}>
@@ -257,15 +266,17 @@ export default function Navbar() {
                       <p className="text-xs text-emerald-600">{role}</p>
                     </div>
                   </div>
-                  <Link href="/profile" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                  {!isAdmin && <Link href="/profile" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50">
                     <UserRound className="w-5 h-5" /> Profil Saya
-                  </Link>
+                  </Link>}
                   <Link href="/dashboard" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-[#2563EB] hover:bg-blue-50">
-                    <LayoutDashboard className="w-5 h-5" /> Dashboard
+                    <LayoutDashboard className="w-5 h-5" /> {isAdmin ? "Dashboard Admin" : "Dashboard"}
                   </Link>
-                  <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                  {isAdmin ? <Link href="/admin" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-purple-700 hover:bg-purple-50">
+                    <ShieldCheck className="w-5 h-5" /> Portal Admin
+                  </Link> : <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50">
                     <MessageSquare className="w-5 h-5" /> Pesan & Diskusi
-                  </Link>
+                  </Link>}
                   <button type="button" onClick={handleLogout} disabled={logoutLoading} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60">
                     <LogOut className="w-5 h-5" /> {logoutLoading ? "Keluar..." : "Keluar"}
                   </button>

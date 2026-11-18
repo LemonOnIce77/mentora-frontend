@@ -161,7 +161,9 @@ function AuthContent() {
 
         setSuccessMsg("Login berhasil! Mengarahkan...");
         setTimeout(() => {
-          if (!data.user.onboardingCompleted && data.user.role !== "Admin") {
+          if (data.user.role === "Admin") {
+            router.push("/admin");
+          } else if (!data.user.onboardingCompleted) {
             router.push("/onboarding");
           } else {
             router.push("/dashboard");

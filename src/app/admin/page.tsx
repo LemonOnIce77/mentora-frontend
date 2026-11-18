@@ -4,25 +4,22 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import {
   ShieldCheck,
   Users,
-  BookOpen,
   Clock,
   Check,
   XCircle,
   FileText,
   Activity,
-  TrendingUp,
   ArrowRight,
-  Settings,
   Search,
   Loader2,
   ShieldAlert,
   RefreshCw,
   Award,
   GraduationCap,
+  LayoutDashboard,
 } from 'lucide-react';
 
 interface AdminUser {
@@ -245,14 +242,23 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <button
-            onClick={fetchAdminData}
-            disabled={isRefreshing}
-            className="px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition flex items-center gap-2 disabled:opacity-60"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>Perbarui Data</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/dashboard"
+              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-2"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>Dashboard Admin</span>
+            </Link>
+            <button
+              onClick={fetchAdminData}
+              disabled={isRefreshing}
+              className="px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition flex items-center gap-2 disabled:opacity-60"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>Perbarui Data</span>
+            </button>
+          </div>
         </div>
 
         {/* Navigasi Tab Admin */}
@@ -303,7 +309,7 @@ export default function AdminDashboardPage() {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* 4 Kartu Metrik Utama */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
                 {
                   label: 'Total Pengajuan Masuk',
@@ -332,15 +338,6 @@ export default function AdminDashboardPage() {
                   border: 'border-emerald-100',
                   badge: 'Tervalidasi',
                 },
-                {
-                  label: 'Sesi Mentoring Selesai',
-                  value: '8,420',
-                  icon: BookOpen,
-                  color: 'text-purple-700',
-                  bg: 'bg-purple-50',
-                  border: 'border-purple-100',
-                  badge: '+24% bln ini',
-                },
               ].map((stat, idx) => {
                 const Icon = stat.icon;
                 return (
@@ -353,7 +350,6 @@ export default function AdminDashboardPage() {
                         <Icon className="w-6 h-6" />
                       </div>
                       <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full ${stat.bg} ${stat.color}`}>
-                        <TrendingUp className="w-3 h-3" />
                         {stat.badge}
                       </span>
                     </div>
@@ -379,26 +375,16 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="h-60 flex items-end justify-between gap-3 pt-6 border-b border-slate-100 pb-2">
-                  {[42, 68, 54, 92, 76, 110, 88].map((val, i) => (
-                    <div key={i} className="relative flex flex-col items-center flex-1 gap-2 group h-full justify-end">
-                      <span className="opacity-0 group-hover:opacity-100 absolute -top-7 text-[10px] font-bold bg-slate-900 text-white px-2 py-1 rounded transition-opacity whitespace-nowrap">
-                        {val} Sesi
-                      </span>
-                      <div
-                        className="w-full max-w-[42px] bg-[#2563EB] hover:bg-blue-700 rounded-t-xl transition-all duration-300"
-                        style={{ height: `${(val / 110) * 100}%` }}
-                      />
-                      <span className="text-xs font-bold text-slate-400">H-{6 - i}</span>
-                    </div>
-                  ))}
+                <div className="h-60 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center">
+                  <Activity className="h-8 w-8 text-slate-300" />
+                  <p className="max-w-xs text-sm text-slate-500">Data aktivitas sesi belum tersedia.</p>
                 </div>
               </section>
 
               <section className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
                 <div>
                   <h2 className="text-lg font-extrabold text-slate-900">Pintasan Pengelolaan</h2>
-                  <p className="text-xs text-slate-500">Akses cepat moderasi & konten publik</p>
+                  <p className="text-xs text-slate-500">Akses cepat pengelolaan platform</p>
                 </div>
 
                 <div className="space-y-3">
@@ -422,41 +408,23 @@ export default function AdminDashboardPage() {
                     <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] transition" />
                   </button>
 
-                  <Link
-                    href="/tentang"
-                    className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#2563EB] transition group bg-slate-50/70 hover:bg-white"
+                  <button
+                    onClick={() => setActiveTab('mentors')}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#2563EB] transition group bg-slate-50/70 hover:bg-white text-left"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center">
-                        <BookOpen className="w-5 h-5" />
+                        <Users className="w-5 h-5" />
                       </div>
                       <div>
                         <p className="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition">
-                          Halaman Tentang
+                          Direktori Mentor Aktif
                         </p>
-                        <p className="text-[11px] text-slate-500">Kelola profil & visi platform</p>
+                        <p className="text-[11px] text-slate-500">Tinjau akun mentor terverifikasi</p>
                       </div>
                     </div>
                     <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] transition" />
-                  </Link>
-
-                  <Link
-                    href="/faq"
-                    className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#2563EB] transition group bg-slate-50/70 hover:bg-white"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center">
-                        <Settings className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition">
-                          Pusat Bantuan (FAQ)
-                        </p>
-                        <p className="text-[11px] text-slate-500">Perbarui pertanyaan umum</p>
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] transition" />
-                  </Link>
+                  </button>
                 </div>
               </section>
             </div>
@@ -630,12 +598,9 @@ export default function AdminDashboardPage() {
                       <Award className="w-3.5 h-3.5" />
                       {mentor.totalPoin || 0} Poin
                     </span>
-                    <Link
-                      href={`/mentors/${mentor.id}`}
-                      className="text-xs font-bold text-[#2563EB] hover:underline"
-                    >
+                    <span className="text-xs font-bold text-slate-500">
                       Lihat Profil →
-                    </Link>
+                    </span>
                   </div>
                 </div>
               ))}
@@ -644,7 +609,6 @@ export default function AdminDashboardPage() {
         )}
       </main>
 
-      <Footer />
     </div>
   );
 }
