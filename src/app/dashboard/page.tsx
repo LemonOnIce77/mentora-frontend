@@ -519,16 +519,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user || activeTab !== "mentors") return;
-    const controller = new AbortController();
+    let isSubscribed = true;
     const load = async () => {
       setMentorListState("loading");
       try {
-        const response = await fetch("/api/mentor/list", {
-          signal: controller.signal,
-        });
+        const response = await fetch("/api/mentor/list");
         if (!response.ok) throw new Error("Daftar mentor belum bisa dimuat.");
         const data = await response.json();
-        if (!controller.signal.aborted) {
+        if (isSubscribed) {
           const loaded = (data.mentors || []) as MentorUser[];
           const combined = [
             ...loaded,
@@ -540,12 +538,14 @@ export default function DashboardPage() {
           setMentorListState("ready");
         }
       } catch {
-        if (!controller.signal.aborted) setMentorListState("error");
+        if (isSubscribed) setMentorListState("error");
       }
     };
     void load();
-    return () => controller.abort();
-  }, [activeTab, user, mentorListRetry]);
+    return () => {
+      isSubscribed = false;
+    };
+  }, [activeTab, user?.id, mentorListRetry]);
 
   useEffect(() => {
     if (user?.role === "Admin") {
