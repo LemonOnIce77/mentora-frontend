@@ -1,134 +1,61 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { adminApproval, hasMentorProfile, mentorProfileFields } from '@/lib/mentor-eligibility';
 
-export const dynamic = 'force-dynamic';
+class ApplicationError extends Error {}
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Validasi autentikasi
-    const authUser = await getAuthUser(req);
-
-    if (!authUser || !authUser.id) {
-      return NextResponse.json(
-        { message: 'Tidak terautentikasi.' },
-        { status: 401 }
-      );
-    }
-
-    // 2. Ambil data dari frontend
+    const user = await getAuthUser(req);
+    if (!user) return NextResponse.json({ message: 'Silakan masuk terlebih dahulu.' }, { status: 401 });
     const body = await req.json();
-
-    const {
-      skillsOffered,
-      pengalamanMengajar,
-      dokumenNama,
-    } = body;
-
-    // 3. Validasi data
-    const cleanSkills =
-      typeof skillsOffered === 'string'
-        ? skillsOffered.trim()
-        : Array.isArray(skillsOffered)
-          ? skillsOffered.join(', ').trim()
-          : '';
-
-    const cleanExperience =
-      typeof pengalamanMengajar === 'string'
-        ? pengalamanMengajar.trim()
-        : '';
-
-    const cleanDocName =
-      typeof dokumenNama === 'string'
-        ? dokumenNama.trim()
-        : '';
-
-    if (!cleanSkills || !cleanDocName) {
-      return NextResponse.json(
-        {
-          message: 'Skill dan dokumen kredensial wajib diisi.',
-        },
-        { status: 400 }
-      );
+    const skills = (Array.isArray(body.skillsOffered) ? body.skillsOffered.join(', ') : String(body.skillsOffered ?? '')).trim();
+    const experience = typeof body.pengalamanMengajar === 'string' ? body.pengalamanMengajar.trim() : '';
+    const kind = body.jenisDokumen ?? 'portofolio';
+    if (kind !== 'portofolio' && kind !== 'sertifikat' && kind !== 'transkrip') {
+      return NextResponse.json({ message: 'Pilih jenis dokumen yang sesuai.' }, { status: 422 });
     }
-
-    const userId = BigInt(authUser.id);
-
-    // 4. Buat alasan pengajuan
-    const alasanMengajar =
-      `Saya ingin menjadi mentor untuk membagikan keahlian di bidang ${cleanSkills}.` +
-      (cleanExperience
-        ? ` Pengalaman mengajar: ${cleanExperience}`
-        : '');
-
-    // 5. Simpan menggunakan transaksi database
-    const result = await prisma.$transaction(async (tx) => {
-
-      // Simpan pengajuan mentor
-      const application = await tx.mentor_applications.create({
-        data: {
-          user_id: userId,
-          alasan_mengajar: alasanMengajar,
-          bidang_keahlian: cleanSkills,
-          status: 'PENDING',
-        },
+    const credential = /^\/api\/mentor\/credentials\/(\d{1,20})\/download$/.exec(body.dokumenUrl || '');
+    if (!skills || skills.length > 255 || !credential) {
+      return NextResponse.json({ message: 'Isi keahlian dan unggah berkas kredensial terlebih dahulu.' }, { status: 422 });
+    }
+    const userId = BigInt(user.id);
+    const application = await prisma.$transaction(async tx => {
+      const applicant = await tx.users.findUniqueOrThrow({ where: { id: userId }, select: mentorProfileFields });
+      if (!hasMentorProfile(applicant)) throw new ApplicationError('Lengkapi profil dan selesaikan onboarding sebelum mengajukan diri.');
+      const doc = await tx.mentor_credentials.findFirst({
+        where: { id: BigInt(credential[1]), user_id: userId, mentor_application_id: null },
       });
-
-      // Update status pengguna
-      const updatedUser = await tx.users.update({
-        where: {
-          id: userId,
+      if (!doc) throw new ApplicationError('Unggah berkas milik akun ini untuk pengajuan baru.');
+      const now = new Date();
+      const claimed = await tx.users.updateMany({
+        where: { id: userId, role: { in: ['Mentee', 'Mentor'] }, onboarding_completed: true,
+          OR: [
+            { status_mentor: { in: ['NONE', 'REJECTED'] } },
+            { status_mentor: 'APPROVED', mentor_applications_mentor_applications_user_idTousers: { none: adminApproval } },
+          ],
+          mentor_applications_mentor_applications_user_idTousers: { none: { status: 'PENDING' } },
         },
-        data: {
-          status_mentor: 'PENDING',
-          dokumen_kredensial: cleanDocName,
-        },
-        select: {
-          id: true,
-          nama_lengkap: true,
-          status_mentor: true,
-          dokumen_kredensial: true,
-        },
+        data: { role: 'Mentee', status_mentor: 'PENDING', dokumen_kredensial: doc.file_name, updated_at: now },
       });
-
-      return {
-        application,
-        updatedUser,
-      };
+      if (!claimed.count) throw new ApplicationError('Akun sudah menjadi mentor atau memiliki pengajuan yang sedang ditinjau.');
+      const app = await tx.mentor_applications.create({
+        data: { user_id: userId, bidang_keahlian: skills, alasan_mengajar: experience || `Ingin mengajarkan ${skills}.`,
+          status: 'PENDING', created_at: now, updated_at: now },
+      });
+      const linked = await tx.mentor_credentials.updateMany({
+        where: { id: doc.id, user_id: userId, mentor_application_id: null },
+        data: { mentor_application_id: app.id, jenis_dokumen: kind, updated_at: now },
+      });
+      if (!linked.count) throw new ApplicationError('Berkas sudah dipakai untuk pengajuan lain.');
+      return { id: app.id.toString(), user_id: userId.toString(), bidang_keahlian: skills, alasan_mengajar: app.alasan_mengajar, status: app.status };
     });
-
-    // 6. Kirim respons
-    return NextResponse.json({
-      success: true,
-      message: 'Pengajuan akun Mentor berhasil dikirim!',
-
-      application: {
-        id: result.application.id.toString(),
-        user_id: result.application.user_id.toString(),
-        bidang_keahlian: result.application.bidang_keahlian,
-        alasan_mengajar: result.application.alasan_mengajar,
-        status: result.application.status,
-      },
-
-      user: {
-        id: result.updatedUser.id.toString(),
-        namaLengkap: result.updatedUser.nama_lengkap,
-        statusMentor: result.updatedUser.status_mentor,
-        dokumenKredensial:
-          result.updatedUser.dokumen_kredensial,
-      },
-    });
-
+    return NextResponse.json({ success: true, application, message: 'Pengajuan dikirim untuk ditinjau admin.',
+      user: { id: userId.toString(), namaLengkap: user.namaLengkap, statusMentor: 'PENDING', dokumenKredensial: body.dokumenNama } });
   } catch (error) {
-    console.error('Error applying for mentor:', error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Gagal mengajukan upgrade akun mentor.',
-      },
-      { status: 500 }
-    );
+    if (error instanceof ApplicationError) return NextResponse.json({ message: error.message }, { status: 409 });
+    console.error('Pengajuan mentor gagal:', error);
+    return NextResponse.json({ message: 'Gagal menyimpan pengajuan mentor.' }, { status: 500 });
   }
 }

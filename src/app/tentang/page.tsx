@@ -1,30 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useSession } from "@/components/SessionProvider";
+import { accountHome } from "@/lib/account-home";
 import Link from "next/link";
 import Image from "next/image";
 
 import {
   Users,
-  Target,
   ArrowRight,
   HeartHandshake,
   ShieldCheck,
   TrendingUp,
-  GraduationCap,
-} from "lucide-react";
+} from "@/components/animated-icons";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-
-interface CurrentUser {
-  id: number;
-  namaLengkap: string;
-  namaPanggilan?: string;
-  email: string;
-  role: string;
-  statusMentor: string;
-}
 
 const nilaiUtama = [
   {
@@ -57,56 +47,16 @@ const statistik = [
 ];
 
 export default function TentangPage() {
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-
-  // Pemeriksaan status login sama dengan Navbar dan Beranda.
-  useEffect(() => {
-    let isMounted = true;
-
-    const checkLogin = async () => {
-      try {
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          if (isMounted) setCurrentUser(null);
-          return;
-        }
-
-        const result = await response.json();
-        if (isMounted) setCurrentUser(result?.user ?? null);
-      } catch (error) {
-        console.error("Gagal memeriksa sesi pengguna:", error);
-        if (isMounted) setCurrentUser(null);
-      } finally {
-        if (isMounted) setCheckingAuth(false);
-      }
-    };
-
-    const refreshAuth = () => void checkLogin();
-
-    void checkLogin();
-    window.addEventListener("auth-changed", refreshAuth);
-    window.addEventListener("focus", refreshAuth);
-
-    return () => {
-      isMounted = false;
-      window.removeEventListener("auth-changed", refreshAuth);
-      window.removeEventListener("focus", refreshAuth);
-    };
-  }, []);
+  const { profile: currentUser, authLoading: checkingAuth } = useSession();
+  const home = currentUser ? accountHome(currentUser) : "/";
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB] text-slate-800">
+    <div className="min-h-screen flex flex-col bg-canvas text-ink">
       <Navbar />
 
       <main className="flex-1">
         {/* HERO SECTION */}
-        <section className="relative min-h-[560px] flex items-center justify-center overflow-hidden bg-[#FAFAFB]">
+        <section className="relative min-h-[560px] flex items-center justify-center overflow-hidden bg-canvas">
           <div className="absolute inset-0">
             <Image
               src="/images/about-team.jpg"
@@ -117,22 +67,22 @@ export default function TentangPage() {
               className="object-cover object-center"
             />
             <div className="absolute inset-0 bg-white/40" />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#FAFAFB]/80 via-transparent to-[#FAFAFB]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-canvas/80 via-transparent to-canvas" />
           </div>
 
           <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 text-center">
-            <span className="inline-flex rounded-full border border-blue-100 bg-white/80 px-5 py-2 text-sm font-bold text-blue-600 mb-7">
-              ✨ TENTANG INISIATIF MENTORA
+            <span className="inline-flex rounded-full border border-line bg-white/80 px-5 py-2 text-sm font-bold text-primary mb-7">
+              TENTANG INISIATIF MENTORA
             </span>
 
-            <h1 className="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight text-slate-900">
+            <h1 className="text-4xl md:text-6xl font-extrabold leading-tight tracking-tight text-ink">
               Menghubungkan Potensi,
-              <span className="block text-blue-600">
+              <span className="block text-primary">
                 Berkembang Bersama Lewat Kolaborasi.
               </span>
             </h1>
 
-            <p className="mt-7 max-w-3xl mx-auto text-lg leading-relaxed text-slate-700">
+            <p className="mt-7 max-w-3xl mx-auto text-lg leading-relaxed text-ink-secondary">
               Mentora adalah platform peer-to-peer skill exchange yang
               dirancang khusus bagi mahasiswa untuk saling berbagi keahlian,
               mendiskusikan tugas proyek, dan mempersiapkan jenjang karier
@@ -141,76 +91,36 @@ export default function TentangPage() {
           </div>
         </section>
 
-        {/* VISI DAN MISI */}
-        <section className="py-16 sm:py-20 border-b border-slate-200">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between gap-6">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center">
-                    <Target className="w-6 h-6" />
-                  </div>
-                  <h2 className="text-xl font-extrabold text-slate-900">Visi Kami</h2>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Menciptakan ekosistem pembelajaran sebaya digital nomor
-                    satu di lingkungan perguruan tinggi, di mana setiap
-                    mahasiswa memiliki akses setara untuk meningkatkan
-                    keahlian tanpa batasan biaya formalitas bimbingan belajar
-                    konvensional.
-                  </p>
-                </div>
-                <div className="pt-4 border-t border-slate-100 text-xs font-semibold text-slate-400">
-                  Kolaboratif • Aksesibel • Berkelanjutan
-                </div>
-              </div>
-
-              <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between gap-6">
-                <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                    <GraduationCap className="w-6 h-6" />
-                  </div>
-                  <h2 className="text-xl font-extrabold text-slate-900">Misi Kami</h2>
-                  <ul className="space-y-3 text-sm text-slate-600">
-                    <li className="flex items-start gap-2">
-                      <span className="text-[#2563EB] font-bold">•</span>
-                      <span>
-                        Menyediakan wadah terpercaya untuk pencocokan mentor
-                        dan mentee berbasis keahlian spesifik.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[#2563EB] font-bold">•</span>
-                      <span>
-                        Menjamin kualitas sesi bimbingan melalui kurasi dan
-                        verifikasi dokumen portofolio secara transparan.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[#2563EB] font-bold">•</span>
-                      <span>
-                        Mendorong mahasiswa mengasah keterampilan{" "}
-                        <em>soft skill</em> komunikasi dan kepemimpinan melalui
-                        pengajaran.
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="pt-4 border-t border-slate-100 text-xs font-semibold text-slate-400">
-                  Transparansi • Pembelajaran Praktis
-                </div>
-              </div>
+        <section id="visi-misi" aria-label="Visi dan misi Mentora" className="border-b border-line bg-surface px-4 py-14 sm:px-6 sm:py-20">
+          <div className="mx-auto grid max-w-5xl items-start gap-10 md:grid-cols-2 md:gap-16">
+            <div className="rounded-2xl bg-primary-tint p-6 sm:p-9">
+              <h2 className="inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">Visi Kami</h2>
+              <p className="mt-5 font-serif text-2xl leading-snug tracking-tight text-ink sm:text-3xl">
+                Menciptakan ekosistem pembelajaran sebaya digital nomor satu di lingkungan perguruan tinggi,
+                di mana setiap mahasiswa memiliki akses setara untuk meningkatkan keahlian tanpa batasan biaya formalitas bimbingan belajar konvensional.
+              </p>
+              <p className="mt-6 border-t border-primary-soft pt-4 text-xs font-medium text-ink-secondary">Kolaboratif · Aksesibel · Berkelanjutan</p>
+            </div>
+            <div className="px-1 md:py-6">
+              <h2 className="font-serif text-3xl tracking-tight text-ink sm:text-4xl">Misi Kami</h2>
+              <ul className="mt-4 divide-y divide-line border-y border-line text-base leading-relaxed text-ink-secondary">
+                <li className="py-4">Menyediakan wadah terpercaya untuk pencocokan mentor dan mentee berbasis keahlian spesifik.</li>
+                <li className="py-4">Menjamin kualitas sesi bimbingan melalui kurasi dan verifikasi dokumen portofolio secara transparan.</li>
+                <li className="py-4">Mendorong mahasiswa mengasah keterampilan <em>soft skill</em> komunikasi dan kepemimpinan melalui pengajaran.</li>
+              </ul>
+              <p className="mt-4 text-xs font-medium text-ink-muted">Transparansi · Pembelajaran Praktis</p>
             </div>
           </div>
         </section>
 
         {/* NILAI UTAMA */}
-        <section className="py-16 sm:py-20 bg-blue-50/30 border-b border-slate-200">
+        <section className="py-16 sm:py-20 bg-canvas border-b border-line">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             <div className="text-center space-y-3 max-w-xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-ink">
                 Mengapa Memilih Mentora?
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-ink-muted">
                 Pilar keunggulan sistem yang kami bangun untuk mendukung
                 perkembangan belajar mahasiswa.
               </p>
@@ -222,15 +132,15 @@ export default function TentangPage() {
                 return (
                   <div
                     key={index}
-                    className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+                    className="bg-surface p-6 rounded-3xl border border-primary-soft shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center mb-5">
+                    <div className="w-11 h-11 rounded-xl bg-primary-tint text-primary border border-primary-soft flex items-center justify-center mb-5">
                       <IconComponent className="w-5 h-5" />
                     </div>
-                    <h3 className="text-base font-bold text-slate-900 mb-3">
+                    <h3 className="text-base font-bold text-ink mb-3">
                       {item.title}
                     </h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">
+                    <p className="text-xs text-ink-secondary leading-relaxed">
                       {item.desc}
                     </p>
                   </div>
@@ -241,15 +151,15 @@ export default function TentangPage() {
         </section>
 
         {/* STATISTIK */}
-        <section className="py-14 sm:py-16 bg-white border-b border-slate-200">
+        <section className="py-14 sm:py-16 bg-surface border-b border-line">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               {statistik.map((stat, index) => (
                 <div key={index} className="space-y-2">
-                  <p className="text-3xl sm:text-4xl font-extrabold text-[#2563EB]">
+                  <p className="text-3xl sm:text-4xl font-extrabold text-primary">
                     {stat.angka}
                   </p>
-                  <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                  <p className="text-xs sm:text-sm text-ink-muted font-medium">
                     {stat.label}
                   </p>
                 </div>
@@ -262,13 +172,13 @@ export default function TentangPage() {
         {!checkingAuth && (
           <section className="py-16 sm:py-20">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-ink">
                 {currentUser
                   ? "Siap Bertukar Keterampilan Hari Ini?"
                   : "Siap Bergabung dengan Mentora?"}
               </h2>
 
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-ink-muted">
                 {currentUser
                   ? `Halo, ${currentUser.namaPanggilan || currentUser.namaLengkap}! Lanjutkan perjalanan belajarmu dan temukan kesempatan berbagi ilmu bersama mahasiswa lainnya.`
                   : "Bergabunglah bersama mahasiswa lainnya dan perluas pengalaman belajarmu bersama Mentora."}
@@ -277,28 +187,28 @@ export default function TentangPage() {
               <div className="flex flex-wrap justify-center gap-3 pt-2">
                 {currentUser ? (
                   <Link
-                    href="/dashboard"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold transition shadow-sm"
+                    href={home}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full action-primary text-sm font-bold transition shadow-sm"
                   >
-                    Buka Dashboard
+                    {home === "/admin" ? "Buka Portal Admin" : home === "/onboarding" ? "Lengkapi profil" : "Buka Dashboard"}
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 ) : (
                   <Link
                     href="/auth?tab=daftar"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold transition shadow-sm"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full action-primary text-sm font-bold transition shadow-sm"
                   >
                     Daftar Akun Mentora
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 )}
 
-                <Link
+                {!currentUser && <Link
                   href="/"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100 text-sm font-bold transition"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line text-ink-secondary hover:bg-canvas text-sm font-bold transition"
                 >
                   Kembali ke Beranda
-                </Link>
+                </Link>}
               </div>
             </div>
           </section>

@@ -3,16 +3,15 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { UserRound, Award } from 'lucide-react';
 import {
   Search,
   ChevronDown,
   ExternalLink,
   CircleHelp,
-  UserRound,
   GraduationCap,
   CalendarDays,
-  Award,
-} from 'lucide-react';
+} from '@/components/animated-icons';
 
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -188,25 +187,25 @@ export default function FAQPage() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-[#FAFAFB] text-slate-900">
+      <main className="min-h-screen bg-canvas text-ink">
 
         {/* HERO FAQ */}
-        <section className="border-b border-slate-100 bg-white px-4 py-16 md:py-20">
+        <section className="border-b border-line bg-surface px-4 py-16 md:py-20">
           <div className="mx-auto max-w-5xl text-center">
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-5 py-2 text-sm font-bold tracking-wide text-blue-600">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary-soft bg-primary-tint px-5 py-2 text-sm font-bold tracking-wide text-primary">
               <CircleHelp size={17} />
               PUSAT BANTUAN & TANYA JAWAB
             </div>
 
-            <h1 className="mt-7 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">
+            <h1 className="mt-7 text-3xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl">
               Pertanyaan yang Sering{' '}
-              <span className="text-blue-600">
+              <span className="text-primary">
                 Diajukan
               </span>
             </h1>
 
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-500 md:text-lg">
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-ink-muted md:text-lg">
               Temukan jawaban seputar cara kerja platform,
               mekanisme verifikasi mentor, pelaksanaan sesi,
               dan pengelolaan akun Mentora.
@@ -214,10 +213,10 @@ export default function FAQPage() {
 
             {/* SEARCH */}
             <div className="mx-auto mt-9 max-w-2xl">
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
+              <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-5 py-4 shadow-sm transition focus-within:border-primary-accent focus-within:ring-4 focus-within:ring-primary-tint">
                 <Search
                   size={21}
-                  className="shrink-0 text-slate-400"
+                  className="shrink-0 text-ink-muted"
                 />
 
                 <input
@@ -228,13 +227,13 @@ export default function FAQPage() {
                     setOpenQuestion(null);
                   }}
                   placeholder="Cari pertanyaan (misal: verifikasi mentor, sesi, akun)..."
-                  className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 md:text-base"
+                  className="w-full bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted md:text-base"
                 />
 
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                    className="text-sm font-semibold text-primary hover:text-primary-hover"
                   >
                     Hapus
                   </button>
@@ -250,10 +249,10 @@ export default function FAQPage() {
           {/* CATEGORY FILTER */}
           <div className="mb-12">
             <div className="mb-5 text-center">
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-ink">
                 Jelajahi Berdasarkan Topik
               </h2>
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-ink-muted">
                 Pilih kategori untuk menemukan jawaban yang kamu cari.
               </p>
             </div>
@@ -271,8 +270,8 @@ export default function FAQPage() {
                     }}
                     className={`rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
                       active
-                        ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-100'
-                        : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600'
+                        ? 'border-primary bg-primary text-white shadow-md shadow-primary-soft'
+                        : 'border-line bg-surface text-ink-secondary hover:border-primary-accent hover:text-primary'
                     }`}
                   >
                     {category}
@@ -297,15 +296,15 @@ export default function FAQPage() {
 
                     {/* CATEGORY TITLE */}
                     <div className="mb-5 flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-tint text-primary">
                         <CategoryIcon size={22} />
                       </div>
 
                       <div>
-                        <h3 className="text-lg font-bold text-slate-900">
+                        <h3 className="text-lg font-bold text-ink">
                           {group.category}
                         </h3>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-ink-muted">
                           {group.questions.length} pertanyaan
                         </p>
                       </div>
@@ -320,10 +319,10 @@ export default function FAQPage() {
                         return (
                           <div
                             key={item.question}
-                            className={`overflow-hidden rounded-2xl border bg-white transition-all duration-200 ${
+                            className={`overflow-hidden rounded-2xl border bg-surface transition-all duration-200 ${
                               isOpen
-                                ? 'border-blue-200 shadow-md shadow-blue-50'
-                                : 'border-slate-200 shadow-sm hover:border-blue-200'
+                                ? 'border-primary-soft shadow-md shadow-primary-tint'
+                                : 'border-line shadow-sm hover:border-primary-soft'
                             }`}
                           >
                             <button
@@ -334,15 +333,15 @@ export default function FAQPage() {
                               aria-expanded={isOpen}
                               className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left md:px-7"
                             >
-                              <span className="text-sm font-semibold leading-relaxed text-slate-800 md:text-base">
+                              <span className="text-sm font-semibold leading-relaxed text-ink md:text-base">
                                 {item.question}
                               </span>
 
                               <span
                                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all ${
                                   isOpen
-                                    ? 'rotate-180 bg-blue-600 text-white'
-                                    : 'bg-blue-50 text-blue-600'
+                                    ? 'rotate-180 bg-primary text-white'
+                                    : 'bg-primary-tint text-primary'
                                 }`}
                               >
                                 <ChevronDown size={19} />
@@ -350,8 +349,8 @@ export default function FAQPage() {
                             </button>
 
                             {isOpen && (
-                              <div className="border-t border-slate-100 px-5 py-5 md:px-7">
-                                <p className="text-sm leading-7 text-slate-500 md:text-base">
+                              <div className="border-t border-line px-5 py-5 md:px-7">
+                                <p className="text-sm leading-7 text-ink-muted md:text-base">
                                   {item.answer}
                                 </p>
                               </div>
@@ -364,17 +363,17 @@ export default function FAQPage() {
                 );
               })
             ) : (
-              <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center">
+              <div className="rounded-2xl border border-line bg-surface px-6 py-16 text-center">
                 <Search
                   size={40}
-                  className="mx-auto text-slate-300"
+                  className="mx-auto text-subtle"
                 />
 
-                <h3 className="mt-5 text-xl font-bold text-slate-800">
+                <h3 className="mt-5 text-xl font-bold text-ink">
                   Pertanyaan tidak ditemukan
                 </h3>
 
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-ink-muted">
                   Coba gunakan kata kunci lain atau pilih kategori berbeda.
                 </p>
 
@@ -383,7 +382,7 @@ export default function FAQPage() {
                     setSearchQuery('');
                     setActiveCategory('Semua Topik');
                   }}
-                  className="mt-5 font-semibold text-blue-600 hover:text-blue-700"
+                  className="mt-5 font-semibold text-primary hover:text-primary-hover"
                 >
                   Tampilkan Semua Pertanyaan
                 </button>
@@ -394,14 +393,14 @@ export default function FAQPage() {
 
         {/* BOTTOM CTA */}
         <section className="mx-auto max-w-7xl px-4 pb-16 md:pb-20">
-          <div className="flex flex-col items-center justify-between gap-7 rounded-3xl border border-blue-100 bg-blue-50 px-7 py-10 md:flex-row md:px-12 md:py-12">
+          <div className="flex flex-col items-center justify-between gap-7 rounded-3xl border border-primary-soft bg-primary-tint px-7 py-10 md:flex-row md:px-12 md:py-12">
 
             <div className="max-w-2xl">
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+              <h2 className="text-2xl font-bold tracking-tight text-ink md:text-3xl">
                 Masih memiliki pertanyaan lain?
               </h2>
 
-              <p className="mt-4 text-base leading-relaxed text-slate-500 md:text-lg">
+              <p className="mt-4 text-base leading-relaxed text-ink-muted md:text-lg">
                 Tim bantuan mahasiswa Mentora siap membantu
                 kendala teknis dan sesi belajarmu.
               </p>
@@ -409,7 +408,7 @@ export default function FAQPage() {
 
             <Link
               href="/bantuan"
-              className="inline-flex shrink-0 items-center justify-center gap-3 rounded-xl bg-blue-600 px-7 py-4 font-bold text-white shadow-lg shadow-blue-200 transition-all duration-200 hover:-translate-y-1 hover:bg-blue-700"
+              className="inline-flex shrink-0 items-center justify-center gap-3 rounded-xl action-primary px-7 py-4 font-bold shadow-lg transition-all duration-200 hover:-translate-y-1"
             >
               <ExternalLink size={20} />
               Pusat Bantuan

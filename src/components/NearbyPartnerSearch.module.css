@@ -1,0 +1,10 @@
+@media (prefers-reduced-motion: no-preference) {
+  .panel [role='status']:not(:global(.sr-only)) {
+    animation: reveal-location 200ms ease-out;
+  }
+}
+
+@keyframes reveal-location {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { NextRequest } from 'next/server';
 import { prisma } from './prisma';
+import { approvalCount, mentorIdentity } from './mentor-eligibility';
 
 const JWT_SECRET =
   process.env.JWT_SECRET || 'mentora_super_secret_jwt_key_sprint_1_2026';
@@ -100,6 +101,7 @@ export async function getAuthUser(req: NextRequest) {
       where: {
         id: BigInt(payload.userId),
       },
+      include: { _count: approvalCount },
     });
 
     if (!user) return null;
@@ -121,9 +123,7 @@ export async function getAuthUser(req: NextRequest) {
 
       fotoProfil: user.foto_profil || '',
 
-      role: user.role,
-
-      statusMentor: user.status_mentor || 'NONE',
+      ...mentorIdentity(user),
 
       onboardingCompleted:
         user.onboarding_completed || false,

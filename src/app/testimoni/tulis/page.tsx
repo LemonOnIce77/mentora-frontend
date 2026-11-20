@@ -4,12 +4,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 
-import {
-  Star,
-  ArrowLeft,
-  MessageSquareText,
-  Send,
-} from 'lucide-react';
+import { Star, MessageSquareText } from 'lucide-react';
+import { ArrowLeft, Send } from '@/components/animated-icons';
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -44,7 +40,7 @@ export default function TulisUlasanPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB] text-slate-800">
+    <div className="min-h-screen flex flex-col bg-canvas text-ink">
 
       <Navbar />
 
@@ -55,7 +51,7 @@ export default function TulisUlasanPage() {
           {/* KEMBALI */}
           <Link
             href="/testimoni"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-[#2563EB] transition mb-8"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-ink-muted hover:text-primary transition mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
 
@@ -63,22 +59,22 @@ export default function TulisUlasanPage() {
           </Link>
 
           {/* FORM CARD */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-surface rounded-3xl border border-line shadow-sm overflow-hidden">
 
             {/* HEADER */}
-            <div className="p-6 sm:p-8 border-b border-slate-100">
+            <div className="p-6 sm:p-8 border-b border-line">
 
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-primary-tint text-primary flex items-center justify-center mb-5">
 
                 <MessageSquareText className="w-6 h-6" />
 
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-ink">
                 Tulis Ulasan
               </h1>
 
-              <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+              <p className="text-sm text-ink-muted mt-2 leading-relaxed">
                 Bagikan pengalamanmu selama mengikuti sesi mentoring
                 bersama Mentora.
               </p>
@@ -94,7 +90,7 @@ export default function TulisUlasanPage() {
               {/* NAMA MENTOR */}
               <div className="space-y-2">
 
-                <label className="text-sm font-bold text-slate-800">
+                <label className="text-sm font-bold text-ink">
                   Nama Mentor
                 </label>
 
@@ -104,7 +100,7 @@ export default function TulisUlasanPage() {
                   onChange={(e) => setNamaMentor(e.target.value)}
                   placeholder="Masukkan nama mentor"
                   required
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 transition"
+                  className="w-full px-4 py-3.5 rounded-xl border border-line bg-surface text-sm text-ink placeholder:text-ink-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary-soft transition"
                 />
 
               </div>
@@ -112,7 +108,7 @@ export default function TulisUlasanPage() {
               {/* TOPIK SESI */}
               <div className="space-y-2">
 
-                <label className="text-sm font-bold text-slate-800">
+                <label className="text-sm font-bold text-ink">
                   Topik Sesi Mentoring
                 </label>
 
@@ -122,7 +118,7 @@ export default function TulisUlasanPage() {
                   onChange={(e) => setTopik(e.target.value)}
                   placeholder="Contoh: UI/UX Design, Laravel, Python"
                   required
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 transition"
+                  className="w-full px-4 py-3.5 rounded-xl border border-line bg-surface text-sm text-ink placeholder:text-ink-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary-soft transition"
                 />
 
               </div>
@@ -130,11 +126,11 @@ export default function TulisUlasanPage() {
               {/* RATING */}
               <div className="space-y-3">
 
-                <label className="text-sm font-bold text-slate-800">
+                <label className="text-sm font-bold text-ink">
                   Bagaimana pengalamanmu?
                 </label>
 
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-ink-muted">
                   Berikan penilaian dari 1 sampai 5 bintang.
                 </p>
 
@@ -154,8 +150,8 @@ export default function TulisUlasanPage() {
                       <Star
                         className={`w-9 h-9 ${
                           star <= rating
-                            ? 'fill-amber-400 text-amber-400'
-                            : 'text-slate-300'
+                            ? 'fill-primary text-primary'
+                            : 'text-primary-accent'
                         }`}
                       />
 
@@ -165,7 +161,7 @@ export default function TulisUlasanPage() {
 
                 </div>
 
-                <p className="text-xs font-semibold text-[#2563EB]">
+                <p className="text-xs font-semibold text-primary">
                   {rating === 0
                     ? 'Belum ada rating dipilih'
                     : `${rating} dari 5 bintang`}
@@ -176,7 +172,7 @@ export default function TulisUlasanPage() {
               {/* ULASAN */}
               <div className="space-y-2">
 
-                <label className="text-sm font-bold text-slate-800">
+                <label className="text-sm font-bold text-ink">
                   Ceritakan Pengalamanmu
                 </label>
 
@@ -187,10 +183,10 @@ export default function TulisUlasanPage() {
                   required
                   minLength={10}
                   rows={5}
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 transition resize-none"
+                  className="w-full px-4 py-3.5 rounded-xl border border-line bg-surface text-sm text-ink placeholder:text-ink-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary-soft transition resize-none"
                 />
 
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-ink-muted">
                   Minimal 10 karakter.
                 </p>
 
@@ -199,9 +195,9 @@ export default function TulisUlasanPage() {
               {/* MANFAAT */}
               <div className="space-y-2">
 
-                <label className="text-sm font-bold text-slate-800">
+                <label className="text-sm font-bold text-ink">
                   Apa Manfaat yang Kamu Dapatkan?
-                  <span className="text-slate-400 font-normal">
+                  <span className="text-ink-muted font-normal">
                     {' '}(Opsional)
                   </span>
                 </label>
@@ -211,7 +207,7 @@ export default function TulisUlasanPage() {
                   onChange={(e) => setManfaat(e.target.value)}
                   placeholder="Contoh: Lebih memahami materi, menyelesaikan tugas, atau memperoleh skill baru..."
                   rows={3}
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 transition resize-none"
+                  className="w-full px-4 py-3.5 rounded-xl border border-line bg-surface text-sm text-ink placeholder:text-ink-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary-soft transition resize-none"
                 />
 
               </div>
@@ -221,7 +217,7 @@ export default function TulisUlasanPage() {
 
                 <div
                   role="status"
-                  className="p-4 rounded-xl bg-blue-50 border border-blue-100 text-sm text-blue-700 leading-relaxed"
+                  className="p-4 rounded-xl bg-primary-tint border border-primary-soft text-sm text-primary-hover leading-relaxed"
                 >
                   {pesan}
                 </div>
@@ -231,7 +227,7 @@ export default function TulisUlasanPage() {
               {/* BUTTON */}
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold shadow-sm transition"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl action-primary text-sm font-bold shadow-sm transition"
               >
 
                 <Send className="w-4 h-4" />
@@ -240,7 +236,7 @@ export default function TulisUlasanPage() {
 
               </button>
 
-              <p className="text-center text-[11px] text-slate-400">
+              <p className="text-center text-[11px] text-ink-muted">
                 Pastikan ulasan yang kamu berikan sesuai dengan pengalaman
                 selama sesi mentoring.
               </p>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[650px] overflow-hidden bg-[#FAFAFB] flex items-center">
+    <section className="relative min-h-[650px] overflow-hidden bg-canvas flex items-center">
 
       {/* BACKGROUND FOTO DI SISI KANAN */}
       <div className="absolute inset-y-0 right-0 w-[65%]">
@@ -22,7 +22,7 @@ export default function HeroSection() {
 
         {/* Gradasi agar foto menyatu dengan area teks kiri */}
         <div className="absolute inset-0 bg-gradient-to-r
-          from-[#FAFAFB] via-[#FAFAFB]/70 to-transparent"
+          from-canvas via-canvas/70 to-transparent"
         />
       </div>
 
@@ -35,23 +35,22 @@ export default function HeroSection() {
           <div className="max-w-[650px]">
 
             <div className="inline-flex items-center gap-2 rounded-full
-              border border-blue-100 bg-blue-50 px-4 py-2 mb-6">
-              <span className="text-blue-600">✧</span>
-              <span className="text-xs font-bold tracking-wide text-blue-600">
+              border border-line bg-canvas px-4 py-2 mb-6">
+              <span className="text-xs font-bold tracking-wide text-primary">
                 TEMUKAN BELAJAR, TUMBUH BERSAMA
               </span>
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-[58px]
-              leading-[1.08] font-extrabold tracking-tight text-slate-900">
+              leading-[1.08] font-extrabold tracking-tight text-ink">
               Belajar bareng mahasiswa lain,
-              <span className="text-blue-600">
+              <span className="text-primary">
                 {' '}berkembang lewat skill.
               </span>
             </h1>
 
             <p className="mt-6 text-base md:text-lg leading-relaxed
-              text-slate-600 max-w-xl">
+              text-ink-muted max-w-xl">
               Mentora adalah platform untuk mahasiswa belajar dari teman
               sejawat, bertukar skill, dan berkembang lewat sesi belajar
               yang fleksibel.
@@ -60,20 +59,20 @@ export default function HeroSection() {
             <div className="flex flex-wrap gap-4 mt-8">
               <Link
                 href="/skills"
-                className="rounded-full bg-blue-600 px-8 py-4
-                  text-sm font-bold text-white shadow-lg
-                  hover:bg-blue-700 transition"
+                className="rounded-full action-primary px-8 py-4
+                  text-sm font-bold shadow-lg
+ transition"
               >
                 Mulai Sekarang →
               </Link>
 
               <Link
                 href="/tentang"
-                className="rounded-full border border-slate-300
+                className="rounded-full border border-line
                   bg-white/90 px-8 py-4 text-sm font-bold
-                  text-slate-700 hover:bg-slate-50 transition"
+                  text-ink-secondary hover:bg-canvas transition"
               >
-                ▶ Lihat Cara Kerja
+                Lihat Cara Kerja
               </Link>
             </div>
 
@@ -84,17 +83,17 @@ export default function HeroSection() {
             justify-center gap-5 lg:pr-2">
 
             {/* TAGLINE */}
-            <div className="font-handwriting text-blue-950
+            <div className="font-handwriting text-ink
               text-3xl md:text-4xl font-bold leading-tight
               text-right mb-1">
               More Skills
               <br />
-              Brighter Friends ✨
+              Brighter Friends
             </div>
 
-            {/* KARTU BIRU */}
+            {/* KARTU CHARCOAL */}
             <div className="w-full max-w-[390px]
-              rounded-[28px] bg-blue-600/95
+              rounded-[28px] bg-primary
               px-7 py-6 text-white shadow-xl
               -rotate-1">
               <p className="text-base md:text-lg font-bold leading-snug">
@@ -102,16 +101,16 @@ export default function HeroSection() {
                 <br />
                 bisa jadi peluang
                 <br />
-                besar nanti! ✨
+                besar nanti!
               </p>
             </div>
 
             {/* KARTU KUNING */}
             <div className="w-full max-w-[400px]
-              rounded-[24px] bg-yellow-200/95
+              rounded-[24px] bg-surface
               px-7 py-6 shadow-lg rotate-1">
               <ul className="space-y-3 text-sm md:text-base
-                font-semibold text-slate-900">
+                font-semibold text-ink">
                 {[
                   'Skill baru',
                   'Teman baru',
@@ -120,8 +119,8 @@ export default function HeroSection() {
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3">
                     <span className="flex h-6 w-6 items-center
-                      justify-center rounded-full bg-emerald-500
-                      text-white text-sm">
+                      justify-center rounded-full bg-primary-soft
+                      text-primary text-sm">
                       ✓
                     </span>
                     {item}
@@ -136,7 +135,7 @@ export default function HeroSection() {
 
       {/* GRADASI BAWAH AGAR MENYATU DENGAN SECTION BERIKUTNYA */}
       <div className="absolute bottom-0 left-0 right-0 h-20
-        bg-gradient-to-b from-transparent to-[#FAFAFB]
+        bg-gradient-to-b from-transparent to-canvas
         pointer-events-none z-10" />
 
     </section>

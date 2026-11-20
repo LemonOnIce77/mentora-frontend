@@ -1,48 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifiedMentor } from '@/lib/mentor-eligibility';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
-
-const DEFAULT_MENTORS: Record<number, any> = {
-  2: {
-    id: 2,
-    namaLengkap: 'Sulthoni Prima Rafasya',
-    namaPanggilan: 'Sulthoni',
-    universitas: 'Universitas Telkom',
-    prodi: 'Informatika',
-    semester: '6',
-    domisili: 'Bandung, Jawa Barat',
-    bio: 'Fullstack developer & competitive programmer. Senang berbagi ilmu logic programming dan backend development.',
-    fotoProfil: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
-    role: 'Mentor',
-    statusMentor: 'APPROVED',
-    totalPoin: 45,
-    modeSesi: 'Fleksibel',
-    skills: [
-      { id: 1, tipe: 'TEACH', level: 'Mahir', skill: { id: 4, namaSkill: 'Programming', kategori: 'Tech' } },
-      { id: 2, tipe: 'TEACH', level: 'Mahir', skill: { id: 3, namaSkill: 'Web Development', kategori: 'Tech' } },
-    ],
-  },
-  3: {
-    id: 3,
-    namaLengkap: 'Aulia Rahisa Putri',
-    namaPanggilan: 'Aulia',
-    universitas: 'Universitas Telkom',
-    prodi: 'Desain Komunikasi Visual',
-    semester: '4',
-    domisili: 'Bandung, Jawa Barat',
-    bio: 'Mahasiswa DKV yang berfokus pada desain produk, visual branding, dan pembuatan prototype interaktif di Figma.',
-    fotoProfil: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80',
-    role: 'Mentor',
-    statusMentor: 'APPROVED',
-    totalPoin: 30,
-    modeSesi: 'Online',
-    skills: [
-      { id: 3, tipe: 'TEACH', level: 'Mahir', skill: { id: 1, namaSkill: 'UI/UX Design', kategori: 'Design' } },
-      { id: 4, tipe: 'TEACH', level: 'Mahir', skill: { id: 2, namaSkill: 'Figma', kategori: 'Design' } },
-    ],
-  },
-};
 
 export async function GET(
   req: NextRequest,
@@ -54,8 +14,8 @@ export async function GET(
   }
 
   try {
-    const user = await prisma.users.findUnique({
-      where: { id: BigInt(id) },
+    const user = await prisma.users.findFirst({
+      where: { id: BigInt(id), ...verifiedMentor },
       include: {
         user_skills: {
           include: { skills: true },
@@ -100,14 +60,8 @@ export async function GET(
       return NextResponse.json({ success: true, mentor });
     }
   } catch (error) {
-    console.warn('Prisma DB query failed, falling back to default mentor data:', error);
+    console.error('Profil mentor gagal dimuat:', error);
+    return NextResponse.json({ message: 'Gagal memuat mentor.' }, { status: 500 });
   }
-
-  // Fallback to default mentors
-  const fallback = DEFAULT_MENTORS[id];
-  if (fallback) {
-    return NextResponse.json({ success: true, mentor: fallback });
-  }
-
   return NextResponse.json({ message: 'Mentor tidak ditemukan.' }, { status: 404 });
 }

@@ -1,6 +1,7 @@
 
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import SessionProvider from '@/components/SessionProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -16,8 +17,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body className="min-h-screen flex flex-col bg-[#FAFAFB] text-slate-800 antialiased">
-        {children}
+      <body className="min-h-screen flex flex-col antialiased">
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );

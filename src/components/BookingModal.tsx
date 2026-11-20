@@ -2,19 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Calendar,
-  Clock,
-  MapPin,
-  Video,
-  CheckCircle2,
-  X,
-  Loader2,
-  BookOpen,
-  MessageSquare,
-  Sparkles,
-  ShieldCheck,
-} from "lucide-react";
+import { dayInWib, shiftDay } from "@/lib/session-date";
+import { BookOpen, Calendar, CheckCircle2, Loader2, MapPin, MessageSquare, ShieldCheck, Video, X } from "lucide-react";
 
 export interface BookingMentor {
   id: number;
@@ -31,16 +20,19 @@ export interface BookingMentor {
 
 interface BookingModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (bookedDate?: string) => void;
   mentor: BookingMentor | null;
+  initialDate?: string;
 }
 
 export default function BookingModal({
   isOpen,
   onClose,
   mentor,
+  initialDate,
 }: BookingModalProps) {
   const router = useRouter();
+  const dialogRef = React.useRef<HTMLDialogElement>(null);
 
   // Form State
   const [selectedSkill, setSelectedSkill] = useState("");
@@ -48,7 +40,7 @@ export default function BookingModal({
   const [jamMulai, setJamMulai] = useState("14:00");
   const [jamSelesai, setJamSelesai] = useState("15:30");
   const [metode, setMetode] = useState<"Online" | "Offline">("Online");
-  const [lokasi, setLokasi] = useState("Google Meet (Tautan otomatis dibuat)");
+  const [lokasi, setLokasi] = useState("Google Meet");
   const [topik, setTopik] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -57,39 +49,46 @@ export default function BookingModal({
 
   // Set default values saat modal dibuka
   React.useEffect(() => {
-    if (mentor) {
+    if (isOpen && mentor) {
       if (mentor.skills && mentor.skills.length > 0) {
         setSelectedSkill(mentor.skills[0].skill.namaSkill);
       } else {
-        setSelectedSkill("Diskusi & Mentoring Akademik");
+        setSelectedSkill("Mentoring Akademik Umum");
       }
 
-      // Default tanggal besok
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const yyyy = tomorrow.getFullYear();
-      const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
-      const dd = String(tomorrow.getDate()).padStart(2, "0");
-      setTanggalSesi(`${yyyy}-${mm}-${dd}`);
+      const today = dayInWib();
+      const suggested = initialDate ?? shiftDay(today, 1);
+      setTanggalSesi(suggested >= today ? suggested : "");
 
       setSuccess(false);
       setErrorMsg("");
       setTopik("");
     }
-  }, [mentor]);
+  }, [mentor, isOpen, initialDate]);
+
+  React.useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!isOpen || !dialog) return;
+    dialog.showModal();
+    return () => dialog.close();
+  }, [isOpen, mentor]);
 
   if (!isOpen || !mentor) return null;
+  const start = Date.parse(`${tanggalSesi}T${jamMulai}+07:00`);
+  const end = Date.parse(`${tanggalSesi}T${jamSelesai}+07:00`);
+  const duration = (end - start) / 60_000;
+  const closeBooking = () => onClose(success ? tanggalSesi : undefined);
 
   const handleMetodeChange = (newMetode: "Online" | "Offline") => {
     setMetode(newMetode);
     if (newMetode === "Online") {
-      setLokasi("Google Meet (Tautan otomatis dibuat)");
+      setLokasi("Google Meet");
     } else {
       setLokasi("Perpustakaan Kampus / Ruang Diskusi Bersama");
     }
   };
 
-  const handleSubmitBooking = async (e: React.FormEvent) => {
+  const handleSubmitBooking = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -103,6 +102,10 @@ export default function BookingModal({
     }
     if (!jamMulai || !jamSelesai) {
       setErrorMsg("Tentukan jam mulai dan jam selesai sesi.");
+      return;
+    }
+    if (Date.parse(`${tanggalSesi}T${jamMulai}+07:00`) <= Date.now()) {
+      setErrorMsg("Pilih tanggal dan jam mulai yang belum lewat (WIB).");
       return;
     }
     if (jamMulai >= jamSelesai) {
@@ -139,9 +142,6 @@ export default function BookingModal({
         JSON.stringify(existingBookings),
       );
 
-      // Simulasikan delay network singkat agar UX halus
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
       setSuccess(true);
     } catch (err) {
       setErrorMsg("Terjadi kendala saat menyimpan reservasi sesi.");
@@ -151,108 +151,70 @@ export default function BookingModal({
   };
 
   const handleGoToChat = () => {
-    onClose();
+    closeBooking();
     router.push(
       `/chat?partnerId=${mentor.id}&name=${encodeURIComponent(mentor.namaLengkap)}`,
     );
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div
-        className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[92vh]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header Modal */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-lg">
-              <Calendar className="w-5 h-5 text-[#2563EB]" />
-            </div>
-            <div>
-              <h2 className="text-base font-extrabold text-slate-900">
-                {success ? "Reservasi Terkonfirmasi" : "Booking Sesi Belajar"}
-              </h2>
-              <p className="text-xs text-slate-500">
-                Mentoring 1-on-1 dengan sesama mahasiswa
-              </p>
-            </div>
+    <dialog ref={dialogRef} aria-labelledby="booking-title"
+      onCancel={event => { event.preventDefault(); closeBooking(); }}
+      className="m-auto max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-3xl overflow-y-auto rounded-2xl border border-line bg-surface p-0 text-ink backdrop:bg-ink/55">
+      <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3 sm:px-7">
+        <h2 id="booking-title" className="text-xl font-bold tracking-tight">{success ? "Sesi berhasil dipesan" : "Pesan sesi belajar"}</h2>
+        <button type="button" onClick={closeBooking} aria-label="Tutup formulir" className="grid size-10 shrink-0 place-items-center rounded-full text-ink-muted hover:bg-canvas"><X size={18} /></button>
+      </div>
+      <div className="grid min-w-0 sm:grid-cols-[minmax(0,0.82fr)_minmax(0,1.45fr)]">
+        <aside className="flex items-start gap-3 border-b border-line bg-canvas p-5 sm:block sm:border-b-0 sm:border-r sm:p-6">
+          {mentor.fotoProfil ? <img src={mentor.fotoProfil} alt="" className="size-12 shrink-0 rounded-xl object-cover" /> :
+            <div aria-hidden="true" className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary-soft text-xl font-bold text-primary">{(mentor.namaPanggilan || mentor.namaLengkap).charAt(0)}</div>}
+          <div className="min-w-0 sm:mt-4">
+            <h3 className="break-words text-lg font-bold leading-tight tracking-tight">{mentor.namaLengkap}</h3>
+            <p className="mt-1 break-words text-sm leading-relaxed text-ink-muted">{[mentor.prodi, mentor.universitas].filter(Boolean).join(" · ")}</p>
+            <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-ink-secondary"><ShieldCheck className="size-4 text-success" aria-hidden="true" /> Mentor terverifikasi</p>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-slate-200/70 text-slate-400 hover:text-slate-700 flex items-center justify-center transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Body Modal */}
-        <div className="p-6 overflow-y-auto space-y-5">
-          {/* Card Info Mentor */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-4">
-            {mentor.fotoProfil ? (
-              <img
-                src={mentor.fotoProfil}
-                alt={mentor.namaLengkap}
-                className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-sm"
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white font-extrabold text-xl flex items-center justify-center shadow-sm">
-                {(mentor.namaPanggilan || mentor.namaLengkap).charAt(0)}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <h3 className="font-bold text-slate-900 text-sm truncate">
-                  {mentor.namaLengkap}
-                </h3>
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              </div>
-              <p className="text-xs text-slate-500 truncate mt-0.5">
-                {mentor.prodi || "Mahasiswa"} •{" "}
-                {mentor.universitas || "Universitas"}
-              </p>
-              <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold mt-1">
-                Mentor Terverifikasi
-              </span>
-            </div>
-          </div>
-
+          {!success && <dl className="mt-6 hidden border-t border-line pt-4 text-sm sm:block">
+            {duration > 0 && <div className="mb-3"><dt className="text-xs text-ink-muted">Durasi sesi</dt><dd className="mt-1 font-semibold text-ink">{duration} menit</dd></div>}
+            <div><dt className="text-xs text-ink-muted">Zona waktu</dt><dd className="mt-1 font-semibold text-ink">WIB (UTC+7)</dd></div>
+          </dl>}
+        </aside>
+        <div className="min-w-0 p-5 sm:p-6">
           {/* Sukses State */}
           {success ? (
             <div className="text-center py-6 space-y-4 animate-in zoom-in-95 duration-200">
-              <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+              <div className="w-16 h-16 rounded-3xl bg-success-tint text-success border border-success-soft flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle2 className="w-9 h-9" />
               </div>
               <div>
-                <h4 className="text-lg font-extrabold text-slate-900">
+                <h4 className="text-lg font-extrabold text-ink">
                   Sesi Belajar Berhasil Dipesan!
                 </h4>
-                <p className="text-xs text-slate-600 mt-1 max-w-sm mx-auto leading-relaxed">
+                <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto leading-relaxed">
                   Jadwal sesi bersama{" "}
-                  <strong className="text-slate-800">
+                  <strong className="text-ink">
                     {mentor.namaLengkap}
                   </strong>{" "}
                   telah tercatat untuk materi{" "}
-                  <strong className="text-[#2563EB]">{selectedSkill}</strong>.
+                  <strong className="text-primary">{selectedSkill}</strong>.
                 </p>
               </div>
 
               {/* Rincian Sesi */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2 text-xs">
-                <div className="flex items-center justify-between text-slate-600">
-                  <span>📅 Tanggal:</span>
-                  <strong className="text-slate-800">{tanggalSesi}</strong>
+              <div className="p-4 rounded-2xl bg-canvas border border-line text-left space-y-2 text-xs">
+                <div className="flex items-center justify-between text-ink-muted">
+                  <span>Tanggal:</span>
+                  <strong className="text-ink">{tanggalSesi}</strong>
                 </div>
-                <div className="flex items-center justify-between text-slate-600">
-                  <span>⏰ Waktu:</span>
-                  <strong className="text-slate-800">
+                <div className="flex items-center justify-between text-ink-muted">
+                  <span>Waktu:</span>
+                  <strong className="text-ink">
                     {jamMulai} - {jamSelesai} WIB
                   </strong>
                 </div>
-                <div className="flex items-center justify-between text-slate-600">
-                  <span>📍 Metode:</span>
-                  <strong className="text-slate-800">
+                <div className="flex items-center justify-between text-ink-muted">
+                  <span>Metode:</span>
+                  <strong className="text-ink">
                     {metode} ({lokasi})
                   </strong>
                 </div>
@@ -262,15 +224,15 @@ export default function BookingModal({
                 <button
                   type="button"
                   onClick={handleGoToChat}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                  className="flex-1 py-3 px-4 rounded-xl action-primary text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs"
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>Kirim Pesan ke Mentor</span>
                 </button>
                 <button
                   type="button"
-                  onClick={onClose}
-                  className="py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition"
+                  onClick={closeBooking}
+                  className="py-3 px-5 rounded-xl border border-line bg-surface hover:bg-canvas text-ink-secondary text-xs font-bold transition"
                 >
                   Tutup
                 </button>
@@ -280,21 +242,22 @@ export default function BookingModal({
             /* Form Booking */
             <form onSubmit={handleSubmitBooking} className="space-y-4">
               {errorMsg && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold">
+                <div role="alert" className="p-3 rounded-xl bg-danger-tint border border-danger-soft text-danger text-xs font-semibold">
                   {errorMsg}
                 </div>
               )}
 
               {/* Pilih Skill */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-[#2563EB]" />
+                <label htmlFor="booking-skill" className="block text-xs font-bold text-ink-secondary mb-1.5 flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-primary" />
                   <span>Keahlian / Materi yang Dipelajari</span>
                 </label>
                 <select
+                  id="booking-skill"
                   value={selectedSkill}
                   onChange={(e) => setSelectedSkill(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-line text-sm font-medium text-ink focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none bg-surface"
                   required
                 >
                   {mentor.skills && mentor.skills.length > 0 ? (
@@ -314,17 +277,18 @@ export default function BookingModal({
 
               {/* Pilihan Metode Sesi */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-ink-secondary mb-1.5">
                   Metode Belajar
                 </label>
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
+                    aria-pressed={metode === "Online"}
                     onClick={() => handleMetodeChange("Online")}
                     className={`py-2.5 px-3 rounded-xl text-xs font-bold border flex items-center justify-center gap-2 transition ${
                       metode === "Online"
-                        ? "border-[#2563EB] bg-blue-50 text-[#2563EB]"
-                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        ? "border-primary bg-primary-tint/70 text-primary"
+                        : "border-line bg-surface text-ink-secondary hover:bg-canvas"
                     }`}
                   >
                     <Video className="w-4 h-4" />
@@ -333,11 +297,12 @@ export default function BookingModal({
 
                   <button
                     type="button"
+                    aria-pressed={metode === "Offline"}
                     onClick={() => handleMetodeChange("Offline")}
                     className={`py-2.5 px-3 rounded-xl text-xs font-bold border flex items-center justify-center gap-2 transition ${
                       metode === "Offline"
-                        ? "border-[#2563EB] bg-blue-50 text-[#2563EB]"
-                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        ? "border-primary bg-primary-soft/60 text-primary"
+                        : "border-line bg-surface text-ink-secondary hover:bg-canvas"
                     }`}
                   >
                     <MapPin className="w-4 h-4" />
@@ -347,56 +312,47 @@ export default function BookingModal({
               </div>
 
               {/* Tanggal & Waktu */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
+              <div className="grid min-w-0 grid-cols-1 gap-3">
+                <div className="min-w-0">
+                  <label htmlFor="booking-date" className="block text-xs font-bold text-ink-secondary mb-1.5 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-ink-muted" />
                     <span>Tanggal Sesi</span>
                   </label>
                   <input
+                    id="booking-date"
                     type="date"
                     value={tanggalSesi}
                     onChange={(e) => setTanggalSesi(e.target.value)}
-                    min={new Date().toISOString().split("T")[0]}
+                    min={dayInWib()}
                     required
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm font-medium text-ink focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Waktu (WIB)</span>
+                <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+                  <label className="min-w-0 text-xs font-bold text-ink-secondary">
+                    Jam mulai (WIB)
+                    <input id="booking-start" type="time" value={jamMulai} onChange={e => setJamMulai(e.target.value)} required
+                      className="mt-1.5 block min-h-10 w-full min-w-0 rounded-xl border border-line px-3 text-sm font-medium text-ink" />
                   </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="time"
-                      value={jamMulai}
-                      onChange={(e) => setJamMulai(e.target.value)}
-                      required
-                      className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
-                    />
-                    <span className="text-xs text-slate-400 font-bold">-</span>
-                    <input
-                      type="time"
-                      value={jamSelesai}
-                      onChange={(e) => setJamSelesai(e.target.value)}
-                      required
-                      className="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
-                    />
-                  </div>
+                  <label className="min-w-0 text-xs font-bold text-ink-secondary">
+                    Jam selesai (WIB)
+                    <input type="time" value={jamSelesai} onChange={e => setJamSelesai(e.target.value)} required
+                      className="mt-1.5 block min-h-10 w-full min-w-0 rounded-xl border border-line px-3 text-sm font-medium text-ink" />
+                  </label>
                 </div>
               </div>
 
               {/* Lokasi / Tautan Ruang Sesi */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label htmlFor="booking-location" className="block text-xs font-bold text-ink-secondary mb-1.5">
                   {metode === "Online"
                     ? "Tautan / Platform Online"
                     : "Tempat / Ruang Bertemu"}
                 </label>
                 <input
                   type="text"
+                  id="booking-location"
                   value={lokasi}
                   onChange={(e) => setLokasi(e.target.value)}
                   placeholder={
@@ -405,37 +361,38 @@ export default function BookingModal({
                       : "mis. Gedung Perpustakaan lt. 2"
                   }
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-line text-sm font-medium text-ink focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none"
                 />
               </div>
 
               {/* Topik / Catatan */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label htmlFor="booking-topic" className="block text-xs font-bold text-ink-secondary mb-1.5">
                   Topik / Pokok Pembahasan (Opsional)
                 </label>
                 <textarea
+                  id="booking-topic"
                   rows={2}
                   value={topik}
                   onChange={(e) => setTopik(e.target.value)}
                   placeholder="mis. Konsultasi pengerjaan tugas proyek, tips portfolio, atau latihan studi kasus..."
-                  className="w-full px-4 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none resize-none"
+                  className="w-full px-4 py-2 rounded-xl border border-line text-xs text-ink focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none resize-none"
                 />
               </div>
 
               {/* Submit Button */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <div className="pt-3 border-t border-line flex items-center justify-end gap-2.5">
                 <button
                   type="button"
-                  onClick={onClose}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition"
+                  onClick={closeBooking}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-ink-muted hover:bg-canvas transition"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 disabled:opacity-60"
+                  className="px-6 py-2.5 rounded-xl action-primary text-xs font-bold shadow-xs transition flex items-center gap-2 disabled:opacity-60"
                 >
                   {loading ? (
                     <>
@@ -444,8 +401,7 @@ export default function BookingModal({
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Konfirmasi Booking Sesi</span>
+                      <span>Konfirmasi sesi</span>
                     </>
                   )}
                 </button>
@@ -454,6 +410,6 @@ export default function BookingModal({
           )}
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

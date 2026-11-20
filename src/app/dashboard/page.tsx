@@ -1,38 +1,51 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Calendar,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Edit3,
+  FileText,
+  Loader2,
+  MapPin,
+  MessageCircle,
+  Plus,
+  RefreshCw,
+  Search,
+  Video,
+  X,
+  XCircle,
+} from "lucide-react";
+import { uploadMentorDocument } from "@/lib/upload-mentor-document";
+import { dayInWib } from "@/lib/session-date";
+import MentorDocumentType from "@/components/MentorDocumentType";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BookingModal, { BookingMentor } from "@/components/BookingModal";
 import {
-  User,
-  Shield,
-  Award,
-  BookOpen,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  FileText,
-  Upload,
-  Plus,
-  Trash2,
-  Search,
-  Sparkles,
-  ExternalLink,
-  Edit3,
-  Check,
-  Loader2,
-  Calendar,
-  Layers,
-  GraduationCap,
-  MapPin,
-  ChevronRight,
-  Filter,
-  MessageCircle,
-  Video,
-} from "lucide-react";
+  Badge,
+  FileDropzone,
+  Frame,
+  FrameFooter,
+  FrameHeader,
+  FramePanel,
+  FrameTitle,
+  InlineDot,
+  MiniCalendarStrip,
+} from "@/components/dashboard-ui/primitives";
+import DashboardNavigation, {
+  cleanInitials,
+  dashboardTab,
+  dashboardUrl,
+} from "./DashboardNavigation";
+import AdminOverview from "./DashboardOverview";
+import StudyAgenda from "./StudyAgenda";
+import MentorCard from "./MentorCard";
 
 interface CurrentUser {
   id: number;
@@ -116,24 +129,49 @@ interface BookedSession {
   createdAt: string;
 }
 
+const fullDateLabel = new Intl.DateTimeFormat("id-ID", {
+  dateStyle: "long",
+  timeZone: "UTC",
+});
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<
-    "mentors" | "sessions" | "profile" | "skills" | "apply" | "admin"
-  >("mentors");
-  const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
-  const [bookingMentor, setBookingMentor] = useState<BookingMentor | null>(null);
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const activeTab = dashboardTab(
+    searchParams.get("tab"),
+    user?.role === "Admin",
+  );
+  const showCalendar = searchParams.get("view") === "calendar";
 
-  // Load booked sessions from localStorage
+  const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
+  const [bookingMentor, setBookingMentor] = useState<BookingMentor | null>(
+    null,
+  );
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [todayWib, setTodayWib] = useState(() => dayInWib());
+  const [agendaDay, setAgendaDay] = useState<string | null>(null);
+  const [bookingDay, setBookingDay] = useState<string>();
+  const [brokenImageUrls, setBrokenImageUrls] = useState<
+    Record<string, boolean>
+  >({});
+
+  const markImageBroken = (url?: string | null) => {
+    if (!url) return;
+    setBrokenImageUrls((prev) => (prev[url] ? prev : { ...prev, [url]: true }));
+  };
+
+  useEffect(() => {
+    setTodayWib(dayInWib());
+  }, []);
+
   const loadBookedSessions = () => {
     try {
       const data: BookedSession[] = JSON.parse(
         localStorage.getItem("mentora_booked_sessions") || "[]",
       );
-      setBookedSessions(data);
+      setBookedSessions(Array.isArray(data) ? data : []);
     } catch {
       setBookedSessions([]);
     }
@@ -144,7 +182,11 @@ export default function DashboardPage() {
   }, [isBookingOpen]);
 
   const handleCancelSession = (sessionId: string) => {
-    if (confirm("Apakah kamu yakin ingin membatalkan reservasi sesi belajar ini?")) {
+    if (
+      confirm(
+        "Apakah kamu yakin ingin membatalkan reservasi sesi belajar ini?",
+      )
+    ) {
       const updated = bookedSessions.filter((s) => s.id !== sessionId);
       localStorage.setItem("mentora_booked_sessions", JSON.stringify(updated));
       setBookedSessions(updated);
@@ -153,19 +195,27 @@ export default function DashboardPage() {
 
   // Mentors list state
   const [mentors, setMentors] = useState<MentorUser[]>([]);
+  const [mentorListState, setMentorListState] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
+  const [mentorListRetry, setMentorListRetry] = useState(0);
   const [searchMentorQuery, setSearchMentorQuery] = useState("");
   const [selectedSkillFilter, setSelectedSkillFilter] = useState("");
 
   // Admin applications state
   const [applications, setApplications] = useState<MentorApplication[]>([]);
   const [adminLoading, setAdminLoading] = useState(false);
+  const [applicationsReady, setApplicationsReady] = useState(false);
+  const [adminError, setAdminError] = useState(false);
 
   // Mentor application form state
   const [applySkills, setApplySkills] = useState("");
   const [applyExperience, setApplyExperience] = useState("");
   const [applyDocName, setApplyDocName] = useState("");
+  const [applyDocSize, setApplyDocSize] = useState<number>();
   const [applyDocUrl, setApplyDocUrl] = useState("");
   const [applyLoading, setApplyLoading] = useState(false);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
 
   // Profile edit state
@@ -216,7 +266,6 @@ export default function DashboardPage() {
       },
       () => {
         setDetectingLocation(false);
-        // Fallback simulated GPS coordinates for Telkom University
         setProfileForm((prev) => ({
           ...prev,
           latitude: -6.974,
@@ -232,6 +281,7 @@ export default function DashboardPage() {
   };
 
   const loadUserData = async () => {
+    setLoading(true);
     try {
       const [authRes, profileRes, skillsRes] = await Promise.all([
         fetch("/api/auth/me", { cache: "no-store" }),
@@ -239,46 +289,34 @@ export default function DashboardPage() {
         fetch("/api/profile/skills", { cache: "no-store" }),
       ]);
 
-      if (!authRes.ok) {
-        router.push("/auth");
+      if (authRes.status === 401) {
+        setUser(null);
+        window.location.replace("/auth?tab=masuk");
         return;
       }
+      if (!authRes.ok) throw new Error("Gagal memuat sesi pengguna.");
 
       const authData = await authRes.json();
       const authUser = authData.user ?? {};
-
       const profileData = profileRes.ok ? await profileRes.json() : {};
-
       const skillsData = skillsRes.ok ? await skillsRes.json() : {};
-
       const profile = profileData.profile ?? authUser;
 
-      // Konversi format skill database ke format dashboard
       const skillsFromAPI = [
         ...(skillsData.skillsToLearn ?? []).map((s: any) => ({
           id: Number(s.id),
           tipe: "LEARN",
           level: s.level,
-          skill: {
-            id: Number(s.id),
-            namaSkill: s.namaSkill,
-            kategori: "",
-          },
+          skill: { id: Number(s.id), namaSkill: s.namaSkill, kategori: "" },
         })),
-
         ...(skillsData.skillsPossessed ?? []).map((s: any) => ({
           id: Number(s.id),
           tipe: "TEACH",
           level: s.level,
-          skill: {
-            id: Number(s.id),
-            namaSkill: s.namaSkill,
-            kategori: "",
-          },
+          skill: { id: Number(s.id), namaSkill: s.namaSkill, kategori: "" },
         })),
       ];
 
-      // Fallback jika data skill tersedia dari auth API
       const fallbackSkills = (authUser.skills ?? []).map((s: any) => ({
         ...s,
         tipe:
@@ -288,7 +326,7 @@ export default function DashboardPage() {
         skill: s.skill ?? s.skills,
       }));
 
-      const mergedUser = {
+      const mergedUser: CurrentUser = {
         ...authUser,
         ...profile,
         id: Number(profile.id ?? authUser.id),
@@ -301,7 +339,6 @@ export default function DashboardPage() {
       };
 
       setUser(mergedUser);
-
       setProfileForm({
         namaLengkap: mergedUser.namaLengkap,
         namaPanggilan: mergedUser.namaPanggilan ?? "",
@@ -310,45 +347,30 @@ export default function DashboardPage() {
         semester: mergedUser.semester ?? "",
         domisili: mergedUser.domisili ?? "",
         bio: mergedUser.bio ?? "",
-        latitude: mergedUser.latitude ?? null,
-        longitude: mergedUser.longitude ?? null,
+        latitude: (mergedUser as any).latitude ?? null,
+        longitude: (mergedUser as any).longitude ?? null,
       });
     } catch (err) {
       console.error("LOAD DASHBOARD ERROR:", err);
-      alert("Gagal mengambil data pengguna.");
+      if (user) alert("Gagal memperbarui data pengguna.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadMentors = async () => {
-    try {
-      let url = "/api/mentor/list";
-      const params = new URLSearchParams();
-      if (searchMentorQuery) params.append("q", searchMentorQuery);
-      if (selectedSkillFilter) params.append("skill", selectedSkillFilter);
-      if (params.toString()) url += `?${params.toString()}`;
-
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        setMentors(data.mentors || []);
-      }
-    } catch (err) {
-      console.error(err);
     }
   };
 
   const loadAdminApplications = async () => {
     if (!user || user.role !== "Admin") return;
     setAdminLoading(true);
+    setAdminError(false);
     try {
       const res = await fetch("/api/admin/applications");
-      if (res.ok) {
-        const data = await res.json();
-        setApplications(data.applications || []);
-      }
+      if (!res.ok) throw new Error("Pengajuan mentor belum bisa dimuat.");
+      const data = await res.json();
+      setApplications(data.applications || []);
+      setApplicationsReady(true);
     } catch (err) {
+      setAdminError(true);
+      setApplicationsReady(false);
       console.error(err);
     } finally {
       setAdminLoading(false);
@@ -360,14 +382,27 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("tab") === "skills") {
-      setActiveTab("skills");
-    }
-  }, []);
-
-  useEffect(() => {
-    loadMentors();
-  }, [searchMentorQuery, selectedSkillFilter]);
+    if (!user || activeTab !== "mentors") return;
+    const controller = new AbortController();
+    const load = async () => {
+      setMentorListState("loading");
+      try {
+        const response = await fetch("/api/mentor/list", {
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("Daftar mentor belum bisa dimuat.");
+        const data = await response.json();
+        if (!controller.signal.aborted) {
+          setMentors(data.mentors || []);
+          setMentorListState("ready");
+        }
+      } catch {
+        if (!controller.signal.aborted) setMentorListState("error");
+      }
+    };
+    void load();
+    return () => controller.abort();
+  }, [activeTab, user, mentorListRetry]);
 
   useEffect(() => {
     if (user?.role === "Admin") {
@@ -375,11 +410,29 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  // Handle Mentor Upgrade Application
-  const handleApplyMentor = async (e: React.FormEvent) => {
+  const handleUploadCredential = async (file: File) => {
+    setUploadingDocument(true);
+    try {
+      const doc = await uploadMentorDocument(file);
+      setApplyDocName(doc.fileName);
+      setApplyDocSize(file.size);
+      setApplyDocUrl(doc.fileUrl);
+    } catch (error) {
+      setApplyDocName("");
+      setApplyDocSize(undefined);
+      setApplyDocUrl("");
+      alert(
+        error instanceof Error ? error.message : "Gagal mengunggah berkas.",
+      );
+    } finally {
+      setUploadingDocument(false);
+    }
+  };
+
+  const handleApplyMentor = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!applySkills || !applyDocName) {
-      alert("Mohon isi skill yang ditawarkan dan nama dokumen transkrip.");
+    if (!applySkills || !applyDocUrl || uploadingDocument) {
+      alert("Mohon isi skill yang ditawarkan dan dokumen kredensial.");
       return;
     }
     setApplyLoading(true);
@@ -391,7 +444,8 @@ export default function DashboardPage() {
           skillsOffered: applySkills,
           pengalamanMengajar: applyExperience,
           dokumenNama: applyDocName,
-          dokumenUrl: applyDocUrl || "/uploads/dummy_transkrip.pdf",
+          dokumenUrl: applyDocUrl,
+          jenisDokumen: new FormData(e.currentTarget).get("jenisDokumen"),
         }),
       });
 
@@ -402,14 +456,13 @@ export default function DashboardPage() {
         const d = await res.json();
         alert(d.message || "Gagal mengirim pengajuan.");
       }
-    } catch (err) {
+    } catch {
       alert("Terjadi kesalahan pada server.");
     } finally {
       setApplyLoading(false);
     }
   };
 
-  // Handle Admin Review (Approve / Reject)
   const handleReviewApplication = async (
     appId: number,
     action: "APPROVE" | "REJECT",
@@ -429,45 +482,35 @@ export default function DashboardPage() {
 
       if (res.ok) {
         await loadAdminApplications();
-        await loadMentors();
         alert(
           action === "APPROVE"
-            ? "✓ Berhasil disetujui! Pengguna kini berstatus Mentor aktif."
+            ? "Pengajuan berhasil disetujui. Pengguna kini berstatus Mentor aktif."
             : "Pengajuan telah ditolak.",
         );
       } else {
         alert("Gagal memproses review.");
       }
-    } catch (err) {
+    } catch {
       alert("Terjadi kesalahan server.");
     }
   };
 
-  // Handle Profile Update
-
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       const res = await fetch("/api/profile", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profileForm),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         alert(data.message || "Gagal memperbarui profil.");
         return;
       }
-
+      window.dispatchEvent(new Event("profile-updated"));
       await loadUserData();
-
       setEditProfileMode(false);
-
       alert("Profil berhasil diperbarui!");
     } catch (err) {
       console.error("SAVE PROFILE ERROR:", err);
@@ -475,1085 +518,1298 @@ export default function DashboardPage() {
     }
   };
 
-  const taughtSkills =
-    user?.skills?.filter((s: any) => s.tipe === "TEACH") || [];
+  const taughtSkills = user?.skills?.filter((s) => s.tipe === "TEACH") || [];
+  const learnedSkills = user?.skills?.filter((s) => s.tipe === "LEARN") || [];
 
-  const learnedSkills =
-    user?.skills?.filter((s: any) => s.tipe === "LEARN") || [];
+  const query = searchMentorQuery.trim().toLocaleLowerCase("id");
+  const hasActiveFilter = Boolean(query || selectedSkillFilter);
+  const skillOptions = Array.from(
+    new Set(
+      mentors.flatMap((mentor) =>
+        mentor.skills.map((item) => item.skill.namaSkill),
+      ),
+    ),
+  ).sort((a, b) => a.localeCompare(b, "id"));
+
+  const visibleMentors = mentors.filter(
+    (mentor) =>
+      (!selectedSkillFilter ||
+        mentor.skills.some(
+          (item) => item.skill.namaSkill === selectedSkillFilter,
+        )) &&
+      [
+        mentor.namaLengkap,
+        mentor.namaPanggilan,
+        mentor.universitas,
+        mentor.prodi,
+      ].some((value) => value?.toLocaleLowerCase("id").includes(query)),
+  );
+
+  const pendingApps = applications.filter((a) => a.status === "PENDING").length;
+
+  const bookedDaysSet = new Set(
+    bookedSessions
+      .filter((s) => s.status === "BOOKED")
+      .map((s) => s.tanggalSesi),
+  );
+  const activeMiniDay = agendaDay ?? todayWib;
+
+  if (!user) {
+    return (
+      <div className="flex min-h-screen flex-col bg-canvas">
+        <Navbar />
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
+          {loading ? (
+            <div
+              role="status"
+              aria-label="Memuat dashboard"
+              className="flex flex-col gap-6 motion-safe:animate-pulse"
+            >
+              <div className="h-12 w-72 rounded-xl bg-line/60" />
+              <div className="h-10 border-b border-line" />
+              <div className="h-64 rounded-2xl border border-line bg-surface" />
+            </div>
+          ) : (
+            <Frame className="mx-auto mt-8 max-w-md">
+              <FramePanel className="flex flex-col items-center gap-3 text-center">
+                <p role="status" className="text-sm font-semibold text-ink">
+                  Dashboard belum bisa dimuat.
+                </p>
+                <button
+                  type="button"
+                  onClick={loadUserData}
+                  className="action-primary inline-flex min-h-11 items-center rounded-full px-5 text-sm font-bold transition-colors"
+                >
+                  Coba lagi
+                </button>
+              </FramePanel>
+            </Frame>
+          )}
+        </main>
+        <Footer workspace />
+      </div>
+    );
+  }
+
+  const openBooking = (mentor: BookingMentor) => {
+    setBookingMentor(mentor);
+    setIsBookingOpen(true);
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
+    <div className="flex min-h-screen flex-col bg-canvas">
       <Navbar />
 
-      {/* Main App Container */}
-      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-        {/* Top Profile Summary Card */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <div className="relative">
-              {user?.fotoProfil ? (
-                <img
-                  src={user.fotoProfil}
-                  alt={user.namaLengkap}
-                  className="w-20 h-20 rounded-2xl object-cover border-2 border-blue-100 shadow-sm"
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-100 to-blue-200 text-[#2563EB] flex items-center justify-center font-bold text-2xl shadow-sm">
-                  {(user?.namaPanggilan || user?.namaLengkap || "U").charAt(0)}
+      <main className="flex-1 bg-canvas">
+        <DashboardNavigation
+          active={activeTab}
+          user={user}
+          sessionCount={bookedSessions.length}
+          pendingCount={pendingApps}
+        />
+
+        <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+          {/* ================= ADMIN OVERVIEW ================= */}
+          {activeTab === "overview" && user.role === "Admin" && (
+            <div className="flex flex-col gap-6">
+              <header className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+                    Ringkasan pengajuan
+                  </h1>
+                  <p className="text-sm text-ink-secondary">
+                    Pantau antrean verifikasi mentor dan status persetujuan terbaru.
+                  </p>
                 </div>
-              )}
-              {user?.statusMentor === "APPROVED" && (
-                <div
-                  className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1 shadow-xs"
-                  title="Mentor Terverifikasi"
-                >
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-2xl font-extrabold text-slate-900">
-                  {user?.namaLengkap}
-                </h1>
-                {/* Role / Status Badge */}
-                <span
-                  className={`text-xs font-bold px-3 py-1 rounded-full ${
-                    user?.role === "Admin"
-                      ? "bg-purple-100 text-purple-700 border border-purple-200"
-                      : user?.statusMentor === "APPROVED"
-                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1"
-                        : user?.statusMentor === "PENDING"
-                          ? "bg-amber-100 text-amber-800 border border-amber-200"
-                          : "bg-blue-50 text-[#2563EB] border border-blue-200"
-                  }`}
-                >
-                  {user?.role === "Admin"
-                    ? "👑 Admin Mentora"
-                    : user?.statusMentor === "APPROVED"
-                      ? "⭐ Mentor Terverifikasi"
-                      : user?.statusMentor === "PENDING"
-                        ? "⏳ Pengajuan Mentor Pending"
-                        : "🎓 Mahasiswa / Mentee"}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 mt-2">
-                <span className="flex items-center gap-1 font-medium">
-                  <GraduationCap className="w-3.5 h-3.5 text-slate-400" />
-                  {user?.universitas || "Belum diatur"}{" "}
-                  {user?.prodi ? `• ${user.prodi}` : ""}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                  {user?.domisili || "Indonesia"}
-                </span>
-                <span className="flex items-center gap-1 font-bold text-[#2563EB]">
-                  <Award className="w-3.5 h-3.5" />
-                  {user?.totalPoin || 0} EduPoints
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Upgrade / Mentor CTA banner on the right */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={() => router.push("/chat")}
-              className="px-4 py-2.5 rounded-2xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center gap-2 shadow-2xs"
-            >
-              <MessageCircle className="w-4 h-4 text-[#2563EB]" />
-              <span>Pesan & Diskusi</span>
-            </button>
-
-            {user?.role !== "Admin" && (
-              <button
-                onClick={() => router.push("/matching")}
-                className="px-4 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-2"
-              >
-                <Search className="w-4 h-4" />
-                <span>Cari Partner Belajar</span>
-              </button>
-            )}
-            {user?.role !== "Admin" && user?.statusMentor !== "APPROVED" && (
-              <button
-                onClick={() => setActiveTab("apply")}
-                className="px-5 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-2"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>
-                  {user?.statusMentor === "PENDING"
-                    ? "Status Pengajuan Mentor"
-                    : "Ajukan Jadi Mentor"}
-                </span>
-              </button>
-            )}
-
-            <button
-              onClick={() => router.push("/onboarding")}
-              className="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
-            >
-              Ulangi Onboarding
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Navigation Menu */}
-        <div className="flex border-b border-slate-200 mb-8 overflow-x-auto gap-2">
-          <button
-            onClick={() => setActiveTab("mentors")}
-            className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === "mentors"
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>Daftar Mentor</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("sessions")}
-            className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === "sessions"
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Riwayat Sesi Belajar</span>
-            {bookedSessions.length > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-blue-100 text-[#2563EB] text-[10px] font-extrabold">
-                {bookedSessions.length}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("profile")}
-            className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === "profile"
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <User className="w-4 h-4" />
-            <span>Manajemen Profil</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("skills")}
-            className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === "skills"
-                ? "border-[#2563EB] text-[#2563EB]"
-                : "border-transparent text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>Pengelolaan Skill</span>
-          </button>
-
-          {user?.role !== "Admin" && (
-            <button
-              onClick={() => router.push("/mentor/apply")}
-              className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-                activeTab === "apply"
-                  ? "border-[#2563EB] text-[#2563EB]"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Pengajuan Mentor & Kredensial</span>
-            </button>
-          )}
-
-          {user?.role === "Admin" && (
-            <button
-              onClick={() => setActiveTab("admin")}
-              className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-                activeTab === "admin"
-                  ? "border-purple-600 text-purple-700"
-                  : "border-transparent text-purple-600 hover:text-purple-800"
-              }`}
-            >
-              <Shield className="w-4 h-4" />
-              <span>Admin Verifikasi Mentor</span>
-              {applications.filter((a) => a.status === "PENDING").length >
-                0 && (
-                <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center font-bold">
-                  {applications.filter((a) => a.status === "PENDING").length}
-                </span>
-              )}
-            </button>
-          )}
-        </div>
-
-        {/* ================= TAB 1: DAFTAR MENTOR (UC-F1-05) ================= */}
-        {activeTab === "mentors" && (
-          <div className="space-y-6">
-            {/* Search and Filters */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="relative w-full md:w-96">
-                <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
-                <input
-                  type="text"
-                  value={searchMentorQuery}
-                  onChange={(e) => setSearchMentorQuery(e.target.value)}
-                  placeholder="Cari mentor, kampus, atau prodi..."
-                  className="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-                />
-              </div>
-
-              {/* Preset Skill Filter Pills */}
-              <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto">
-                <span className="text-xs font-bold text-slate-400 whitespace-nowrap">
-                  Filter Skill:
-                </span>
                 <button
-                  onClick={() => setSelectedSkillFilter("")}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-                    selectedSkillFilter === ""
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
+                  type="button"
+                  onClick={loadAdminApplications}
+                  disabled={adminLoading}
+                  className="action-secondary inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-xs font-semibold transition-colors disabled:opacity-60"
                 >
-                  Semua
+                  <RefreshCw className="size-3.5" aria-hidden="true" />
+                  <span>{adminLoading ? "Memuat…" : "Muat ulang"}</span>
                 </button>
-                {[
-                  "UI/UX Design",
-                  "Programming",
-                  "Figma",
-                  "Data Analysis",
-                  "Design Thinking",
-                ].map((sk) => (
-                  <button
-                    key={sk}
-                    onClick={() =>
-                      setSelectedSkillFilter(
-                        sk === selectedSkillFilter ? "" : sk,
-                      )
-                    }
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-                      selectedSkillFilter === sk
-                        ? "bg-[#2563EB] text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    {sk}
-                  </button>
-                ))}
-              </div>
+              </header>
+
+              <AdminOverview
+                applications={applicationsReady ? applications : null}
+                error={adminError}
+              />
             </div>
+          )}
 
-            {/* Mentors Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mentors.map((mentor) => (
-                <div
-                  key={mentor.id}
-                  className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-start gap-4 mb-4">
-                      {mentor.fotoProfil ? (
-                        <img
-                          src={mentor.fotoProfil}
-                          alt={mentor.namaLengkap}
-                          className="w-14 h-14 rounded-2xl object-cover object-top border border-blue-100 shadow-xs"
-                        />
-                      ) : (
-                        <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold text-lg">
-                          {(mentor.namaPanggilan || mentor.namaLengkap).charAt(
-                            0,
-                          )}
-                        </div>
-                      )}
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="font-bold text-slate-900 text-base">
-                            {mentor.namaLengkap}
-                          </h3>
-                          <span
-                            className="text-emerald-500"
-                            title="Terverifikasi Admin Mentora"
-                          >
-                            <CheckCircle2 className="w-4 h-4 fill-emerald-500 text-white" />
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 font-medium">
-                          {mentor.prodi} • {mentor.universitas}
-                        </p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          📍 {mentor.domisili || "Indonesia"} • Mode:{" "}
-                          <span className="font-semibold text-slate-700">
-                            {mentor.modeSesi || "Fleksibel"}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
+          {/* ================= TAB 1: DAFTAR MENTOR ================= */}
+          {activeTab === "mentors" && (
+            <div className="flex flex-col gap-6">
+              <header className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+                    Daftar mentor
+                  </h1>
+                  <p className="text-sm text-ink-secondary">
+                    Pilih mentor terverifikasi untuk menjadwalkan sesi belajar 1-on-1.
+                  </p>
+                </div>
 
-                    <p className="text-xs text-slate-600 line-clamp-2 mb-4 leading-relaxed">
-                      {mentor.bio ||
-                        "Siap berbagi ilmu dan berdiskusi seputar materi perkuliahan."}
-                    </p>
-
-                    {/* Skills offered */}
-                    <div className="mb-4">
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
-                        Skill yang Diajarkan:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {mentor.skills.map((s) => (
-                          <span
-                            key={s.id}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-[11px] font-semibold border border-emerald-200/60"
-                          >
-                            {s.skill.namaSkill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                {mentorListState === "ready" && (
+                  <div className="self-start rounded-2xl border border-line bg-surface px-4 py-2 text-xs font-bold tabular-nums text-ink-muted shadow-2xs md:self-auto">
+                    Menampilkan{" "}
+                    <span className="text-primary">
+                      {visibleMentors.length}
+                    </span>{" "}
+                    Mentor Aktif
                   </div>
+                )}
+              </header>
 
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-amber-600 flex items-center gap-1">
-                      <Award className="w-3.5 h-3.5" />
-                      {mentor.totalPoin} Poin
+              <div className="flex flex-col items-stretch justify-between gap-4 rounded-3xl border border-line bg-surface p-4 shadow-soft-card sm:p-5 lg:flex-row lg:items-center">
+                <div
+                  role="search"
+                  aria-label="Pencarian mentor"
+                  className="relative w-full lg:w-96"
+                >
+                  <Search
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-muted"
+                  />
+                  <input
+                    type="text"
+                    value={searchMentorQuery}
+                    onChange={(event) =>
+                      setSearchMentorQuery(event.target.value)
+                    }
+                    aria-label="Cari mentor, kampus, atau prodi"
+                    placeholder="Cari nama mentor, kampus, prodi, atau kota..."
+                    className="h-11 w-full rounded-2xl border border-line bg-canvas/60 pl-11 pr-10 text-sm text-ink placeholder:text-ink-muted focus:border-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-accent/20"
+                  />
+                  {searchMentorQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchMentorQuery("")}
+                      aria-label="Bersihkan pencarian"
+                      className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-ink-muted transition-colors hover:bg-canvas hover:text-ink"
+                    >
+                      <X aria-hidden="true" className="size-4" />
+                    </button>
+                  )}
+                </div>
+
+                {skillOptions.length > 0 && (
+                  <div
+                    role="group"
+                    aria-label="Filter keahlian"
+                    className="flex flex-wrap items-center gap-2"
+                  >
+                    <span className="mr-1 text-xs font-bold text-ink-muted">
+                      Keahlian:
                     </span>
+                    {["", ...skillOptions].map((name) => {
+                      const isActive = selectedSkillFilter === name;
+                      return (
+                        <button
+                          key={name || "all"}
+                          type="button"
+                          aria-pressed={isActive}
+                          onClick={() =>
+                            setSelectedSkillFilter(isActive ? "" : name)
+                          }
+                          className="filter-chip"
+                        >
+                          {name || "Semua"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/mentors/${mentor.id}`}
-                        className="px-3 py-2 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold transition hover:bg-slate-50"
-                      >
-                        Profil
-                      </Link>
+              {bookingDay && (
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-primary-soft bg-primary-soft/50 px-5 py-3 text-sm text-ink-secondary">
+                  <span>
+                    Tanggal sesi pilihanmu:{" "}
+                    <strong className="font-semibold text-ink">
+                      {fullDateLabel.format(new Date(bookingDay + "T00:00:00Z"))}
+                    </strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setBookingDay(undefined)}
+                    className="min-h-9 font-semibold text-primary underline-offset-4 hover:underline"
+                  >
+                    Hapus tanggal
+                  </button>
+                </div>
+              )}
 
+              {mentorListState !== "ready" ? (
+                <div className="rounded-3xl border border-line bg-surface p-6">
+                  {mentorListState === "loading" ? (
+                    <div
+                      role="status"
+                      aria-label="Memuat daftar mentor"
+                      className="grid grid-cols-1 gap-6 motion-safe:animate-pulse md:grid-cols-2 lg:grid-cols-3"
+                    >
+                      <div className="h-64 rounded-2xl bg-canvas" />
+                      <div className="h-64 rounded-2xl bg-canvas" />
+                      <div className="h-64 rounded-2xl bg-canvas" />
+                    </div>
+                  ) : (
+                    <div
+                      role="status"
+                      className="flex flex-wrap items-center justify-between gap-3 text-sm text-ink-secondary"
+                    >
+                      <span>Daftar mentor belum bisa dimuat.</span>
                       <button
-                        onClick={() => {
-                          setBookingMentor(mentor);
-                          setIsBookingOpen(true);
-                        }}
-                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition flex items-center gap-1 shadow-sm"
+                        type="button"
+                        onClick={() => setMentorListRetry((n) => n + 1)}
+                        className="action-secondary min-h-10 rounded-full px-4 text-xs font-semibold transition-colors"
                       >
-                        <span>Booking Sesi</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
+                        Coba lagi
                       </button>
                     </div>
+                  )}
+                </div>
+              ) : visibleMentors.length === 0 ? (
+                <div className="mx-auto max-w-lg rounded-3xl border border-line bg-surface p-12 text-center">
+                  <h3 className="text-base font-bold text-ink">
+                    {hasActiveFilter
+                      ? "Tidak ada mentor ditemukan"
+                      : "Belum ada mentor tersedia"}
+                  </h3>
+                  <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-ink-muted sm:text-sm">
+                    {hasActiveFilter
+                      ? "Coba kata kunci lain atau hapus filter keahlian untuk melihat seluruh mentor."
+                      : "Kamu juga bisa mencari teman belajar melalui pencocokan partner."}
+                  </p>
+                  <div className="mt-5">
+                    {hasActiveFilter ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchMentorQuery("");
+                          setSelectedSkillFilter("");
+                        }}
+                        className="action-secondary inline-flex min-h-10 items-center rounded-full px-5 text-xs font-semibold transition-colors"
+                      >
+                        Hapus filter pencarian
+                      </button>
+                    ) : (
+                      <Link
+                        href="/matching"
+                        className="action-primary inline-flex min-h-10 items-center rounded-full px-5 text-xs font-bold transition-colors"
+                      >
+                        Cari partner belajar
+                      </Link>
+                    )}
                   </div>
                 </div>
-              ))}
+              ) : (
+                <div
+                  className={
+                    visibleMentors.length === 1
+                      ? "grid grid-cols-1 gap-6"
+                      : visibleMentors.length === 2
+                        ? "grid grid-cols-1 gap-6 lg:grid-cols-2"
+                        : "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+                  }
+                >
+                  {visibleMentors.map((mentor) => (
+                    <MentorCard
+                      key={mentor.id}
+                      wide={visibleMentors.length === 1}
+                      mentor={mentor}
+                      own={mentor.id === user.id}
+                      onBook={openBooking}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
+          )}
 
-            {mentors.length === 0 && (
-              <div className="text-center py-16 bg-white rounded-3xl border border-slate-200">
-                <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="text-base font-bold text-slate-700">
-                  Tidak ada mentor ditemukan
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  Coba sesuaikan kata kunci pencarian atau filter skill.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+          {/* ================= TAB 2: SESI BELAJAR ================= */}
+          {activeTab === "sessions" && (
+            <div className="flex flex-col gap-6">
+              <header className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+                    Sesi belajar
+                  </h1>
+                  <p className="text-sm text-ink-secondary">
+                    Jadwal sesi mentoring yang telah kamu reservasi bersama mentor.
+                  </p>
+                </div>
 
-        {/* ================= TAB RIWAYAT SESI BELAJAR ================= */}
-        {activeTab === "sessions" && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-[#2563EB]" />
-                  <span>Riwayat & Jadwal Sesi Belajar</span>
-                </h2>
-                <p className="text-xs text-slate-500 mt-1">
-                  Daftar sesi belajar yang telah kamu reservasi bersama mentor.
-                </p>
-              </div>
-
-              <button
-                onClick={() => setActiveTab("mentors")}
-                className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2 self-start sm:self-auto shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Booking Sesi Baru</span>
-              </button>
-            </div>
-
-            {bookedSessions.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {bookedSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <nav
+                    aria-label="Tampilan sesi belajar"
+                    className="inline-flex rounded-full border border-line bg-surface p-1"
                   >
-                    <div>
-                      {/* Header Kartu */}
-                      <div className="flex items-start justify-between gap-3 mb-4">
-                        <div className="flex items-center gap-3">
-                          {session.mentorPhoto ? (
+                    {[
+                      {
+                        label: "Daftar sesi",
+                        calendar: false,
+                        href: dashboardUrl("sessions"),
+                      },
+                      {
+                        label: "Kalender",
+                        calendar: true,
+                        href: dashboardUrl("sessions") + "&view=calendar",
+                      },
+                    ].map((view) => (
+                      <Link
+                        key={view.href}
+                        href={view.href}
+                        aria-current={
+                          showCalendar === view.calendar ? "page" : undefined
+                        }
+                        className={`inline-flex min-h-9 items-center rounded-full px-4 text-xs font-semibold transition-colors sm:text-sm ${
+                          showCalendar === view.calendar
+                            ? "bg-primary-soft text-primary"
+                            : "text-ink-muted hover:text-ink"
+                        }`}
+                      >
+                        {view.label}
+                      </Link>
+                    ))}
+                  </nav>
+
+                  <button
+                    type="button"
+                    onClick={() => router.push(dashboardUrl("mentors"))}
+                    className="action-primary inline-flex min-h-10 items-center gap-1.5 rounded-full px-5 text-xs font-bold transition-colors sm:text-sm"
+                  >
+                    <Plus className="size-4" aria-hidden="true" />
+                    <span>Pesan sesi</span>
+                  </button>
+                </div>
+              </header>
+
+              {showCalendar ? (
+                <Frame>
+                  <FramePanel padded={false}>
+                    <StudyAgenda
+                      sessions={bookedSessions}
+                      chosenDay={agendaDay}
+                      onChooseDay={setAgendaDay}
+                      canBook={user.role !== "Admin"}
+                      onPickMentor={() => {
+                        setBookingDay(agendaDay ?? todayWib);
+                        router.push(dashboardUrl("mentors"));
+                      }}
+                    />
+                  </FramePanel>
+                </Frame>
+              ) : (
+                <Frame>
+                  <FramePanel>
+                    <MiniCalendarStrip
+                      today={todayWib}
+                      selectedDay={activeMiniDay}
+                      bookedDays={bookedDaysSet}
+                      onSelectDay={(day) => {
+                        setAgendaDay(day);
+                        if (bookedDaysSet.has(day)) {
+                          router.push(
+                            dashboardUrl("sessions") + "&view=calendar",
+                          );
+                        }
+                      }}
+                    />
+                  </FramePanel>
+
+                  {bookedSessions.length > 0 ? (
+                    bookedSessions.map((session) => (
+                      <article
+                        key={session.id}
+                        className="flex flex-col gap-4 bg-surface px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
+                      >
+                        <div className="flex min-w-0 items-start gap-3.5">
+                          {session.mentorPhoto &&
+                          !brokenImageUrls[session.mentorPhoto] ? (
                             <img
                               src={session.mentorPhoto}
                               alt={session.mentorName}
-                              className="w-12 h-12 rounded-2xl object-cover border border-slate-200"
+                              onError={() =>
+                                markImageBroken(session.mentorPhoto)
+                              }
+                              className="size-11 shrink-0 rounded-xl border border-line object-cover object-top"
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded-2xl bg-blue-100 text-[#2563EB] font-bold text-lg flex items-center justify-center">
-                              {session.mentorName.charAt(0)}
+                            <div className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-primary-soft text-sm font-extrabold text-primary">
+                              {cleanInitials(session.mentorName)}
                             </div>
                           )}
+
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-base font-bold text-ink">
+                                {session.mentorName}
+                              </h3>
+                              <Badge variant="success-light">
+                                Terkonfirmasi
+                              </Badge>
+                            </div>
+                            <p className="mt-0.5 text-sm text-ink-secondary">
+                              Materi:{" "}
+                              <strong className="font-semibold text-primary">
+                                {session.skill}
+                              </strong>
+                            </p>
+                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tabular-nums text-ink-muted">
+                              <span className="inline-flex items-center gap-1.5">
+                                <Calendar
+                                  className="size-3.5"
+                                  aria-hidden="true"
+                                />
+                                <span>
+                                  {session.tanggalSesi} · {session.jamMulai}–
+                                  {session.jamSelesai} WIB
+                                </span>
+                              </span>
+                              <InlineDot />
+                              <span className="inline-flex items-center gap-1.5">
+                                {session.metode === "Online" ? (
+                                  <Video
+                                    className="size-3.5 text-primary"
+                                    aria-hidden="true"
+                                  />
+                                ) : (
+                                  <MapPin
+                                    className="size-3.5 text-ink-muted"
+                                    aria-hidden="true"
+                                  />
+                                )}
+                                <span>
+                                  {session.metode} ({session.lokasi})
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleCancelSession(session.id)}
+                            className="inline-flex min-h-10 items-center px-2 text-xs font-semibold text-danger underline-offset-4 hover:underline"
+                          >
+                            Batalkan sesi
+                          </button>
+                          <Link
+                            href={`/mentors/${session.mentorId}`}
+                            className="inline-flex min-h-10 items-center px-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                          >
+                            Profil
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              router.push(
+                                `/chat?partnerId=${session.mentorId}&name=${encodeURIComponent(
+                                  session.mentorName,
+                                )}`,
+                              )
+                            }
+                            className="action-primary inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 text-xs font-bold transition-colors sm:text-sm"
+                          >
+                            <MessageCircle
+                              className="size-3.5"
+                              aria-hidden="true"
+                            />
+                            <span>Buka chat</span>
+                          </button>
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <FramePanel className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-base font-bold text-ink">
+                          Belum ada sesi belajar yang dipesan
+                        </h3>
+                        <p className="text-sm text-ink-secondary">
+                          Pilih mentor dari direktori atau klik tanggal pada kalender untuk menjadwalkan sesi pertukaran skill.
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 flex-wrap items-center gap-2.5">
+                        <Link
+                          href={dashboardUrl("sessions") + "&view=calendar"}
+                          className="action-secondary inline-flex min-h-10 items-center rounded-full px-4 text-xs font-semibold transition-colors sm:text-sm"
+                        >
+                          Buka kalender
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => router.push(dashboardUrl("mentors"))}
+                          className="action-primary inline-flex min-h-10 items-center rounded-full px-5 text-xs font-bold transition-colors sm:text-sm"
+                        >
+                          Lihat daftar mentor
+                        </button>
+                      </div>
+                    </FramePanel>
+                  )}
+                </Frame>
+              )}
+            </div>
+          )}
+
+          {/* ================= TAB 3: KEAHLIAN SAYA ================= */}
+          {activeTab === "skills" && (
+            <div className="flex flex-col gap-6">
+              <header className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+                    Keahlian saya
+                  </h1>
+                  <p className="text-sm text-ink-secondary">
+                    Keahlian yang kamu kuasai untuk diajarkan dan materi yang ingin dipelajari.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => router.push("/onboarding")}
+                  className="action-primary inline-flex min-h-10 items-center gap-2 rounded-full px-5 text-xs font-bold transition-colors sm:text-sm"
+                >
+                  <Edit3 className="size-4" aria-hidden="true" />
+                  <span>Ubah pilihan skill</span>
+                </button>
+              </header>
+
+              <Frame>
+                <div className="grid grid-cols-1 divide-y divide-line md:grid-cols-2 md:divide-x md:divide-y-0">
+                  <div className="flex flex-col gap-4 p-6 sm:p-7">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <h2 className="text-base font-bold text-ink">
+                          Skill yang ingin dipelajari
+                        </h2>
+                        <p className="mt-0.5 text-xs text-ink-muted">
+                          Target belajar kamu sebagai mentee
+                        </p>
+                      </div>
+                      <Badge variant="outline">Mentee</Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {learnedSkills.map((s) => (
+                        <Badge key={s.id} variant="outline">
+                          {s.skill.namaSkill}
+                        </Badge>
+                      ))}
+                      {learnedSkills.length === 0 && (
+                        <p className="text-sm text-ink-muted">
+                          Belum ada skill yang ditambahkan.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-4 p-6 sm:p-7">
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <h2 className="text-base font-bold text-ink">
+                          Skill yang sudah dimiliki
+                        </h2>
+                        <p className="mt-0.5 text-xs text-ink-muted">
+                          Materi yang dapat kamu bagikan ke teman belajar
+                        </p>
+                      </div>
+                      <Badge variant="outline">Mentor</Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {taughtSkills.map((s) => (
+                        <Badge key={s.id} variant="outline">
+                          {s.skill.namaSkill}
+                        </Badge>
+                      ))}
+                      {taughtSkills.length === 0 && (
+                        <p className="text-sm text-ink-muted">
+                          Belum ada skill yang ditambahkan.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <FrameFooter>
+                  <span>
+                    Perbarui daftar keahlian kapan saja agar rekomendasi partner semakin akurat.
+                  </span>
+                  <Link
+                    href="/skills"
+                    className="inline-flex min-h-9 items-center gap-1 font-semibold text-primary underline-offset-4 hover:underline"
+                  >
+                    <span>Buka halaman keahlian</span>
+                    <ChevronRight className="size-3.5" aria-hidden="true" />
+                  </Link>
+                </FrameFooter>
+              </Frame>
+            </div>
+          )}
+
+          {/* ================= TAB 4: PROFIL SAYA (blocks.so form-layout-02) ================= */}
+          {activeTab === "profile" && (
+            <div className="flex flex-col gap-8">
+              <header className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+                    Profil saya
+                  </h1>
+                  <p className="text-sm text-ink-secondary">
+                    Kelola informasi akademik, domisili GPS untuk fitur Nearby, dan bio singkatmu.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/onboarding"
+                    className="inline-flex min-h-10 items-center gap-1 px-2 text-xs font-semibold text-primary underline-offset-4 hover:underline sm:text-sm"
+                  >
+                    <span>Ulangi onboarding</span>
+                    <ChevronRight className="size-4" aria-hidden="true" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setEditProfileMode(!editProfileMode)}
+                    className="action-secondary inline-flex min-h-10 items-center gap-2 rounded-full px-5 text-xs font-semibold transition-colors sm:text-sm"
+                  >
+                    <Edit3 className="size-4" aria-hidden="true" />
+                    <span>
+                      {editProfileMode ? "Batal edit" : "Edit profil"}
+                    </span>
+                  </button>
+                </div>
+              </header>
+
+              <form
+                onSubmit={handleSaveProfile}
+                className="flex flex-col gap-8"
+              >
+                <div className="grid grid-cols-1 gap-6 border-t border-line pt-8 md:grid-cols-3">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-base font-bold text-ink">
+                      Identitas &amp; Akademik
+                    </h2>
+                    <p className="text-sm leading-relaxed text-ink-muted">
+                      Informasi kampus dan program studi yang tampil pada profil publikmu.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:col-span-2">
+                    <div>
+                      <label
+                        htmlFor="profile-nama-lengkap"
+                        className="mb-1.5 block text-xs font-bold text-ink-secondary"
+                      >
+                        Nama Lengkap
+                      </label>
+                      <input
+                        id="profile-nama-lengkap"
+                        type="text"
+                        disabled={!editProfileMode}
+                        value={profileForm.namaLengkap}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            namaLengkap: e.target.value,
+                          })
+                        }
+                        className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-accent/20 disabled:bg-surface/60 disabled:text-ink-secondary"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="profile-nama-panggilan"
+                        className="mb-1.5 block text-xs font-bold text-ink-secondary"
+                      >
+                        Nama Panggilan
+                      </label>
+                      <input
+                        id="profile-nama-panggilan"
+                        type="text"
+                        disabled={!editProfileMode}
+                        value={profileForm.namaPanggilan}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            namaPanggilan: e.target.value,
+                          })
+                        }
+                        className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-accent/20 disabled:bg-surface/60 disabled:text-ink-secondary"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="profile-universitas"
+                        className="mb-1.5 block text-xs font-bold text-ink-secondary"
+                      >
+                        Universitas
+                      </label>
+                      <input
+                        id="profile-universitas"
+                        type="text"
+                        disabled={!editProfileMode}
+                        value={profileForm.universitas}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            universitas: e.target.value,
+                          })
+                        }
+                        className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-accent/20 disabled:bg-surface/60 disabled:text-ink-secondary"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="profile-prodi"
+                        className="mb-1.5 block text-xs font-bold text-ink-secondary"
+                      >
+                        Program Studi
+                      </label>
+                      <input
+                        id="profile-prodi"
+                        type="text"
+                        disabled={!editProfileMode}
+                        value={profileForm.prodi}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            prodi: e.target.value,
+                          })
+                        }
+                        className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-accent/20 disabled:bg-surface/60 disabled:text-ink-secondary"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="profile-semester"
+                        className="mb-1.5 block text-xs font-bold text-ink-secondary"
+                      >
+                        Semester
+                      </label>
+                      <input
+                        id="profile-semester"
+                        type="text"
+                        disabled={!editProfileMode}
+                        value={profileForm.semester}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            semester: e.target.value,
+                          })
+                        }
+                        className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-accent/20 disabled:bg-surface/60 disabled:text-ink-secondary"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 border-t border-line pt-8 md:grid-cols-3">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-base font-bold text-ink">
+                      Lokasi &amp; Perkenalan
+                    </h2>
+                    <p className="text-sm leading-relaxed text-ink-muted">
+                      Domisili membantu menemukan teman belajar di sekitar lokasi kampusmu.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-4 md:col-span-2">
+                    <div>
+                      <div className="mb-1.5 flex items-center justify-between gap-2">
+                        <label
+                          htmlFor="profile-domisili"
+                          className="block text-xs font-bold text-ink-secondary"
+                        >
+                          Domisili &amp; Lokasi (Nearby)
+                        </label>
+                        {editProfileMode && (
+                          <button
+                            type="button"
+                            onClick={handleDetectLocation}
+                            disabled={detectingLocation}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-primary underline-offset-4 hover:underline"
+                          >
+                            <MapPin className="size-3.5" aria-hidden="true" />
+                            <span>
+                              {detectingLocation
+                                ? "Mendeteksi…"
+                                : "Deteksi GPS"}
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        id="profile-domisili"
+                        type="text"
+                        disabled={!editProfileMode}
+                        value={profileForm.domisili}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            domisili: e.target.value,
+                          })
+                        }
+                        placeholder="mis. Bandung, Jawa Barat"
+                        className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-accent/20 disabled:bg-surface/60 disabled:text-ink-secondary"
+                      />
+                      {profileForm.latitude && profileForm.longitude && (
+                        <p className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold tabular-nums text-success">
+                          <Check className="size-3.5" aria-hidden="true" />
+                          <span>
+                            Koordinat terkunci: {profileForm.latitude},{" "}
+                            {profileForm.longitude}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="profile-bio"
+                        className="mb-1.5 block text-xs font-bold text-ink-secondary"
+                      >
+                        Bio Singkat
+                      </label>
+                      <textarea
+                        id="profile-bio"
+                        rows={3}
+                        disabled={!editProfileMode}
+                        value={profileForm.bio}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            bio: e.target.value,
+                          })
+                        }
+                        className="w-full resize-none rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-accent/20 disabled:bg-surface/60 disabled:text-ink-secondary"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {editProfileMode && (
+                  <div className="flex justify-end gap-3 border-t border-line pt-5">
+                    <button
+                      type="button"
+                      onClick={() => setEditProfileMode(false)}
+                      className="action-secondary inline-flex min-h-10 items-center rounded-full px-5 text-xs font-semibold transition-colors sm:text-sm"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      className="action-primary inline-flex min-h-10 items-center rounded-full px-6 text-xs font-bold transition-colors sm:text-sm"
+                    >
+                      Simpan perubahan
+                    </button>
+                  </div>
+                )}
+              </form>
+            </div>
+          )}
+
+          {/* ================= TAB 5: STATUS MENTOR (blocks.so form-layout-02) ================= */}
+          {activeTab === "apply" && user.role !== "Admin" && (
+            <div className="flex flex-col gap-8">
+              <header className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+                    Status mentor
+                  </h1>
+                  <p className="text-sm text-ink-secondary">
+                    {user.statusMentor === "APPROVED"
+                      ? "Profil mentormu telah diverifikasi dan aktif di direktori mentor."
+                      : user.statusMentor === "PENDING"
+                        ? "Pantau pengajuanmu selama tim admin meninjau dokumen kredensial."
+                        : "Ajukan keahlian dan dokumen pendukung untuk mulai mengajar di Mentora."}
+                  </p>
+                </div>
+
+                {user.statusMentor === "APPROVED" ? (
+                  <Badge variant="success-light">Mentor terverifikasi</Badge>
+                ) : user.statusMentor === "PENDING" ? (
+                  <Badge variant="warning-light">Sedang ditinjau</Badge>
+                ) : (
+                  <Badge variant="outline">Belum mengajukan</Badge>
+                )}
+              </header>
+
+              <div className="grid grid-cols-1 gap-8 border-t border-line pt-8 md:grid-cols-3">
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-base font-bold text-ink">
+                    Kredensial &amp; EduPoints
+                  </h2>
+                  <p className="text-sm leading-relaxed text-ink-muted">
+                    Setiap sesi mentoring yang selesai memberikan{" "}
+                    <strong className="font-semibold tabular-nums text-primary">
+                      +5 EduPoints
+                    </strong>{" "}
+                    yang dapat ditukar menjadi e-certificate resmi untuk portofoliomu.
+                  </p>
+                </div>
+
+                <div className="md:col-span-2">
+                  {user.statusMentor === "APPROVED" ? (
+                    <Frame>
+                      <FramePanel className="flex flex-col gap-5">
+                        <div className="flex items-start gap-3.5">
+                          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-success-soft text-success">
+                            <Check className="size-5" aria-hidden="true" />
+                          </div>
                           <div>
-                            <h3 className="font-bold text-slate-900 text-sm">
-                              {session.mentorName}
+                            <h3 className="text-base font-bold text-ink">
+                              Kamu sudah terverifikasi sebagai mentor
                             </h3>
-                            <p className="text-xs text-slate-500">
-                              Materi: <strong className="text-[#2563EB]">{session.skill}</strong>
+                            <p className="mt-1 text-sm leading-relaxed text-ink-secondary">
+                              Profil dan keahlianmu tampil di daftar mentor. Mahasiswa lain dapat melihat profil dan memesan sesi belajar denganmu.
                             </p>
                           </div>
                         </div>
 
-                        <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
-                          Terkonfirmasi
-                        </span>
-                      </div>
-
-                      {/* Detail Waktu & Lokasi */}
-                      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 text-xs text-slate-700 mb-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                          <span>
-                            <strong>Tanggal:</strong> {session.tanggalSesi}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-                          <span>
-                            <strong>Pukul:</strong> {session.jamMulai} - {session.jamSelesai} WIB
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {session.metode === "Online" ? (
-                            <Video className="w-4 h-4 text-blue-500 shrink-0" />
-                          ) : (
-                            <MapPin className="w-4 h-4 text-emerald-500 shrink-0" />
-                          )}
-                          <span>
-                            <strong>Metode:</strong> {session.metode} ({session.lokasi})
-                          </span>
-                        </div>
-                        {session.topik && (
-                          <div className="pt-2 border-t border-slate-200/60 text-[11px] text-slate-600">
-                            <strong>Topik:</strong> {session.topik}
+                        {taughtSkills.length > 0 && (
+                          <div className="flex flex-col gap-2 border-t border-line pt-4">
+                            <p className="text-xs font-bold text-ink-secondary">
+                              Keahlian yang tampil di profil mentor
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {taughtSkills.map((s) => (
+                                <Badge key={s.id} variant="outline">
+                                  {s.skill.namaSkill}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
                         )}
+
+                        <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
+                          <Link
+                            href={`/mentors/${user.id}`}
+                            className="action-primary inline-flex min-h-10 items-center rounded-full px-5 text-xs font-bold transition-colors sm:text-sm"
+                          >
+                            Lihat profil publik
+                          </Link>
+                          <Link
+                            href={dashboardUrl("skills")}
+                            className="action-secondary inline-flex min-h-10 items-center rounded-full px-5 text-xs font-semibold transition-colors sm:text-sm"
+                          >
+                            Kelola keahlian
+                          </Link>
+                        </div>
+                      </FramePanel>
+                    </Frame>
+                  ) : user.statusMentor === "PENDING" ? (
+                    <Frame>
+                      <FramePanel className="flex flex-col gap-4">
+                        <div className="flex items-start gap-3">
+                          <Clock
+                            className="mt-0.5 size-5 shrink-0 text-primary"
+                            aria-hidden="true"
+                          />
+                          <div>
+                            <h3 className="text-base font-bold text-ink">
+                              Pengajuan mentor sedang ditinjau
+                            </h3>
+                            <p className="mt-0.5 text-xs text-ink-secondary">
+                              Dokumen kredensial:{" "}
+                              <strong className="font-semibold text-ink">
+                                {user.dokumenKredensial || "Belum tersedia"}
+                              </strong>
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-sm leading-relaxed text-ink-secondary">
+                          Tim Admin Mentora sedang memvalidasi kesesuaian nilai dan kualifikasi keahlianmu. Status akunmu akan otomatis berubah setelah disetujui.
+                        </p>
+                      </FramePanel>
+                    </Frame>
+                  ) : (
+                    <form
+                      onSubmit={handleApplyMentor}
+                      className="flex flex-col gap-5"
+                    >
+                      {applySuccess && (
+                        <div
+                          role="status"
+                          className="flex items-center gap-2 rounded-xl border border-success-soft bg-success-soft p-4 text-xs font-semibold text-success"
+                        >
+                          <CheckCircle2
+                            className="size-4 shrink-0"
+                            aria-hidden="true"
+                          />
+                          <span>
+                            Pengajuan berhasil dikirim! Menunggu validasi Admin.
+                          </span>
+                        </div>
+                      )}
+
+                      <div>
+                        <label
+                          htmlFor="apply-skills"
+                          className="mb-1.5 block text-xs font-bold text-ink-secondary"
+                        >
+                          Skill yang Ingin Kamu Ajarkan{" "}
+                          <span className="text-danger">*</span>
+                        </label>
+                        <input
+                          id="apply-skills"
+                          type="text"
+                          value={applySkills}
+                          onChange={(e) => setApplySkills(e.target.value)}
+                          placeholder="mis. UI/UX Design, Figma, Programming Web Dasar"
+                          required
+                          className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-accent/20"
+                        />
+                        <p className="mt-1 text-xs text-ink-muted">
+                          Pisahkan dengan koma jika lebih dari satu.
+                        </p>
                       </div>
-                    </div>
 
-                    {/* Tombol Aksi */}
-                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <button
-                        onClick={() => handleCancelSession(session.id)}
-                        className="text-xs font-semibold text-rose-500 hover:text-rose-700 transition px-2 py-1"
-                      >
-                        Batalkan
-                      </button>
-
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/mentors/${session.mentorId}`}
-                          className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition"
+                      <div>
+                        <label
+                          htmlFor="apply-experience"
+                          className="mb-1.5 block text-xs font-bold text-ink-secondary"
                         >
-                          Profil
-                        </Link>
+                          Pengalaman Bimbingan / Mengajar (Opsional)
+                        </label>
+                        <textarea
+                          id="apply-experience"
+                          rows={3}
+                          value={applyExperience}
+                          onChange={(e) => setApplyExperience(e.target.value)}
+                          placeholder="mis. Asisten praktikum mata kuliah DKV semester lalu, aktif sharing ilmu di kelompok belajar..."
+                          className="w-full resize-none rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-accent/20"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <MentorDocumentType />
+                        <label
+                          htmlFor="apply-credential-doc"
+                          className="block text-xs font-bold text-ink-secondary"
+                        >
+                          Upload Dokumen Kredensial{" "}
+                          <span className="text-danger">*</span>
+                        </label>
+                        <FileDropzone
+                          id="apply-credential-doc"
+                          fileName={applyDocName}
+                          fileSize={applyDocSize}
+                          uploading={uploadingDocument}
+                          disabled={applyLoading}
+                          onFileSelected={handleUploadCredential}
+                          onClear={() => {
+                            setApplyDocName("");
+                            setApplyDocSize(undefined);
+                            setApplyDocUrl("");
+                          }}
+                        />
+                      </div>
+
+                      <div className="flex justify-end border-t border-line pt-5">
                         <button
-                          onClick={() =>
-                            router.push(
-                              `/chat?partnerId=${session.mentorId}&name=${encodeURIComponent(
-                                session.mentorName,
-                              )}`,
-                            )
-                          }
-                          className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                          type="submit"
+                          disabled={applyLoading || uploadingDocument}
+                          className="action-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold transition-colors disabled:opacity-60"
                         >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          <span>Buka Chat</span>
+                          {applyLoading && (
+                            <Loader2
+                              className="size-4 animate-spin"
+                              aria-hidden="true"
+                            />
+                          )}
+                          <span>Kirim pengajuan akun mentor</span>
                         </button>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16 bg-white rounded-3xl border border-slate-200">
-                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="text-base font-bold text-slate-800">
-                  Belum Ada Sesi Belajar yang Dipesan
-                </h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                  Kamu belum melakukan reservasi mentoring. Jelajahi daftar mentor untuk memilih sesi pertukaran skill.
-                </p>
-                <button
-                  onClick={() => setActiveTab("mentors")}
-                  className="mt-4 px-5 py-2.5 rounded-xl bg-[#2563EB] text-white text-xs font-bold hover:bg-blue-700 transition"
-                >
-                  Lihat Daftar Mentor
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ================= TAB 2: MANAJEMEN PROFIL (FR-02) ================= */}
-        {activeTab === "profile" && (
-          <div className="max-w-3xl mx-auto bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">
-                  Data Profil Pengguna
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Kelola informasi data diri untuk keperluan pertukaran ilmu.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEditProfileMode(!editProfileMode)}
-                className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 transition"
-              >
-                <Edit3 className="w-3.5 h-3.5 text-[#2563EB]" />
-                <span>{editProfileMode ? "Batal Edit" : "Edit Profil"}</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProfile} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Nama Lengkap
-                  </label>
-                  <input
-                    type="text"
-                    disabled={!editProfileMode}
-                    value={profileForm.namaLengkap}
-                    onChange={(e) =>
-                      setProfileForm({
-                        ...profileForm,
-                        namaLengkap: e.target.value,
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Nama Panggilan
-                  </label>
-                  <input
-                    type="text"
-                    disabled={!editProfileMode}
-                    value={profileForm.namaPanggilan}
-                    onChange={(e) =>
-                      setProfileForm({
-                        ...profileForm,
-                        namaPanggilan: e.target.value,
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Universitas
-                  </label>
-                  <input
-                    type="text"
-                    disabled={!editProfileMode}
-                    value={profileForm.universitas}
-                    onChange={(e) =>
-                      setProfileForm({
-                        ...profileForm,
-                        universitas: e.target.value,
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Program Studi
-                  </label>
-                  <input
-                    type="text"
-                    disabled={!editProfileMode}
-                    value={profileForm.prodi}
-                    onChange={(e) =>
-                      setProfileForm({ ...profileForm, prodi: e.target.value })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Semester
-                  </label>
-                  <input
-                    type="text"
-                    disabled={!editProfileMode}
-                    value={profileForm.semester}
-                    onChange={(e) =>
-                      setProfileForm({
-                        ...profileForm,
-                        semester: e.target.value,
-                      })
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Domisili & Lokasi (Nearby)
-                    </label>
-                    {editProfileMode && (
-                      <button
-                        type="button"
-                        onClick={handleDetectLocation}
-                        disabled={detectingLocation}
-                        className="text-[11px] font-bold text-[#2563EB] hover:text-blue-700 flex items-center gap-1 transition"
-                      >
-                        <MapPin className="w-3 h-3" />
-                        <span>
-                          {detectingLocation
-                            ? "Mendeteksi..."
-                            : "Deteksi GPS Browser"}
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                  <input
-                    type="text"
-                    disabled={!editProfileMode}
-                    value={profileForm.domisili}
-                    onChange={(e) =>
-                      setProfileForm({
-                        ...profileForm,
-                        domisili: e.target.value,
-                      })
-                    }
-                    placeholder="mis. Bandung, Jawa Barat"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-                  />
-                  {profileForm.latitude && profileForm.longitude && (
-                    <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                      <span>
-                        ✓ Koordinat Terkunci: {profileForm.latitude},{" "}
-                        {profileForm.longitude} (Fitur Nearby Aktif)
-                      </span>
-                    </p>
+                    </form>
                   )}
                 </div>
               </div>
+            </div>
+          )}
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Bio Singkat
-                </label>
-                <textarea
-                  rows={3}
-                  disabled={!editProfileMode}
-                  value={profileForm.bio}
-                  onChange={(e) =>
-                    setProfileForm({ ...profileForm, bio: e.target.value })
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm disabled:bg-slate-50 disabled:text-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-                />
-              </div>
-
-              {editProfileMode && (
-                <div className="pt-4 flex justify-end">
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition"
-                  >
-                    Simpan Perubahan
-                  </button>
-                </div>
-              )}
-            </form>
-          </div>
-        )}
-
-        {/* ================= TAB 3: PENGELOLAAN SKILL (FR-03) ================= */}
-        {activeTab === "skills" && (
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-900 mb-1">
-                Pengelolaan Skill Pengguna
-              </h2>
-              <p className="text-xs text-slate-500 mb-6">
-                Data keahlian yang kamu kuasai untuk diajarkan dan materi yang
-                ingin kamu pelajari.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Skill Yang Ingin Dipelajari */}
-                <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-100">
-                  <h3 className="text-sm font-bold text-[#2563EB] mb-3 flex items-center gap-2">
-                    <BookOpen className="w-4 h-4" />
-                    <span>Skill yang Ingin Dipelajari (Mentee)</span>
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {learnedSkills.map((s) => (
-                      <span
-                        key={s.id}
-                        className="px-3 py-1.5 rounded-xl bg-white text-[#2563EB] border border-blue-200 text-xs font-semibold shadow-2xs"
-                      >
-                        {s.skill.namaSkill}
-                      </span>
-                    ))}
-                    {learnedSkills.length === 0 && (
-                      <p className="text-xs text-slate-400">
-                        Belum ada skill yang ditambahkan.
-                      </p>
-                    )}
-                  </div>
+          {/* ================= TAB 6: ADMIN VERIFIKASI MENTOR ================= */}
+          {activeTab === "admin" && user.role === "Admin" && (
+            <div className="flex flex-col gap-6">
+              <header className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+                    Verifikasi mentor
+                  </h1>
+                  <p className="text-sm text-ink-secondary">
+                    Validasi transkrip nilai dan kredensial calon mentor sebelum status aktif dipublikasikan.
+                  </p>
                 </div>
 
-                {/* Skill Yang Sudah Dimiliki */}
-                <div className="p-6 rounded-2xl bg-emerald-50/50 border border-emerald-100">
-                  <h3 className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    <span>Skill yang Sudah Dimiliki (Mentor)</span>
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {taughtSkills.map((s) => (
-                      <span
-                        key={s.id}
-                        className="px-3 py-1.5 rounded-xl bg-white text-emerald-700 border border-emerald-200 text-xs font-semibold shadow-2xs"
-                      >
-                        {s.skill.namaSkill}
-                      </span>
-                    ))}
-                    {taughtSkills.length === 0 && (
-                      <p className="text-xs text-slate-400">
-                        Belum ada skill yang ditambahkan.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
                 <button
-                  onClick={() => router.push("/onboarding")}
-                  className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition flex items-center gap-2"
+                  type="button"
+                  onClick={loadAdminApplications}
+                  disabled={adminLoading}
+                  className="action-secondary inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-xs font-semibold transition-colors disabled:opacity-60"
                 >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  <span>Ubah Pilihan Skill di Onboarding</span>
+                  <RefreshCw className="size-3.5" aria-hidden="true" />
+                  <span>{adminLoading ? "Memuat…" : "Muat ulang"}</span>
                 </button>
-              </div>
-            </div>
-          </div>
-        )}
+              </header>
 
-        {/* ================= TAB 4: PENGAJUAN AKUN MENTOR (FR-04, FR-05) ================= */}
-        {activeTab === "apply" && user?.role !== "Admin" && (
-          <div className="max-w-3xl mx-auto bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm">
-            <div className="mb-6">
-              <span className="text-xs font-bold text-[#2563EB] uppercase tracking-wider">
-                FASE 1: UPGRADE AKUN
-              </span>
-              <h2 className="text-2xl font-extrabold text-slate-900 mt-1">
-                Pengajuan Akun Mentor & Unggah Kredensial
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Sesuai pada proposal Mentora, unggah bukti kompetensi (transkrip
-                nilai/portofolio) untuk diverifikasi oleh Admin.
-              </p>
-            </div>
+              <Frame>
+                <FrameHeader>
+                  <FrameTitle>Antrean pengajuan kredensial</FrameTitle>
+                  <Badge variant="outline" className="tabular-nums">
+                    {applications.length} total pengajuan
+                  </Badge>
+                </FrameHeader>
 
-            {user?.statusMentor === "APPROVED" ? (
-              <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto text-xl">
-                  ✓
-                </div>
-                <h3 className="text-lg font-bold text-emerald-900">
-                  Selamat! Akun Anda telah Terverifikasi sebagai Mentor
-                </h3>
-                <p className="text-xs text-emerald-700 max-w-md mx-auto leading-relaxed">
-                  Profil dan keahlian Anda kini telah dipublikasikan di
-                  direktori mentor sehingga mahasiswa lain dapat memilih Anda
-                  untuk sesi belajar.
-                </p>
-              </div>
-            ) : user?.statusMentor === "PENDING" ? (
-              <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200 space-y-3">
-                <div className="flex items-center gap-3">
-                  <Clock className="w-6 h-6 text-amber-600 shrink-0" />
-                  <div>
-                    <h3 className="text-sm font-bold text-amber-900">
-                      Pengajuan Mentor Sedang Ditinjau
-                    </h3>
-                    <p className="text-xs text-amber-700 mt-0.5">
-                      Dokumen kredensial:{" "}
-                      <span className="font-semibold">
-                        {user.dokumenKredensial || "Transkrip_Nilai.pdf"}
-                      </span>
+                <FramePanel padded={false}>
+                  {adminError || (adminLoading && !applicationsReady) ? (
+                    <p role="status" className="p-6 text-sm text-ink-secondary">
+                      {adminError
+                        ? "Pengajuan belum bisa dimuat. Coba muat ulang."
+                        : "Memuat pengajuan…"}
                     </p>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-600 bg-white p-3.5 rounded-xl border border-amber-200/60 leading-relaxed">
-                  Tim Admin Mentora sedang memvalidasi kesesuaian nilai dan
-                  kualifikasi keahlianmu. Status akunmu akan otomatis berubah
-                  setelah disetujui.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleApplyMentor} className="space-y-5">
-                {applySuccess && (
-                  <div className="p-4 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-medium flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    <span>
-                      Pengajuan berhasil dikirim! Menunggu validasi Admin.
-                    </span>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Skill yang Ingin Kamu Ajarkan (FR-04){" "}
-                    <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={applySkills}
-                    onChange={(e) => setApplySkills(e.target.value)}
-                    placeholder="mis. UI/UX Design, Figma, Programming Web Dasar"
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Pisahkan dengan koma jika lebih dari satu.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Pengalaman Bimbingan / Mengajar (Opsional)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={applyExperience}
-                    onChange={(e) => setApplyExperience(e.target.value)}
-                    placeholder="mis. Asisten praktikum mata kuliah DKV semester lalu, aktif sharing ilmu di kelompok belajar..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none resize-none"
-                  />
-                </div>
-
-                {/* Upload Dokumen Kredensial (FR-05) */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Upload Dokumen Kredensial
-                    <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="border-2 border-dashed border-slate-200 hover:border-[#2563EB] rounded-2xl p-6 text-center transition bg-slate-50/50">
-                    <FileText className="w-8 h-8 text-[#2563EB] mx-auto mb-2" />
-                    <p className="text-xs font-semibold text-slate-700">
-                      {applyDocName
-                        ? `Dokumen terpilih: ${applyDocName}`
-                        : "Pilih Transkrip Nilai / Sertifikat Keahlian (PDF)"}
-                    </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      Format file: PDF, JPG, PNG (Maks 5MB)
-                    </p>
-                    <label className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-xs">
-                      <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
-                      <span>{applyDocName ? "Ganti File" : "Browse File"}</span>
-                      <input
-                        type="file"
-                        accept=".pdf,image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setApplyDocName(file.name);
-                            setApplyDocUrl("/uploads/" + file.name);
-                          }
-                        }}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100 text-xs text-slate-700 flex items-start gap-2.5 leading-relaxed">
-                  <Sparkles className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" />
-                  <p>
-                    Dengan mengajukan diri sebagai Mentor, Anda bersedia
-                    membagikan ilmu kepada mentee lain dan berhak memperoleh{" "}
-                    <span className="font-bold text-[#2563EB]">
-                      +5 EduPoints
-                    </span>{" "}
-                    per sesi belajar yang selesai.
-                  </p>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={applyLoading}
-                    className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60"
-                  >
-                    {applyLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : null}
-                    <span>Kirim Pengajuan Akun Mentor</span>
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        )}
-
-        {/* ================= TAB 5: ADMIN PANEL (FR-06, FR-07) ================= */}
-        {activeTab === "admin" && user?.role === "Admin" && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex items-center justify-between">
-              <div>
-                <span className="text-xs font-bold text-purple-600 uppercase tracking-wider">
-                  PORTAL ADMINISTRATOR MENTORA
-                </span>
-                <h2 className="text-xl font-extrabold text-slate-900 mt-1">
-                  Verifikasi Pengajuan Mentor
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Validasi transkrip nilai dan kredensial calon mentor sebelum
-                  status aktif dipublikasikan.
-                </p>
-              </div>
-              <button
-                onClick={loadAdminApplications}
-                className="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition border border-purple-200"
-              >
-                Refresh Data
-              </button>
-            </div>
-
-            {/* Applications List */}
-            <div className="space-y-4">
-              {applications.map((app) => (
-                <div
-                  key={app.id}
-                  className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2.5">
-                      <h3 className="font-bold text-slate-900 text-base">
-                        {app.user.namaLengkap}
-                      </h3>
-                      <span className="text-xs text-slate-400">
-                        ({app.user.email})
-                      </span>
-                      <span
-                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                          app.status === "APPROVED"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : app.status === "REJECTED"
-                              ? "bg-rose-100 text-rose-800"
-                              : "bg-amber-100 text-amber-800"
-                        }`}
-                      >
-                        {app.status}
-                      </span>
-                    </div>
-
-                    <div className="text-xs text-slate-600 space-y-1">
-                      <p>
-                        🎓{" "}
-                        <span className="font-semibold">
-                          {app.user.universitas}
-                        </span>{" "}
-                        • {app.user.prodi} (Semester {app.user.semester})
-                      </p>
-                      <p>
-                        💡{" "}
-                        <span className="font-semibold text-slate-800">
-                          Skill yang ditawarkan:
-                        </span>{" "}
-                        {app.skillsOffered}
-                      </p>
-                      {app.pengalamanMengajar && (
-                        <p>
-                          📝{" "}
-                          <span className="font-semibold text-slate-800">
-                            Pengalaman:
-                          </span>{" "}
-                          {app.pengalamanMengajar}
-                        </p>
-                      )}
-                      <p className="flex items-center gap-1.5 text-blue-600 font-semibold pt-1">
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>Dokumen: {app.dokumenNama}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Admin Actions */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    {app.status === "PENDING" ? (
-                      <>
-                        <button
-                          onClick={() =>
-                            handleReviewApplication(app.id, "APPROVE")
-                          }
-                          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+                  ) : applications.length > 0 ? (
+                    <ol className="divide-y divide-line">
+                      {applications.map((app) => (
+                        <li
+                          key={app.id}
+                          className="flex flex-col items-start justify-between gap-4 p-5 sm:px-6 md:flex-row md:items-center"
                         >
-                          <Check className="w-4 h-4 stroke-[3]" />
-                          <span>Setujui</span>
-                        </button>
+                          <div className="flex min-w-0 flex-col gap-1.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-sm font-bold text-ink sm:text-base">
+                                {app.user.namaLengkap}
+                              </h3>
+                              <span className="text-xs text-ink-muted">
+                                {app.user.email}
+                              </span>
+                              <Badge
+                                variant={
+                                  app.status === "APPROVED"
+                                    ? "success-light"
+                                    : app.status === "REJECTED"
+                                      ? "destructive-light"
+                                      : "warning-light"
+                                }
+                              >
+                                {app.status}
+                              </Badge>
+                            </div>
 
-                        <button
-                          onClick={() =>
-                            handleReviewApplication(app.id, "REJECT")
-                          }
-                          className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition flex items-center gap-1.5"
-                        >
-                          <XCircle className="w-4 h-4" />
-                          <span>Tolak</span>
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-xs font-semibold text-slate-400 italic">
-                        Sudah diproses ({app.status})
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+                            <div className="flex flex-col gap-1 text-xs text-ink-secondary sm:text-sm">
+                              <p className="flex flex-wrap items-center gap-2">
+                                <span className="font-semibold text-ink">
+                                  {app.user.universitas}
+                                </span>
+                                <InlineDot />
+                                <span>
+                                  {app.user.prodi} (Semester{" "}
+                                  {app.user.semester})
+                                </span>
+                              </p>
+                              <p>
+                                <span className="font-semibold text-ink">
+                                  Skill yang ditawarkan:
+                                </span>{" "}
+                                {app.skillsOffered}
+                              </p>
+                              {app.pengalamanMengajar && (
+                                <p>
+                                  <span className="font-semibold text-ink">
+                                    Pengalaman:
+                                  </span>{" "}
+                                  {app.pengalamanMengajar}
+                                </p>
+                              )}
+                              <p className="flex items-center gap-1.5 pt-1 font-semibold text-primary">
+                                <FileText
+                                  className="size-4 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                {app.dokumenUrl ? (
+                                  <a
+                                    className="underline underline-offset-4"
+                                    href={app.dokumenUrl}
+                                  >
+                                    Unduh {app.dokumenNama}
+                                  </a>
+                                ) : (
+                                  <span>Berkas belum tersedia</span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
 
-              {applications.length === 0 && (
-                <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-400 text-xs">
-                  Belum ada pengajuan mentor yang masuk.
-                </div>
-              )}
+                          <div className="flex shrink-0 items-center gap-2">
+                            {app.status === "PENDING" ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleReviewApplication(app.id, "APPROVE")
+                                  }
+                                  className="inline-flex min-h-10 items-center gap-1.5 action-primary rounded-full px-4 text-xs font-bold transition-colors"
+                                >
+                                  <Check
+                                    className="size-4"
+                                    aria-hidden="true"
+                                  />
+                                  <span>Setujui</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleReviewApplication(app.id, "REJECT")
+                                  }
+                                  className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-danger-soft bg-danger-tint px-4 text-xs font-bold text-danger-hover transition-colors hover:bg-danger-soft"
+                                >
+                                  <XCircle
+                                    className="size-4"
+                                    aria-hidden="true"
+                                  />
+                                  <span>Tolak</span>
+                                </button>
+                              </>
+                            ) : (
+                              <Badge variant="outline">
+                                Sudah diproses ({app.status})
+                              </Badge>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p className="p-10 text-center text-sm text-ink-muted">
+                      Belum ada pengajuan mentor yang masuk.
+                    </p>
+                  )}
+                </FramePanel>
+              </Frame>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </main>
 
       <BookingModal
         isOpen={isBookingOpen}
-        onClose={() => setIsBookingOpen(false)}
+        onClose={(bookedDate) => {
+          if (bookedDate) {
+            setAgendaDay(bookedDate);
+            setBookingDay(undefined);
+          }
+          setIsBookingOpen(false);
+        }}
         mentor={bookingMentor}
+        initialDate={bookingDay}
       />
 
-      <Footer />
+      <Footer workspace />
     </div>
   );
 }

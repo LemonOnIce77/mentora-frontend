@@ -2,20 +2,14 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Star,
-  ArrowRight,
-  CheckCircle2,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Loader2,
-} from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Star, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff } from "@/components/animated-icons";
 import MentoraLogo from "@/components/MentoraLogo";
 
+import { accountHome } from "@/lib/account-home";
+
 function AuthContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") === "daftar" ? "daftar" : "masuk";
 
@@ -67,7 +61,8 @@ function AuthContent() {
           "✓ Berhasil masuk dengan Akun Google Kampus! Mengarahkan...",
         );
         setTimeout(() => {
-          router.push("/dashboard");
+          const home = accountHome(data.user);
+          window.location.replace(home === "/dashboard" && searchParams.get("tujuan") === "sekitar" ? "/matching?sekitar=1" : home);
         }, 900);
       } else {
         setErrorMsg(data.message || "Gagal masuk dengan Google.");
@@ -125,7 +120,7 @@ function AuthContent() {
 
         setSuccessMsg("Akun berhasil dibuat! Mengarahkan ke Onboarding...");
         setTimeout(() => {
-          router.push("/onboarding");
+          window.location.replace("/onboarding");
         }, 1100);
       } else {
         // Login flow
@@ -161,13 +156,8 @@ function AuthContent() {
 
         setSuccessMsg("Login berhasil! Mengarahkan...");
         setTimeout(() => {
-          if (data.user.role === "Admin") {
-            router.push("/admin");
-          } else if (!data.user.onboardingCompleted) {
-            router.push("/onboarding");
-          } else {
-            router.push("/dashboard");
-          }
+          const home = accountHome(data.user);
+          window.location.replace(home === "/dashboard" && searchParams.get("tujuan") === "sekitar" ? "/matching?sekitar=1" : home);
         }, 900);
       }
     } catch (err: any) {
@@ -188,18 +178,18 @@ function AuthContent() {
         {/* Logo */}
         <div className="flex items-center gap-2.5">
           <MentoraLogo />
-          <span className="text-2xl font-extrabold text-slate-950 tracking-tight">
+          <span className="text-2xl font-extrabold text-ink tracking-tight">
             Mentora
           </span>
         </div>
 
         {/* Heading */}
         <div className="space-y-3">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.2]">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-ink tracking-tight leading-[1.2]">
             Belajar bareng, <br />
-            tumbuh <span className="text-[#2563EB]">lebih jauh</span>
+            tumbuh <span className="text-primary">lebih jauh</span>
           </h1>
-          <p className="text-slate-600 text-base leading-relaxed max-w-lg">
+          <p className="text-ink-secondary text-base leading-relaxed max-w-lg">
             Mentora adalah platform peer-to-peer untuk menemukan teman belajar,
             bertukar skill, dan berkembang bersama sesama mahasiswa.
           </p>
@@ -208,42 +198,42 @@ function AuthContent() {
         {/* 3 Value Propositions */}
         <div className="space-y-5 pt-2">
           <div className="flex items-start gap-3.5">
-            <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
-              <Star className="w-4 h-4 fill-[#2563EB]" />
+            <div className="w-7 h-7 rounded-full bg-primary-soft text-primary flex items-center justify-center shrink-0 mt-0.5">
+              <Star className="w-4 h-4 fill-primary-accent" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900">
+              <h4 className="text-sm font-bold text-ink">
                 Temukan teman belajar
               </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-ink-muted mt-0.5">
                 Dari kampus mana pun, untuk keahlian apa pun.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3.5">
-            <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
-              <Star className="w-4 h-4 fill-[#2563EB]" />
+            <div className="w-7 h-7 rounded-full bg-primary-soft text-primary flex items-center justify-center shrink-0 mt-0.5">
+              <Star className="w-4 h-4 fill-primary-accent" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900">
+              <h4 className="text-sm font-bold text-ink">
                 Tukar pengetahuan
               </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-ink-muted mt-0.5">
                 Belajar langsung dan saling melengkapi bersama teman sebaya.
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3.5">
-            <div className="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
-              <Star className="w-4 h-4 fill-[#2563EB]" />
+            <div className="w-7 h-7 rounded-full bg-primary-soft text-primary flex items-center justify-center shrink-0 mt-0.5">
+              <Star className="w-4 h-4 fill-primary-accent" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900">
+              <h4 className="text-sm font-bold text-ink">
                 Kembangkan potensimu
               </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-ink-muted mt-0.5">
                 Bangun portofolio keaktifan resmi dan kumpulkan sertifikat.
               </p>
             </div>
@@ -252,16 +242,16 @@ function AuthContent() {
 
         {/* Bottom Badge Stickers */}
         <div className="pt-4 flex items-center justify-between max-w-md">
-          <div className="font-handwriting text-3xl font-bold text-slate-800 -rotate-2">
+          <div className="font-handwriting text-3xl font-bold text-ink -rotate-2">
             More Skills <br />
             Brighter Friends
           </div>
 
-          <div className="w-32 h-32 rounded-full bg-[#2563EB] text-white p-3 flex flex-col items-center justify-center text-center shadow-lg rotate-6 hover:rotate-0 transition-transform">
+          <div className="w-32 h-32 rounded-full bg-primary-soft text-primary p-3 flex flex-col items-center justify-center text-center shadow-soft-card rotate-6 hover:rotate-0 transition-transform">
             <p className="text-[11px] font-bold leading-tight">
               Skill baru ini <br />
               bisa jadi peluang <br />
-              besar nanti! ✨
+              besar nanti!
             </p>
           </div>
         </div>
@@ -269,21 +259,21 @@ function AuthContent() {
 
       {/* Right Column: Card with Masuk / Daftar Tabs */}
       <div className="lg:col-span-6">
-        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-lg relative">
+        <div className="bg-surface rounded-3xl p-8 sm:p-10 border border-line shadow-soft-card relative">
           {/* Top Tabs Switcher */}
-          <div className="flex border-b border-slate-200 mb-8">
+          <div className="flex border-b border-line mb-8">
             <button
               type="button"
               onClick={() => handleTabChange("masuk")}
               className={`flex-1 pb-3 text-center text-sm font-bold transition-all relative ${
                 activeTab === "masuk"
-                  ? "text-[#2563EB]"
-                  : "text-slate-400 hover:text-slate-600"
+                  ? "text-primary"
+                  : "text-ink-muted hover:text-primary"
               }`}
             >
               Masuk
               {activeTab === "masuk" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2563EB] rounded-full"></span>
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"></span>
               )}
             </button>
             <button
@@ -291,25 +281,25 @@ function AuthContent() {
               onClick={() => handleTabChange("daftar")}
               className={`flex-1 pb-3 text-center text-sm font-bold transition-all relative ${
                 activeTab === "daftar"
-                  ? "text-[#2563EB]"
-                  : "text-slate-400 hover:text-slate-600"
+                  ? "text-primary"
+                  : "text-ink-muted hover:text-primary"
               }`}
             >
               Daftar
               {activeTab === "daftar" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2563EB] rounded-full"></span>
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full"></span>
               )}
             </button>
           </div>
 
           {/* Greeting */}
           <div className="mb-6">
-            <h2 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+            <h2 className="text-2xl font-extrabold text-ink flex items-center gap-2">
               {activeTab === "masuk"
-                ? "Selamat datang di Mentora! 👋"
-                : "Daftar akun Mentora! 🚀"}
+                ? "Selamat datang di Mentora!"
+                : "Daftar akun Mentora!"}
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-ink-muted mt-1">
               {activeTab === "masuk"
                 ? "Masuk untuk melanjutkan perjalanan belajarmu."
                 : "Mulai perjalanan belajarmu bersama mahasiswa lainnya."}
@@ -318,14 +308,14 @@ function AuthContent() {
 
           {/* Feedback messages */}
           {errorMsg && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-medium flex items-center gap-2.5">
+            <div className="mb-5 p-3.5 rounded-2xl bg-danger-tint border border-danger-soft text-danger text-xs font-medium flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
           {successMsg && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium flex items-center gap-2.5">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <div className="mb-5 p-3.5 rounded-2xl bg-success-tint border border-line text-ink-secondary text-xs font-medium flex items-center gap-2.5">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-success" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -335,7 +325,7 @@ function AuthContent() {
             type="button"
             onClick={handleGoogleAuth}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-slate-700 text-xs font-semibold shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-line hover:border-primary bg-surface text-ink-secondary text-xs font-semibold shadow-xs transition hover:bg-canvas disabled:opacity-60"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -365,9 +355,9 @@ function AuthContent() {
           {/* Divider */}
           <div className="relative my-6 text-center">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200"></div>
+              <div className="w-full border-t border-line"></div>
             </div>
-            <span className="relative px-3 bg-white text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+            <span className="relative px-3 bg-surface text-[11px] uppercase tracking-wider text-ink-muted font-semibold">
               atau {activeTab === "masuk" ? "masuk" : "daftar"} dengan email
             </span>
           </div>
@@ -376,7 +366,7 @@ function AuthContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {activeTab === "daftar" && (
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-ink-secondary mb-1">
                   Nama Lengkap
                 </label>
                 <input
@@ -384,14 +374,14 @@ function AuthContent() {
                   value={namaLengkap}
                   onChange={(e) => setNamaLengkap(e.target.value)}
                   placeholder="mis. Budi Santoso"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-line text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary"
                   required
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-ink-secondary mb-1">
                 Email
               </label>
               <input
@@ -399,18 +389,18 @@ function AuthContent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@email.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
+                className="w-full px-4 py-2.5 rounded-xl border border-line text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary"
                 required
               />
             </div>
 
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="block text-xs font-bold text-slate-700">
+                <label className="block text-xs font-bold text-ink-secondary">
                   Password
                 </label>
                 {activeTab === "masuk" && (
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-ink-muted">
                     Minimal 6 karakter
                   </span>
                 )}
@@ -421,13 +411,13 @@ function AuthContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password kamu"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] pr-10"
+                  className="w-full px-4 py-2.5 rounded-xl border border-line text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary pr-10"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-3 text-ink-muted hover:text-ink"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -440,7 +430,7 @@ function AuthContent() {
 
             {activeTab === "daftar" && (
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-ink-secondary mb-1">
                   Konfirmasi Password
                 </label>
                 <input
@@ -448,7 +438,7 @@ function AuthContent() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Ulangi password kamu"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-line text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary"
                   required
                 />
               </div>
@@ -458,7 +448,7 @@ function AuthContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
+              className="w-full py-3.5 px-4 rounded-xl action-primary text-sm font-bold shadow-xs transition flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -474,12 +464,12 @@ function AuthContent() {
           </form>
 
           {/* Notification Callout Banner */}
-          <div className="mt-6 p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200/70 flex items-start gap-3 text-xs text-slate-700 leading-relaxed">
-            <div className="w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
+          <div className="mt-6 p-3.5 rounded-2xl bg-primary-tint/70 border border-primary-soft/70 flex items-start gap-3 text-xs text-ink-secondary leading-relaxed">
+            <div className="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center shrink-0 mt-0.5 text-[10px]">
               ✓
             </div>
             <p>
-              <span className="font-bold text-blue-950">
+              <span className="font-bold text-ink">
                 Bergabung sebagai mentee (mahasiswa).
               </span>{" "}
               Anda dapat mengajukan diri menjadi mentor terverifikasi kapan pun
@@ -488,13 +478,13 @@ function AuthContent() {
           </div>
 
           {/* Footer switcher */}
-          <div className="mt-6 text-center text-xs text-slate-500">
+          <div className="mt-6 text-center text-xs text-ink-muted">
             {activeTab === "masuk" ? (
               <p>
                 Belum punya akun?{" "}
                 <button
                   onClick={() => handleTabChange("daftar")}
-                  className="font-bold text-[#2563EB] hover:underline"
+                  className="font-bold text-primary hover:underline"
                 >
                   Daftar sekarang
                 </button>
@@ -504,7 +494,7 @@ function AuthContent() {
                 Sudah punya akun?{" "}
                 <button
                   onClick={() => handleTabChange("masuk")}
-                  className="font-bold text-[#2563EB] hover:underline"
+                  className="font-bold text-primary hover:underline"
                 >
                   Masuk di sini
                 </button>
@@ -519,11 +509,20 @@ function AuthContent() {
 
 export default function AuthPage() {
   return (
-    <div className="min-h-screen bg-[#FAFAFB] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-primary-tint flex flex-col justify-center py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-6xl mx-auto mb-4">
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-primary hover:bg-primary-soft/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          <ArrowLeft className="size-4" />
+          Kembali ke Beranda
+        </Link>
+      </div>
       <Suspense
         fallback={
           <div className="flex items-center justify-center p-12">
-            <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         }
       >

@@ -1,6 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { approvalCount, mentorIdentity } from '@/lib/mentor-eligibility';
 import {
   comparePassword,
   signToken,
@@ -31,6 +32,7 @@ export async function POST(req: NextRequest) {
       where: {
         email: email,
       },
+      include: { _count: approvalCount },
     });
 
     if (!dbUser) {
@@ -58,14 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Ambil role asli dari database
-    const roleRaw = String(dbUser.role).toLowerCase();
-
-    const roleNormalized =
-      roleRaw === 'admin'
-        ? 'Admin'
-        : roleRaw === 'mentor'
-        ? 'Mentor'
-        : 'Mentee';
+    const { role: roleNormalized, statusMentor } = mentorIdentity(dbUser);
 
     // 4. Ambil skill pengguna
     const skills = await getUserSkills(dbUser.id);
@@ -96,7 +91,7 @@ export async function POST(req: NextRequest) {
 
       role: roleNormalized,
 
-      statusMentor: dbUser.status_mentor || 'NONE',
+      statusMentor,
 
       onboardingCompleted:
         dbUser.onboarding_completed || false,

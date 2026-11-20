@@ -1,34 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { useSession } from '@/components/SessionProvider';
+import { accountHome } from '@/lib/account-home';
+import { XCircle, Loader2, ShieldAlert, RefreshCw, Award } from 'lucide-react';
 import {
   ShieldCheck,
   Users,
   Clock,
   Check,
-  XCircle,
   FileText,
   Activity,
   ArrowRight,
   Search,
-  Loader2,
-  ShieldAlert,
-  RefreshCw,
-  Award,
   GraduationCap,
-  LayoutDashboard,
-} from 'lucide-react';
-
-interface AdminUser {
-  id: number;
-  namaLengkap: string;
-  email: string;
-  role: string;
-  fotoProfil?: string;
-}
+} from '@/components/animated-icons';
 
 interface MentorApplication {
   id: number;
@@ -69,9 +59,8 @@ interface ActiveMentor {
 export default function AdminDashboardPage() {
   const router = useRouter();
 
-  // Auth & Role Guard State
-  const [authStatus, setAuthStatus] = useState<'checking' | 'authorized' | 'unauthorized'>('checking');
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+  const { profile: adminUser, authLoading } = useSession();
+  const home = adminUser ? accountHome(adminUser) : null;
 
   // Navigation Tab State
   const [activeTab, setActiveTab] = useState<'overview' | 'verification' | 'mentors'>('overview');
@@ -83,40 +72,7 @@ export default function AdminDashboardPage() {
   const [filterAppStatus, setFilterAppStatus] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [searchMentor, setSearchMentor] = useState('');
 
-  useEffect(() => {
-    const verifyAdminAccess = async () => {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (!res.ok) {
-          router.replace('/auth');
-          return;
-        }
-
-        const data = await res.json();
-        const currentUser = data.user;
-
-        // Proteksi Ketat: Hanya izinkan role Admin
-        if (!currentUser || currentUser.role !== 'Admin') {
-          setAuthStatus('unauthorized');
-          setTimeout(() => {
-            router.replace('/dashboard');
-          }, 1800);
-          return;
-        }
-
-        setAdminUser(currentUser);
-        setAuthStatus('authorized');
-        await fetchAdminData();
-      } catch (error) {
-        console.error('Gagal memverifikasi akses admin:', error);
-        router.replace('/auth');
-      }
-    };
-
-    verifyAdminAccess();
-  }, [router]);
-
-  const fetchAdminData = async () => {
+  const fetchAdminData = useCallback(async () => {
     setIsRefreshing(true);
     try {
       const [appRes, mentorRes] = await Promise.all([
@@ -141,7 +97,20 @@ export default function AdminDashboardPage() {
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!home) {
+      router.replace('/auth?tab=masuk');
+      return;
+    }
+    if (home !== '/admin') {
+      const timer = window.setTimeout(() => router.replace(home), 1800);
+      return () => window.clearTimeout(timer);
+    }
+    void fetchAdminData();
+  }, [authLoading, home, router, fetchAdminData]);
 
   const handleReviewApplication = async (appId: number, action: 'APPROVE' | 'REJECT') => {
     const confirmMsg =
@@ -175,25 +144,25 @@ export default function AdminDashboardPage() {
   };
 
   // Tampilan saat memverifikasi sesi
-  if (authStatus === 'checking') {
+  if (authLoading || !home) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAFAFB]">
-        <Loader2 className="w-9 h-9 text-[#2563EB] animate-spin mb-3" />
-        <p className="text-sm font-bold text-slate-600">Memverifikasi hak akses administrator...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-canvas">
+        <Loader2 className="w-9 h-9 text-primary animate-spin mb-3" />
+        <p className="text-sm font-bold text-ink-secondary">Memverifikasi hak akses administrator...</p>
       </div>
     );
   }
 
   // Tampilan jika diakses oleh akun non-Admin
-  if (authStatus === 'unauthorized') {
+  if (home !== '/admin') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAFAFB] p-6">
-        <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-rose-200 text-center shadow-sm space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
-            <ShieldAlert className="w-8 h-8" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-canvas p-6">
+        <div className="max-w-md w-full bg-surface rounded-3xl p-8 border border-danger-soft text-center shadow-sm space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-danger-tint text-danger flex items-center justify-center mx-auto">
+            <ShieldAlert className="size-6 sm:size-8" />
           </div>
-          <h1 className="text-xl font-extrabold text-slate-900">Akses Ditolak</h1>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <h1 className="text-xl font-extrabold text-ink">Akses Ditolak</h1>
+          <p className="text-xs text-ink-muted leading-relaxed">
             Halaman ini khusus untuk akun Administrator Mentora. Anda sedang dialihkan kembali ke dashboard pengguna...
           </p>
         </div>
@@ -217,43 +186,31 @@ export default function AdminDashboardPage() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <Navbar />
 
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 space-y-8">
         {/* Header Portal Admin */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-extrabold text-2xl shrink-0">
-              <ShieldCheck className="w-8 h-8" />
+        <div className="bg-surface rounded-2xl p-5 sm:p-8 border border-line flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <div className="size-11 sm:size-16 rounded-2xl bg-primary-soft text-primary flex items-center justify-center font-extrabold text-2xl shrink-0">
+              <ShieldCheck className="size-6 sm:size-8" />
             </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-extrabold text-slate-900">
-                  Portal Administrator Mentora
-                </h1>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200">
-                  Admin Terverifikasi
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Masuk sebagai <strong className="text-slate-800">{adminUser?.namaLengkap}</strong> ({adminUser?.email})
+            <div className="min-w-0">
+              <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+                Portal Admin
+              </h1>
+              <p className="break-words text-sm text-ink-muted mt-1">
+                Masuk sebagai <strong className="text-ink">{adminUser?.namaLengkap}</strong> ({adminUser?.email})
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/dashboard"
-              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-2"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>Dashboard Admin</span>
-            </Link>
             <button
               onClick={fetchAdminData}
               disabled={isRefreshing}
-              className="px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition flex items-center gap-2 disabled:opacity-60"
+              className="action-primary inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>Perbarui Data</span>
@@ -262,14 +219,10 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Navigasi Tab Admin */}
-        <div className="flex border-b border-slate-200 overflow-x-auto gap-2">
+        <div role="group" aria-label="Bagian portal admin" className="workspace-tabs">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === 'overview'
-                ? 'border-[#2563EB] text-[#2563EB]'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
+            aria-pressed={activeTab === 'overview'}
           >
             <Activity className="w-4 h-4" />
             <span>Ringkasan Platform</span>
@@ -277,16 +230,12 @@ export default function AdminDashboardPage() {
 
           <button
             onClick={() => setActiveTab('verification')}
-            className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === 'verification'
-                ? 'border-purple-600 text-purple-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
+            aria-pressed={activeTab === 'verification'}
           >
             <ShieldCheck className="w-4 h-4" />
             <span>Verifikasi Pengajuan Mentor</span>
             {pendingCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-warning-soft text-warning text-[10px] font-bold">
                 {pendingCount}
               </span>
             )}
@@ -294,11 +243,7 @@ export default function AdminDashboardPage() {
 
           <button
             onClick={() => setActiveTab('mentors')}
-            className={`pb-3 px-4 text-sm font-bold border-b-2 whitespace-nowrap transition-colors flex items-center gap-2 ${
-              activeTab === 'mentors'
-                ? 'border-[#2563EB] text-[#2563EB]'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
+            aria-pressed={activeTab === 'mentors'}
           >
             <Users className="w-4 h-4" />
             <span>Direktori Mentor Aktif ({activeMentors.length})</span>
@@ -315,27 +260,27 @@ export default function AdminDashboardPage() {
                   label: 'Total Pengajuan Masuk',
                   value: applications.length.toString(),
                   icon: FileText,
-                  color: 'text-[#2563EB]',
-                  bg: 'bg-blue-50',
-                  border: 'border-blue-100',
+                  color: 'text-primary',
+                  bg: 'bg-primary-tint',
+                  border: 'border-primary-soft',
                   badge: 'Semua Status',
                 },
                 {
                   label: 'Menunggu Verifikasi',
                   value: pendingCount.toString(),
                   icon: Clock,
-                  color: 'text-amber-700',
-                  bg: 'bg-amber-50',
-                  border: 'border-amber-200',
+                  color: 'text-warning',
+                  bg: 'bg-warning-tint',
+                  border: 'border-warning-soft',
                   badge: pendingCount > 0 ? 'Perlu Tinjauan' : 'Terkendali',
                 },
                 {
                   label: 'Mentor Aktif',
                   value: activeMentors.length.toString(),
                   icon: ShieldCheck,
-                  color: 'text-emerald-700',
-                  bg: 'bg-emerald-50',
-                  border: 'border-emerald-100',
+                  color: 'text-success',
+                  bg: 'bg-success-tint',
+                  border: 'border-success-soft',
                   badge: 'Tervalidasi',
                 },
               ].map((stat, idx) => {
@@ -343,7 +288,7 @@ export default function AdminDashboardPage() {
                 return (
                   <div
                     key={idx}
-                    className={`bg-white p-6 rounded-3xl border ${stat.border} shadow-sm flex flex-col gap-4`}
+                    className={`bg-surface p-6 rounded-3xl border ${stat.border} shadow-sm flex flex-col gap-4`}
                   >
                     <div className="flex items-start justify-between">
                       <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center`}>
@@ -354,8 +299,8 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <div>
-                      <h3 className="text-3xl font-black text-slate-900">{stat.value}</h3>
-                      <p className="text-xs font-bold text-slate-500 mt-0.5">{stat.label}</p>
+                      <h3 className="text-3xl font-black text-ink">{stat.value}</h3>
+                      <p className="text-xs font-bold text-ink-muted mt-0.5">{stat.label}</p>
                     </div>
                   </div>
                 );
@@ -364,66 +309,66 @@ export default function AdminDashboardPage() {
 
             {/* Grafik Aktivitas & Manajemen Konten */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <section className="lg:col-span-2 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-6">
+              <section className="lg:col-span-2 bg-surface p-6 sm:p-8 rounded-2xl border border-line flex flex-col justify-between space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-lg font-extrabold text-slate-900">Aktivitas Pertukaran Ilmu</h2>
-                    <p className="text-xs text-slate-500">Volume sesi mentoring 7 hari terakhir</p>
+                    <h2 className="text-lg font-extrabold text-ink">Aktivitas Pertukaran Ilmu</h2>
+                    <p className="text-xs text-ink-muted">Volume sesi mentoring 7 hari terakhir</p>
                   </div>
-                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-600">
+                  <div className="p-2.5 bg-canvas border border-line rounded-xl text-ink-secondary">
                     <Activity className="w-5 h-5" />
                   </div>
                 </div>
 
-                <div className="h-60 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center">
-                  <Activity className="h-8 w-8 text-slate-300" />
-                  <p className="max-w-xs text-sm text-slate-500">Data aktivitas sesi belum tersedia.</p>
+                <div className="h-60 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-line bg-canvas text-center">
+                  <Activity className="h-8 w-8 text-subtle" />
+                  <p className="max-w-xs text-sm text-ink-muted">Data aktivitas sesi belum tersedia.</p>
                 </div>
               </section>
 
-              <section className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+              <section className="bg-surface p-6 sm:p-8 rounded-3xl border border-line/80 shadow-sm space-y-5">
                 <div>
-                  <h2 className="text-lg font-extrabold text-slate-900">Pintasan Pengelolaan</h2>
-                  <p className="text-xs text-slate-500">Akses cepat pengelolaan platform</p>
+                  <h2 className="text-lg font-extrabold text-ink">Pintasan Pengelolaan</h2>
+                  <p className="text-xs text-ink-muted">Akses cepat pengelolaan platform</p>
                 </div>
 
                 <div className="space-y-3">
                   <button
                     onClick={() => setActiveTab('verification')}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#2563EB] transition group bg-slate-50/70 hover:bg-white text-left"
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-line hover:border-primary transition group bg-canvas/70 hover:bg-surface text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-warning-soft text-warning flex items-center justify-center">
                         <ShieldCheck className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition">
+                        <p className="text-sm font-bold text-ink group-hover:text-primary transition">
                           Antrean Verifikasi
                         </p>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-[11px] text-ink-muted">
                           {pendingCount} pengajuan menunggu tinjauan
                         </p>
                       </div>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] transition" />
+                    <ArrowRight className="w-4 h-4 text-ink-muted group-hover:text-primary transition" />
                   </button>
 
                   <button
                     onClick={() => setActiveTab('mentors')}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-[#2563EB] transition group bg-slate-50/70 hover:bg-white text-left"
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-line hover:border-primary transition group bg-canvas/70 hover:bg-surface text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-primary-soft text-primary flex items-center justify-center">
                         <Users className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition">
+                        <p className="text-sm font-bold text-ink group-hover:text-primary transition">
                           Direktori Mentor Aktif
                         </p>
-                        <p className="text-[11px] text-slate-500">Tinjau akun mentor terverifikasi</p>
+                        <p className="text-[11px] text-ink-muted">Tinjau akun mentor terverifikasi</p>
                       </div>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] transition" />
+                    <ArrowRight className="w-4 h-4 text-ink-muted group-hover:text-primary transition" />
                   </button>
                 </div>
               </section>
@@ -434,10 +379,10 @@ export default function AdminDashboardPage() {
         {/* ================= TAB 2: VERIFIKASI PENGAJUAN MENTOR ================= */}
         {activeTab === 'verification' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-surface rounded-2xl p-6 border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-extrabold text-slate-900">Verifikasi Kredensial Calon Mentor</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <h2 className="text-xl font-extrabold text-ink">Verifikasi Kredensial Calon Mentor</h2>
+                <p className="text-xs text-ink-muted mt-0.5">
                   Periksa bukti kompetensi akademik atau portofolio sebelum mengaktifkan status Mentor.
                 </p>
               </div>
@@ -447,11 +392,8 @@ export default function AdminDashboardPage() {
                   <button
                     key={status}
                     onClick={() => setFilterAppStatus(status)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition ${
-                      filterAppStatus === status
-                        ? 'bg-slate-900 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
+                    aria-pressed={filterAppStatus === status}
+                    className="filter-chip"
                   >
                     {status === 'ALL'
                       ? 'Semua'
@@ -469,43 +411,43 @@ export default function AdminDashboardPage() {
               {filteredApplications.map((app) => (
                 <div
                   key={app.id}
-                  className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6"
+                  className="bg-surface rounded-2xl p-6 border border-line flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6"
                 >
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <h3 className="font-bold text-slate-900 text-base">{app.user.namaLengkap}</h3>
-                      <span className="text-xs text-slate-400">({app.user.email})</span>
+                      <h3 className="font-bold text-ink text-base">{app.user.namaLengkap}</h3>
+                      <span className="text-xs text-ink-muted">({app.user.email})</span>
                       <span
                         className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                           app.status === 'APPROVED'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-success-soft text-success'
                             : app.status === 'REJECTED'
-                            ? 'bg-rose-100 text-rose-800'
-                            : 'bg-amber-100 text-amber-800'
+                            ? 'bg-danger-soft text-danger'
+                            : 'bg-warning-soft text-warning'
                         }`}
                       >
                         {app.status}
                       </span>
                     </div>
 
-                    <div className="text-xs text-slate-600 space-y-1">
+                    <div className="text-xs text-ink-secondary space-y-1">
                       <p className="flex items-center gap-1.5">
-                        <GraduationCap className="w-3.5 h-3.5 text-slate-400" />
+                        <GraduationCap className="w-3.5 h-3.5 text-ink-muted" />
                         <span className="font-semibold">{app.user.universitas || 'Universitas'}</span>
                         {app.user.prodi ? ` • ${app.user.prodi}` : ''}
                         {app.user.semester ? ` (Semester ${app.user.semester})` : ''}
                       </p>
                       <p>
-                        <strong className="text-slate-800">Keahlian Diajukan:</strong> {app.skillsOffered}
+                        <strong className="text-ink">Keahlian Diajukan:</strong> {app.skillsOffered}
                       </p>
                       {app.pengalamanMengajar && (
                         <p>
-                          <strong className="text-slate-800">Pengalaman:</strong> {app.pengalamanMengajar}
+                          <strong className="text-ink">Pengalaman:</strong> {app.pengalamanMengajar}
                         </p>
                       )}
-                      <p className="flex items-center gap-1.5 text-[#2563EB] font-semibold pt-1">
+                      <p className="flex items-center gap-1.5 text-primary font-semibold pt-1">
                         <FileText className="w-3.5 h-3.5" />
-                        <span>Dokumen Kredensial: {app.dokumenNama}</span>
+                        {app.dokumenUrl ? <a className="underline underline-offset-2" href={app.dokumenUrl}>Unduh {app.dokumenNama}</a> : <span>Berkas belum tersedia</span>}
                       </p>
                     </div>
                   </div>
@@ -515,21 +457,21 @@ export default function AdminDashboardPage() {
                       <>
                         <button
                           onClick={() => handleReviewApplication(app.id, 'APPROVE')}
-                          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+                          className="px-4 py-2.5 rounded-xl action-primary text-xs font-bold shadow-sm transition flex items-center gap-1.5"
                         >
                           <Check className="w-4 h-4 stroke-[3]" />
                           <span>Setujui</span>
                         </button>
                         <button
                           onClick={() => handleReviewApplication(app.id, 'REJECT')}
-                          className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition flex items-center gap-1.5"
+                          className="px-4 py-2.5 rounded-xl bg-danger-tint hover:bg-danger-soft text-danger-hover text-xs font-bold border border-danger-soft transition flex items-center gap-1.5"
                         >
                           <XCircle className="w-4 h-4" />
                           <span>Tolak</span>
                         </button>
                       </>
                     ) : (
-                      <span className="text-xs font-semibold text-slate-400 italic">
+                      <span className="text-xs font-semibold text-ink-muted italic">
                         Telah diproses ({app.status})
                       </span>
                     )}
@@ -538,7 +480,7 @@ export default function AdminDashboardPage() {
               ))}
 
               {filteredApplications.length === 0 && (
-                <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-400 text-xs">
+                <div className="p-12 text-center bg-surface rounded-3xl border border-line text-ink-muted text-xs">
                   Tidak ada data pengajuan pada kategori filter ini.
                 </div>
               )}
@@ -549,19 +491,19 @@ export default function AdminDashboardPage() {
         {/* ================= TAB 3: DIREKTORI MENTOR AKTIF ================= */}
         {activeTab === 'mentors' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="bg-surface rounded-2xl p-5 border border-line flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="relative w-full sm:w-96">
-                <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
+                <Search className="w-4 h-4 text-ink-muted absolute left-4 top-3.5" />
                 <input
                   type="text"
                   value={searchMentor}
                   onChange={(e) => setSearchMentor(e.target.value)}
                   placeholder="Cari nama mentor, universitas, atau prodi..."
-                  className="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
+                  className="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-line text-sm focus:outline-none focus:ring-2 focus:ring-primary-accent/30 focus:border-primary"
                 />
               </div>
-              <span className="text-xs font-bold text-slate-500">
-                Total Mentor Tervalidasi: <span className="text-[#2563EB]">{filteredMentors.length}</span>
+              <span className="text-xs font-bold text-ink-muted">
+                Total Mentor Tervalidasi: <span className="text-primary">{filteredMentors.length}</span>
               </span>
             </div>
 
@@ -569,23 +511,23 @@ export default function AdminDashboardPage() {
               {filteredMentors.map((mentor) => (
                 <div
                   key={mentor.id}
-                  className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between gap-4"
+                  className="bg-surface rounded-2xl p-6 border border-line flex flex-col justify-between gap-4"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-bold text-slate-900 text-base">{mentor.namaLengkap}</h3>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                      <h3 className="font-bold text-ink text-base">{mentor.namaLengkap}</h3>
+                      <span className="px-2.5 py-0.5 rounded-full bg-success-tint text-success border border-success-soft text-[10px] font-bold">
                         AKTIF
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-ink-muted">
                       {mentor.prodi || 'Mahasiswa'} • {mentor.universitas || 'Universitas'}
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-4">
                       {mentor.skills?.map((s) => (
                         <span
                           key={s.id}
-                          className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-semibold"
+                          className="px-2.5 py-1 rounded-lg bg-canvas text-ink-secondary text-[11px] font-semibold"
                         >
                           {s.skill.namaSkill}
                         </span>
@@ -593,14 +535,14 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-600 flex items-center gap-1">
+                  <div className="pt-4 border-t border-line flex items-center justify-between">
+                    <span className="text-xs font-bold text-ink-secondary flex items-center gap-1">
                       <Award className="w-3.5 h-3.5" />
                       {mentor.totalPoin || 0} Poin
                     </span>
-                    <span className="text-xs font-bold text-slate-500">
+                    <Link href={`/mentors/${mentor.id}`} className="inline-flex min-h-11 items-center gap-1 rounded text-sm font-semibold text-primary hover:underline">
                       Lihat Profil →
-                    </span>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -608,7 +550,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </main>
-
+      <Footer workspace />
     </div>
   );
 }

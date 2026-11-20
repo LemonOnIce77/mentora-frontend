@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { hasProfileDetails, mentorProfileFields } from '@/lib/mentor-eligibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,6 +75,10 @@ export async function POST(req: NextRequest) {
 
     const learnSkills = normalizeSkills(skillsToLearn);
     const possessedSkills = normalizeSkills(skillsPossessed);
+    const profile = await prisma.users.findUnique({ where: { id: userId }, select: mentorProfileFields });
+    if (!profile || !hasProfileDetails(profile) || !learnSkills.length) {
+      return NextResponse.json({ message: 'Lengkapi data diri dan pilih minimal satu skill yang ingin dipelajari.' }, { status: 422 });
+    }
 
     // 4. Simpan menggunakan transaksi database
     await prisma.$transaction(async (tx: any) => {

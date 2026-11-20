@@ -3,18 +3,8 @@
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Loader2,
-  MapPin,
-  MessageCircle,
-  Send,
-  ShieldCheck,
-  Video,
-  Sparkles,
-} from 'lucide-react';
+import { Calendar, Loader2, Video } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, MessageCircle, Send, ShieldCheck } from '@/components/animated-icons';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -243,7 +233,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFB]">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <Navbar />
 
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col">
@@ -252,56 +242,56 @@ export default function ChatPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#2563EB] transition"
+              className="inline-flex items-center gap-2 text-xs font-bold text-ink-muted hover:text-ink transition"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Kembali ke Dashboard</span>
             </Link>
-            <span className="text-slate-300">|</span>
-            <span className="text-xs font-semibold text-slate-500">
+            <span aria-hidden="true" className="h-4 border-l border-line" />
+            <span className="text-xs font-semibold text-ink-muted">
               Ruang Diskusi & Sesi Belajar
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="rounded-full bg-canvas border border-line px-3 py-1 text-[11px] font-bold text-ink-secondary flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
               <span>Real-time Chat Aktif</span>
             </span>
           </div>
         </div>
 
         {/* Main Chat Box Container */}
-        <section className="flex-1 overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm min-h-[620px] flex flex-col md:flex-row">
+        <section className="flex-1 overflow-hidden rounded-3xl border border-line bg-surface shadow-soft-card min-h-[620px] flex flex-col md:flex-row">
           {loading ? (
-            <div className="flex flex-1 items-center justify-center gap-3 text-slate-500">
-              <Loader2 className="h-6 w-6 animate-spin text-[#2563EB]" />
+            <div className="flex flex-1 items-center justify-center gap-3 text-ink-muted">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
               <span className="text-sm font-semibold">Membuka ruang diskusi...</span>
             </div>
           ) : denied ? (
             <div className="m-auto max-w-lg p-8 text-center">
-              <ShieldCheck className="mx-auto h-12 w-12 text-rose-500" />
-              <h1 className="mt-3 text-xl font-bold text-slate-900">Akses Ditolak</h1>
-              <p className="mt-2 text-sm text-slate-600">
+              <ShieldCheck className="mx-auto h-12 w-12 text-danger" />
+              <h1 className="mt-3 text-xl font-bold text-ink">Akses Ditolak</h1>
+              <p className="mt-2 text-sm text-ink-muted">
                 Percakapan ini bersifat privat antara dua pengguna yang terlibat.
               </p>
             </div>
           ) : (
             <>
               {/* Sidebar Daftar Percakapan (Inbox) */}
-              <aside className="w-full md:w-80 border-r border-slate-100 flex flex-col bg-slate-50/50">
-                <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                  <h2 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4 text-[#2563EB]" />
+              <aside className="w-full md:w-80 border-r border-line flex flex-col bg-canvas">
+                <div className="p-4 border-b border-line flex items-center justify-between">
+                  <h2 className="font-extrabold text-sm text-ink flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-primary" />
                     <span>Daftar Percakapan</span>
                   </h2>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#2563EB]">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary-tint text-primary border border-primary-soft">
                     {allRooms.length}
                   </span>
                 </div>
 
                 {/* List Room */}
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+                <div className="flex-1 overflow-y-auto divide-y divide-line">
                   {allRooms.length > 0 ? (
                     allRooms.map((r) => {
                       const isSelected = currentRoom?.id === r.id;
@@ -312,18 +302,18 @@ export default function ChatPage() {
                           onClick={() => selectRoom(r)}
                           className={`w-full p-4 text-left transition flex items-start gap-3 ${
                             isSelected
-                              ? 'bg-blue-50/80 border-l-4 border-[#2563EB]'
-                              : 'hover:bg-slate-100/70'
+                              ? 'bg-primary-tint border-l-4 border-primary shadow-xs'
+                              : 'hover:bg-primary-tint'
                           }`}
                         >
                           {r.partnerPhoto ? (
                             <img
                               src={r.partnerPhoto}
                               alt={r.partnerName}
-                              className="w-11 h-11 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-sm"
+                              className="w-11 h-11 rounded-2xl object-cover shrink-0 border border-line shadow-xs"
                             />
                           ) : (
-                            <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 shadow-sm">
+                            <div className="w-11 h-11 rounded-2xl bg-primary text-white font-bold flex items-center justify-center shrink-0 shadow-xs">
                               {r.partnerName.charAt(0)}
                             </div>
                           )}
@@ -332,13 +322,13 @@ export default function ChatPage() {
                             <div className="flex items-center justify-between gap-1">
                               <h3
                                 className={`text-xs font-bold truncate ${
-                                  isSelected ? 'text-[#2563EB]' : 'text-slate-900'
+                                  isSelected ? 'text-primary' : 'text-ink-secondary'
                                 }`}
                               >
                                 {r.partnerName}
                               </h3>
                               {lastMsg && (
-                                <time className="text-[10px] text-slate-400 shrink-0">
+                                <time className="text-[10px] text-ink-muted shrink-0">
                                   {new Date(lastMsg.createdAt).toLocaleTimeString('id-ID', {
                                     hour: '2-digit',
                                     minute: '2-digit',
@@ -346,7 +336,7 @@ export default function ChatPage() {
                                 </time>
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                            <p className="text-[11px] text-ink-muted truncate mt-0.5">
                               {lastMsg ? lastMsg.content : 'Belum ada pesan...'}
                             </p>
                           </div>
@@ -354,11 +344,11 @@ export default function ChatPage() {
                       );
                     })
                   ) : (
-                    <div className="p-8 text-center text-xs text-slate-400">
+                    <div className="p-8 text-center text-xs text-ink-muted">
                       <p>Belum ada percakapan aktif.</p>
                       <Link
                         href="/dashboard"
-                        className="inline-block mt-3 px-3 py-1.5 rounded-lg bg-[#2563EB] text-white text-[11px] font-bold"
+                        className="inline-block mt-3 px-3 py-1.5 rounded-lg action-primary text-[11px] font-bold shadow-xs transition"
                       >
                         Cari Mentor
                       </Link>
@@ -372,25 +362,25 @@ export default function ChatPage() {
                 {currentRoom ? (
                   <>
                     {/* Header Chat */}
-                    <header className="p-4 sm:px-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                    <header className="p-4 sm:px-6 border-b border-line flex items-center justify-between bg-surface">
                       <div className="flex items-center gap-3 min-w-0">
                         {currentRoom.partnerPhoto ? (
                           <img
                             src={currentRoom.partnerPhoto}
                             alt={currentRoom.partnerName}
-                            className="w-10 h-10 rounded-2xl object-cover border border-slate-200"
+                            className="w-10 h-10 rounded-2xl object-cover border border-line"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-2xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold">
+                          <div className="w-10 h-10 rounded-2xl bg-primary text-white flex items-center justify-center font-bold">
                             {currentRoom.partnerName.charAt(0)}
                           </div>
                         )}
                         <div className="min-w-0">
-                          <h1 className="font-extrabold text-slate-900 text-sm truncate flex items-center gap-1.5">
+                          <h1 className="font-extrabold text-ink text-sm truncate flex items-center gap-1.5">
                             <span>{currentRoom.partnerName}</span>
-                            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <ShieldCheck className="w-4 h-4 text-success shrink-0" />
                           </h1>
-                          <p className="text-[11px] text-slate-500 truncate">
+                          <p className="text-[11px] text-ink-muted truncate">
                             Diskusi pertukaran skill & koordinasi sesi belajar
                           </p>
                         </div>
@@ -398,7 +388,7 @@ export default function ChatPage() {
 
                       <Link
                         href={`/mentors/${currentRoom.partnerId}`}
-                        className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-700 transition shrink-0 hidden sm:inline-block"
+                        className="px-3 py-1.5 rounded-xl border border-line hover:bg-canvas text-[11px] font-bold text-ink-secondary transition shrink-0 hidden sm:inline-block"
                       >
                         Lihat Profil Mentor
                       </Link>
@@ -406,30 +396,30 @@ export default function ChatPage() {
 
                     {/* Banner Info Sesi yang Dipesan */}
                     {activeSession && (
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+                      <div className="bg-canvas border-b border-line px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shrink-0">
                             <Calendar className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                            <p className="text-xs font-bold text-ink flex items-center gap-1.5">
                               <span>Sesi Belajar: {activeSession.skill}</span>
-                              <span className="px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">
+                              <span className="px-2 py-0.5 rounded-full bg-success-tint text-success border border-success-soft text-[10px] font-extrabold">
                                 Terkonfirmasi
                               </span>
                             </p>
-                            <p className="text-[11px] text-slate-600 flex items-center gap-2 mt-0.5">
+                            <p className="text-[11px] text-ink-muted flex items-center gap-2 mt-0.5">
                               <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-slate-400" />
+                                <Clock className="w-3 h-3 text-ink-muted" />
                                 {activeSession.tanggalSesi} ({activeSession.jamMulai} -{' '}
                                 {activeSession.jamSelesai} WIB)
                               </span>
                               <span>•</span>
                               <span className="flex items-center gap-1">
                                 {activeSession.metode === 'Online' ? (
-                                  <Video className="w-3 h-3 text-blue-500" />
+                                  <Video className="w-3 h-3 text-primary" />
                                 ) : (
-                                  <MapPin className="w-3 h-3 text-emerald-500" />
+                                  <MapPin className="w-3 h-3 text-ink-muted" />
                                 )}
                                 {activeSession.metode}
                               </span>
@@ -437,18 +427,17 @@ export default function ChatPage() {
                           </div>
                         </div>
 
-                        <span className="text-[11px] text-blue-700 font-semibold bg-white px-2.5 py-1 rounded-lg border border-blue-200/80 shadow-2xs">
+                        <span className="text-[11px] text-primary font-semibold bg-surface px-2.5 py-1 rounded-lg border border-line shadow-2xs">
                           {activeSession.lokasi}
                         </span>
                       </div>
                     )}
 
                     {/* Chat Messages Stream */}
-                    <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/60 p-4 sm:p-6">
-                      <div className="mx-auto max-w-md rounded-2xl border border-blue-100 bg-white p-3.5 text-center text-xs leading-relaxed text-slate-600 shadow-2xs">
-                        <Sparkles className="w-4 h-4 text-[#2563EB] mx-auto mb-1" />
+                    <div className="flex-1 space-y-4 overflow-y-auto bg-canvas p-4 sm:p-6">
+                      <div className="mx-auto max-w-md rounded-2xl border border-line bg-surface p-3.5 text-center text-xs leading-relaxed text-ink-muted shadow-soft-card">
                         Ruang diskusi privat bersama{' '}
-                        <strong className="text-slate-800">{currentRoom.partnerName}</strong>.
+                        <strong className="text-ink">{currentRoom.partnerName}</strong>.
                         Sepakati topik materi, media belajar, dan persiapan sesi di sini.
                       </div>
 
@@ -460,17 +449,15 @@ export default function ChatPage() {
                             className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                           >
                             <div
-                              className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-2xs ${
+                              className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed shadow-soft-card ${
                                 isMe
-                                  ? 'rounded-tr-xs bg-[#2563EB] text-white'
-                                  : 'rounded-tl-xs border border-slate-200/70 bg-white text-slate-800'
+                                  ? 'rounded-tr-xs border border-primary-soft bg-primary-tint text-ink'
+                                  : 'rounded-tl-xs border border-line bg-surface text-ink'
                               }`}
                             >
                               <p className="whitespace-pre-wrap">{item.content}</p>
                               <time
-                                className={`mt-1 block text-right text-[10px] font-medium ${
-                                  isMe ? 'text-blue-100' : 'text-slate-400'
-                                }`}
+                                className="mt-1 block text-right text-[10px] font-medium text-ink-muted"
                               >
                                 {new Date(item.createdAt).toLocaleTimeString('id-ID', {
                                   hour: '2-digit',
@@ -487,7 +474,7 @@ export default function ChatPage() {
                     {/* Chat Input Bar */}
                     <form
                       onSubmit={sendMessage}
-                      className="flex items-end gap-2.5 border-t border-slate-100 p-3 sm:p-4 bg-white"
+                      className="flex items-end gap-2.5 border-t border-line p-3 sm:p-4 bg-surface"
                     >
                       <textarea
                         value={message}
@@ -495,13 +482,13 @@ export default function ChatPage() {
                         onKeyDown={handleKeyDown}
                         rows={1}
                         placeholder="Tulis pesan... (Enter untuk kirim)"
-                        className="max-h-28 min-h-11 flex-1 resize-y rounded-2xl border border-slate-200 px-4 py-2.5 text-xs sm:text-sm outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
+                        className="max-h-28 min-h-11 flex-1 resize-y rounded-2xl border border-line px-4 py-2.5 text-xs sm:text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary-accent/20"
                       />
                       <button
                         type="submit"
                         disabled={!message.trim()}
                         aria-label="Kirim pesan"
-                        className="h-11 w-11 rounded-2xl bg-[#2563EB] text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center shrink-0 transition shadow-sm hover:shadow-md"
+                        className="h-11 w-11 rounded-2xl action-primary disabled:opacity-50 flex items-center justify-center shrink-0 transition shadow-xs"
                       >
                         <Send className="h-4 w-4" />
                       </button>
@@ -509,16 +496,16 @@ export default function ChatPage() {
                   </>
                 ) : (
                   <div className="m-auto max-w-sm p-8 text-center">
-                    <MessageCircle className="mx-auto h-12 w-12 text-slate-300 mb-3" />
-                    <h3 className="text-base font-bold text-slate-900">
+                    <MessageCircle className="mx-auto h-12 w-12 text-ink-muted mb-3" />
+                    <h3 className="text-base font-bold text-ink">
                       Pilih Percakapan
                     </h3>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-ink-muted">
                       Pilih salah satu pesan di sidebar kiri atau booking sesi belajar baru.
                     </p>
                     <Link
                       href="/dashboard"
-                      className="mt-4 inline-block px-5 py-2.5 rounded-xl bg-[#2563EB] text-white text-xs font-bold hover:bg-blue-700 transition"
+                      className="mt-4 inline-block px-5 py-2.5 rounded-xl action-primary text-xs font-bold transition shadow-xs"
                     >
                       Jelajahi Mentor
                     </Link>
@@ -530,7 +517,7 @@ export default function ChatPage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer workspace />
     </div>
   );
 }

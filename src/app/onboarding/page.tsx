@@ -3,19 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  Sparkles,
-  Camera,
-  ArrowRight,
-  ArrowLeft,
-  Check,
-  CheckCircle2,
-  Info,
-  Lightbulb,
-  Upload,
-  Plus,
-  Loader2,
-} from "lucide-react";
+import MentoraLogo from "@/components/MentoraLogo";
+import { useSession } from "@/components/SessionProvider";
+import { accountHome } from "@/lib/account-home";
+import { logoutTo } from "@/lib/logout";
+import { Camera, Info, Lightbulb, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, CheckCircle2, Upload, Plus } from "@/components/animated-icons";
 
 const PRESET_SKILLS = [
   "UI/UX Design",
@@ -34,9 +27,14 @@ const PRESET_SKILLS = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { profile } = useSession();
+  const home = profile ? accountHome(profile) : undefined;
+  const returnHref = home === "/onboarding" ? undefined : home;
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [leaving, setLeaving] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
 
   // Step 1: Data Diri State
   // Nama lengkap dapat diambil dari data registrasi; data profil lainnya diisi pengguna.
@@ -70,7 +68,7 @@ export default function OnboardingPage() {
         const res = await fetch("/api/profile");
 
         if (res.status === 401) {
-          router.push("/auth");
+          if (active) router.replace("/auth?tab=masuk");
           return;
         }
 
@@ -149,6 +147,7 @@ export default function OnboardingPage() {
 
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (leaving || loading) return;
     setLoading(true);
     try {
       const res = await fetch("/api/profile/onboarding/step1", {
@@ -201,6 +200,7 @@ export default function OnboardingPage() {
   };
 
   const handleFinalSubmit = async () => {
+    if (leaving || loading) return;
     if (skillsToLearn.length === 0) {
       alert("Pilih minimal 1 skill yang ingin kamu pelajari.");
       return;
@@ -218,7 +218,7 @@ export default function OnboardingPage() {
       });
 
       if (res.ok) {
-        router.push("/dashboard");
+        window.location.replace("/dashboard");
       } else {
         alert("Gagal menyelesaikan onboarding.");
       }
@@ -229,45 +229,39 @@ export default function OnboardingPage() {
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFB]">
-        <div className="flex flex-col items-center gap-3 text-slate-500">
-          <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
-          <p className="text-sm font-semibold">Memuat profil Mentora...</p>
-        </div>
-      </div>
-    );
-  }
+  const leaveAccount = async () => {
+    if (leaving || loading) return;
+    setLeaving(true);
+    setLogoutError("");
+    try {
+      await logoutTo("/auth?tab=masuk");
+    } catch {
+      setLogoutError("Gagal keluar dari akun. Coba lagi.");
+      setLeaving(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFB] flex flex-col">
+    <div className="min-h-screen bg-canvas flex flex-col">
       {/* Top Header with Stepper */}
-      <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 via-[#2563EB] to-indigo-500 flex items-center justify-center">
-              <div className="grid grid-cols-2 gap-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-              </div>
-            </div>
-            <span className="text-xl font-extrabold text-slate-900">
+      <header className="border-b border-line bg-canvas sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 min-h-16 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 lg:min-h-20">
+          <a href={returnHref} aria-label="Mentora" className="inline-flex min-h-11 items-center gap-2 rounded-lg">
+            <MentoraLogo />
+            <span className="text-2xl font-extrabold tracking-tight text-ink">
               Mentora
             </span>
-          </Link>
+          </a>
 
           {/* Stepper Progress bar matching mockup */}
-          <div className="flex items-center gap-3 sm:gap-6 text-xs font-semibold">
+          <div className="order-last flex w-full items-center justify-center gap-2 pb-1 text-xs font-semibold sm:gap-4 md:order-none md:w-auto md:pb-0">
             {/* Step 1 */}
             <div className="flex items-center gap-2">
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   currentStep === 1
-                    ? "bg-[#2563EB] text-white"
-                    : "bg-emerald-500 text-white"
+                    ? "bg-primary text-white"
+                    : "bg-primary-soft text-primary"
                 }`}
               >
                 {currentStep === 2 ? "✓" : "1"}
@@ -275,23 +269,23 @@ export default function OnboardingPage() {
               <span
                 className={
                   currentStep === 1
-                    ? "text-slate-900 font-bold"
-                    : "text-slate-500"
+                    ? "text-ink font-bold"
+                    : "text-ink-muted"
                 }
               >
                 Data Diri
               </span>
             </div>
 
-            <div className="w-8 sm:w-16 h-0.5 bg-slate-200"></div>
+            <div className="w-3 sm:w-16 h-0.5 bg-line"></div>
 
             {/* Step 2 */}
             <div className="flex items-center gap-2">
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   currentStep === 2
-                    ? "bg-[#2563EB] text-white"
-                    : "bg-slate-200 text-slate-500"
+                    ? "bg-primary text-white"
+                    : "bg-line text-ink-secondary"
                 }`}
               >
                 2
@@ -299,63 +293,76 @@ export default function OnboardingPage() {
               <span
                 className={
                   currentStep === 2
-                    ? "text-slate-900 font-bold"
-                    : "text-slate-400"
+                    ? "text-ink font-bold"
+                    : "text-ink-muted"
                 }
               >
-                Minat & Skill
+                Minat &amp; Skill
               </span>
             </div>
 
-            <div className="w-8 sm:w-16 h-0.5 bg-slate-200"></div>
+            <div className="w-3 sm:w-16 h-0.5 bg-line"></div>
 
             {/* Step 3 */}
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold">
+              <div className="w-6 h-6 rounded-full bg-line text-ink-secondary flex items-center justify-center text-xs font-bold">
                 3
               </div>
-              <span className="text-slate-400 hidden sm:inline">Selesai</span>
+              <span className="text-ink-muted hidden sm:inline">Selesai</span>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            {profile && <span className="hidden max-w-40 truncate text-xs text-ink-muted lg:block" title={profile.email}>{profile.email}</span>}
+            <button type="button" onClick={leaveAccount} disabled={leaving || loading}
+              className="action-secondary inline-flex min-h-11 items-center rounded-full px-4 text-sm font-semibold">
+              {leaving ? "Sedang keluar…" : "Keluar dari akun"}
+            </button>
+          </div>
         </div>
+        {logoutError && <p role="alert" className="mx-auto max-w-6xl px-4 pb-2 text-right text-sm text-danger">{logoutError}</p>}
       </header>
 
       {/* Main Container */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-10">
+        {initialLoading && (
+          <div role="status" className="flex items-center justify-center gap-3 py-12 text-sm text-ink-muted">
+            <Loader2 aria-hidden="true" className="size-5 animate-spin text-primary" /> Memuat profil Mentora...
+          </div>
+        )}
         {/* ================= STEP 1: DATA DIRI ================= */}
-        {currentStep === 1 && (
+        {!initialLoading && currentStep === 1 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             {/* Left Column: Context & Guidelines */}
             <div className="lg:col-span-5 space-y-6">
-              <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#2563EB] text-xs font-bold tracking-wider uppercase">
+              <div className="inline-block px-3 py-1 rounded-full bg-canvas text-primary border border-line text-xs font-bold tracking-wider uppercase">
                 LANGKAH 1 DARI 2
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-ink leading-tight">
                 Yuk, lengkapi <br />
                 data dirimu!
               </h1>
 
-              <p className="text-sm text-slate-600 leading-relaxed">
+              <p className="text-sm text-ink-muted leading-relaxed">
                 Data ini membantu Mentora memberi rekomendasi partner dan sesi
                 belajar yang lebih relevan.
               </p>
 
-              <div className="pt-2 font-handwriting text-2xl font-bold text-slate-800 -rotate-2">
+              <div className="pt-2 font-handwriting text-2xl font-bold text-ink -rotate-2">
                 Satu langkah lagi <br />
                 menuju versi terbaik <br />
-                dirimu! 🚀
+                dirimu!
               </div>
 
               {/* Informative Card */}
-              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-2.5">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-blue-600" />
+              <div className="p-5 rounded-2xl bg-surface border border-line shadow-sm space-y-2.5">
+                <h4 className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-primary" />
                   Kenapa data ini penting?
                 </h4>
-                <ul className="text-xs text-slate-500 space-y-1.5 pl-1">
+                <ul className="text-xs text-ink-muted space-y-1.5 pl-1">
                   <li>• Rekomendasi partner belajar lebih relevan</li>
-                  <li>• Pencocokan kampus & jurusan sesuai kurikulum</li>
+                  <li>• Pencocokan kampus &amp; jurusan sesuai kurikulum</li>
                   <li>
                     • Pengalaman belajar tatap muka / daring lebih personal
                   </li>
@@ -367,20 +374,20 @@ export default function OnboardingPage() {
             <div className="lg:col-span-7">
               <form
                 onSubmit={handleStep1Submit}
-                className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-6"
+                className="bg-surface rounded-3xl p-8 border border-line shadow-sm space-y-6"
               >
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
+                  <h2 className="text-xl font-bold text-ink">
                     Informasi Profil
                   </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-ink-muted mt-0.5">
                     Mulai dengan informasi dasar tentang dirimu.
                   </p>
                 </div>
 
                 {/* Foto Profil Upload */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-2">
+                  <label className="block text-xs font-bold text-ink-secondary mb-2">
                     Foto Profil
                   </label>
                   <div className="flex items-center gap-5">
@@ -389,17 +396,17 @@ export default function OnboardingPage() {
                         <img
                           src={fotoProfil}
                           alt="Avatar"
-                          className="w-20 h-20 rounded-2xl object-cover border-2 border-blue-100 shadow-sm"
+                          className="w-20 h-20 rounded-2xl object-cover border-2 border-line shadow-sm"
                         />
                       ) : (
-                        <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400">
+                        <div className="w-20 h-20 rounded-2xl bg-canvas border-2 border-dashed border-line flex items-center justify-center text-ink-muted">
                           <Camera className="w-6 h-6" />
                         </div>
                       )}
                     </div>
                     <div>
-                      <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700 transition">
-                        <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
+                      <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-canvas hover:bg-line/30 border border-line text-xs font-semibold text-ink-secondary transition">
+                        <Upload className="w-3.5 h-3.5 text-primary" />
                         <span>Klik untuk upload foto</span>
                         <input
                           type="file"
@@ -408,7 +415,7 @@ export default function OnboardingPage() {
                           className="hidden"
                         />
                       </label>
-                      <p className="text-[11px] text-slate-400 mt-1">
+                      <p className="text-[11px] text-ink-muted mt-1">
                         JPG, PNG maks. 2MB
                       </p>
                     </div>
@@ -418,8 +425,8 @@ export default function OnboardingPage() {
                 {/* 2-Columns Form Fields */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Nama Lengkap <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-bold text-ink-secondary mb-1">
+                      Nama Lengkap <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -427,13 +434,13 @@ export default function OnboardingPage() {
                       onChange={(e) => setNamaLengkap(e.target.value)}
                       placeholder="mis. Aulia Rahisa Putri"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Nama Panggilan <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-bold text-ink-secondary mb-1">
+                      Nama Panggilan <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -441,13 +448,13 @@ export default function OnboardingPage() {
                       onChange={(e) => setNamaPanggilan(e.target.value)}
                       placeholder="mis. Aulia"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Universitas <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-bold text-ink-secondary mb-1">
+                      Universitas <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -455,13 +462,13 @@ export default function OnboardingPage() {
                       onChange={(e) => setUniversitas(e.target.value)}
                       placeholder="mis. Universitas Telkom"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Program Studi <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-bold text-ink-secondary mb-1">
+                      Program Studi <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -469,13 +476,13 @@ export default function OnboardingPage() {
                       onChange={(e) => setProdi(e.target.value)}
                       placeholder="mis. Desain Komunikasi Visual"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Semester <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-bold text-ink-secondary mb-1">
+                      Semester <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -483,13 +490,13 @@ export default function OnboardingPage() {
                       onChange={(e) => setSemester(e.target.value)}
                       placeholder="mis. 4 (Semester Empat)"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Domisili <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-bold text-ink-secondary mb-1">
+                      Domisili <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
@@ -497,14 +504,14 @@ export default function OnboardingPage() {
                       onChange={(e) => setDomisili(e.target.value)}
                       placeholder="mis. Depok, Jawa Barat"
                       required
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Tanggal Lahir <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-bold text-ink-secondary mb-1">
+                    Tanggal Lahir <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -512,12 +519,12 @@ export default function OnboardingPage() {
                     onChange={(e) => setTglLahir(e.target.value)}
                     placeholder="mis. 14 Agustus 2003"
                     required
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-ink-secondary mb-1">
                     Bio Singkat
                   </label>
                   <textarea
@@ -525,29 +532,29 @@ export default function OnboardingPage() {
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Tuliskan perkenalan singkat mengenai dirimu..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB] outline-none resize-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-line text-sm focus:ring-2 focus:ring-primary-accent/20 focus:border-primary outline-none resize-none"
                   />
                 </div>
 
                 {/* Bottom Actions */}
-                <div className="pt-4 flex items-center justify-between border-t border-slate-100">
-                  <Link
-                    href="/"
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                <div className="pt-4 flex flex-wrap items-center gap-2 border-t border-line">
+                  {returnHref && <Link
+                    href={returnHref}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-ink-muted hover:bg-canvas transition"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Kembali</span>
-                  </Link>
+                    <span>{returnHref === "/admin" ? "Kembali ke portal admin" : "Kembali ke dashboard"}</span>
+                  </Link>}
 
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-md transition disabled:opacity-60"
+                    disabled={loading || leaving}
+                    className="ml-auto inline-flex items-center gap-2 px-6 py-2.5 rounded-xl action-primary text-xs font-bold shadow-md transition disabled:opacity-60"
                   >
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : null}
-                    <span>Lanjut ke Minat & Skill</span>
+                    <span>Lanjut ke Minat &amp; Skill</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -557,30 +564,30 @@ export default function OnboardingPage() {
         )}
 
         {/* ================= STEP 2: MINAT & SKILL ================= */}
-        {currentStep === 2 && (
+        {!initialLoading && currentStep === 2 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             {/* Left Area: Skill Selectors */}
             <div className="lg:col-span-8 space-y-8">
               <div>
-                <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-[#2563EB] text-xs font-bold tracking-wider uppercase mb-2">
+                <div className="inline-block px-3 py-1 rounded-full bg-canvas text-primary border border-line text-xs font-bold tracking-wider uppercase mb-2">
                   PILIH AKTIVITAS KEMAMPUAN LEBIH CEPAT
                 </div>
-                <h1 className="text-3xl font-extrabold text-slate-900">
+                <h1 className="text-3xl font-extrabold text-ink">
                   Pilih skill yang ingin kamu pelajari
                 </h1>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-ink-muted mt-1">
                   Pilih minimal 1 (disarankan 3) agar rekomendasi teman belajar
                   di Mentora lebih tepat.
                 </p>
               </div>
 
               {/* Section 1: Skill yang Ingin Dipelajari */}
-              <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm space-y-4">
+              <div className="bg-surface rounded-3xl p-7 border border-line shadow-sm space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-ink">
                     Skill yang Ingin Kamu Pelajari
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-ink-muted mt-0.5">
                     Pilih skill yang sedang ingin kamu kuasai saat ini.
                   </p>
                 </div>
@@ -595,8 +602,8 @@ export default function OnboardingPage() {
                         onClick={() => toggleLearnSkill(skill)}
                         className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
                           isSelected
-                            ? "bg-blue-50 text-[#2563EB] border-2 border-[#2563EB] shadow-xs"
-                            : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300"
+                            ? "bg-canvas text-ink border-2 border-primary shadow-xs"
+                            : "bg-canvas text-ink-secondary border border-line hover:border-ink-muted"
                         }`}
                       >
                         {isSelected && (
@@ -615,7 +622,7 @@ export default function OnboardingPage() {
                     value={customSkillInput}
                     onChange={(e) => setCustomSkillInput(e.target.value)}
                     placeholder="Tambah skill lain..."
-                    className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-1 focus:ring-[#2563EB] outline-none"
+                    className="px-3.5 py-1.5 rounded-xl border border-line text-xs focus:ring-1 focus:ring-primary-accent outline-none"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -626,7 +633,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={handleAddCustomSkill}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 transition"
+                    className="px-3 py-1.5 rounded-xl bg-canvas hover:bg-line/30 text-ink-secondary border border-line text-xs font-semibold flex items-center gap-1 transition"
                   >
                     <Plus className="w-3 h-3" />
                     <span>Tambah</span>
@@ -635,12 +642,12 @@ export default function OnboardingPage() {
               </div>
 
               {/* Section 2: Skill yang Sudah Dimiliki */}
-              <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm space-y-4">
+              <div className="bg-surface rounded-3xl p-7 border border-line/80 shadow-sm space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-ink">
                     Skill yang Sudah Kamu Miliki
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-ink-muted mt-0.5">
                     Boleh dipilih lebih dari satu. Ini membantu pencocokan skill
                     dua arah (barter ilmu).
                   </p>
@@ -656,8 +663,8 @@ export default function OnboardingPage() {
                         onClick={() => togglePossessedSkill(skill)}
                         className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
                           isSelected
-                            ? "bg-emerald-50 text-emerald-700 border-2 border-emerald-500 shadow-xs"
-                            : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300"
+                            ? "bg-primary-soft text-primary border-2 border-primary shadow-xs"
+                            : "bg-canvas text-ink-secondary border border-line hover:border-subtle"
                         }`}
                       >
                         {isSelected && (
@@ -671,12 +678,12 @@ export default function OnboardingPage() {
               </div>
 
               {/* Section 3: Mode Sesi yang Disukai */}
-              <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm space-y-4">
+              <div className="bg-surface rounded-3xl p-7 border border-line shadow-sm space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-ink">
                     Mode Sesi yang Kamu Sukai
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-ink-muted mt-0.5">
                     Pilih preferensi pelaksanaan sesi belajar.
                   </p>
                 </div>
@@ -689,8 +696,8 @@ export default function OnboardingPage() {
                       onClick={() => setModeSesi(mode)}
                       className={`py-3 px-4 rounded-xl text-xs font-bold text-center border transition-all ${
                         modeSesi === mode
-                          ? "border-[#2563EB] bg-blue-50 text-[#2563EB] shadow-xs"
-                          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                          ? "border-primary bg-canvas text-ink shadow-xs"
+                          : "border-line bg-surface text-ink-secondary hover:bg-canvas"
                       }`}
                     >
                       {mode}
@@ -704,7 +711,7 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-ink-muted hover:bg-canvas transition"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Kembali</span>
@@ -714,26 +721,22 @@ export default function OnboardingPage() {
 
             {/* Right Column: Tips & Complete Action */}
             <div className="lg:col-span-4 space-y-5">
-              {/* Blue Card Graphic */}
-              <div className="bg-[#2563EB] text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+              <div className="rounded-3xl border border-line bg-canvas p-6 text-ink">
                 <div className="relative z-10 space-y-4">
                   <h3 className="text-lg font-black leading-snug">
                     Mulai perjalanan <br />
                     belajarmu hari ini <br />
-                    bareng Mentora! 🚀
+                    bareng Mentora!
                   </h3>
-                  <div className="font-handwriting text-2xl font-bold -rotate-2 text-blue-100">
+                  <div className="font-handwriting text-2xl font-bold -rotate-2 text-ink-secondary">
                     More Skills Brighter Friends
                   </div>
                 </div>
-                {/* Decorative circle */}
-                <div className="absolute -bottom-6 -right-6 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
               </div>
 
-              {/* Green Tip Box */}
-              <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-xs text-slate-700 space-y-1.5">
-                <div className="flex items-center gap-1.5 font-bold text-emerald-800">
-                  <Lightbulb className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="p-5 rounded-2xl bg-canvas border border-line text-xs text-ink space-y-1.5">
+                <div className="flex items-center gap-1.5 font-bold text-ink">
+                  <Lightbulb className="w-3.5 h-3.5 text-primary" />
                   <span>Tips Belajar</span>
                 </div>
                 <p className="leading-relaxed">
@@ -742,12 +745,11 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
-              {/* Yellow Tip Box */}
-              <div className="p-5 rounded-2xl bg-[#FEF08A]/70 border border-amber-300 text-xs text-slate-800 space-y-2">
-                <h4 className="font-bold text-amber-900">
+              <div className="p-5 rounded-2xl bg-canvas border border-line text-xs text-ink space-y-2">
+                <h4 className="font-bold text-ink">
                   Tips memilih skill:
                 </h4>
-                <ol className="list-decimal list-inside space-y-1 text-slate-700 leading-relaxed">
+                <ol className="list-decimal list-inside space-y-1 text-ink-secondary leading-relaxed">
                   <li>Pilih minat yang paling relevan</li>
                   <li>Kelompokkan skill yang sudah kamu kuasai</li>
                   <li>Sesuaikan mode sesi sesuai kenyamananmu</li>
@@ -758,11 +760,11 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={handleFinalSubmit}
-                disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-sm font-bold shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 disabled:opacity-60"
+                disabled={loading || leaving}
+                className="w-full py-4 px-6 rounded-2xl action-primary text-sm font-bold shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                <span>Selesai & Masuk Mentora</span>
+                <span>Selesai &amp; Masuk Mentora</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

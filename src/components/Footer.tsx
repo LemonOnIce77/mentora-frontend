@@ -1,173 +1,87 @@
+'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSession } from '@/components/SessionProvider';
+import { accountHome } from '@/lib/account-home';
 
-export default function Footer() {
+const groups = [
+  {
+    title: 'Fitur utama',
+    links: [
+      ['Pencocokan Keahlian', '/matching'],
+      ['Nearby Peer-Finder', '/matching?sekitar=1'],
+      ['Verifikasi Mentor', '/dashboard'],
+      ['EduPoints & Sertifikat', '/dashboard'],
+    ],
+  },
+  {
+    title: 'Platform',
+    links: [
+      ['Katalog Keahlian', '/skills'],
+      ['Daftar Jadi Mentor', '/mentor/apply'],
+      ['Jadwal Sesi Belajar', '/dashboard'],
+      ['Panduan & FAQ', '/faq'],
+    ],
+  },
+];
+
+const linkStyle = 'inline-flex min-h-11 items-center rounded text-sm font-medium text-ink-secondary underline-offset-4 hover:text-primary hover:underline focus-visible:text-primary';
+
+export default function Footer({ workspace = false }: { workspace?: boolean }) {
+  const { profile } = useSession();
+  if (workspace || profile) {
+    const home = profile ? accountHome(profile) : "/";
+    return (
+      <footer className="mt-auto border-t border-line bg-canvas text-ink">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-8 gap-y-2 px-4 py-4 sm:px-6 lg:px-8">
+          <Link href={home} className="inline-flex min-h-11 items-center gap-2 rounded-lg font-bold">
+            <Image src="/Mentora.svg" alt="" width={26} height={26} /> Mentora
+          </Link>
+          <nav aria-label="Tautan pendukung" className="flex flex-wrap items-center gap-x-5">
+            {home === '/dashboard' && <Link href="/skills" className={linkStyle}>Katalog keahlian</Link>}
+            {home === '/dashboard' && <Link href="/mentor/apply" className={linkStyle}>Pengajuan mentor</Link>}
+            <Link href="/faq" className={linkStyle}>FAQ</Link>
+            <Link href="/bantuan" className={linkStyle}>Pusat bantuan</Link>
+          </nav>
+        </div>
+      </footer>
+    );
+  }
   return (
-    <footer className="bg-white border-t border-slate-200 mt-auto py-12">
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-
-          {/* BRAND */}
-          <div className="space-y-3 md:col-span-1">
-
-            <div className="flex items-center gap-2.5">
-
-              <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
-
-                <Image
-                  src="/Mentora.svg"
-                  alt="Mentora Logo"
-                  width={32}
-                  height={32}
-                  className="object-contain"
-                />
-
-              </div>
-
-              <span className="text-xl font-extrabold text-slate-900 tracking-tight">
-                Mentora
-              </span>
-
-            </div>
-
-            <p className="text-sm text-slate-500 leading-relaxed">
-              Platform Peer-to-Peer Skill Exchange mahasiswa untuk berbagi
-              ilmu, menambah relasi, dan membangun portofolio keahlian resmi.
+    <footer className="mt-auto border-t border-line bg-primary-soft/50 text-ink">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 py-10 sm:py-12 lg:grid-cols-[1.5fr_1fr_1fr] lg:gap-14">
+          <div className="col-span-2 lg:col-span-1">
+            <Link href="/" aria-label="Beranda Mentora" className="inline-flex min-h-11 items-center gap-2.5 rounded-lg">
+              <Image src="/Mentora.svg" alt="" width={36} height={36} />
+              <span className="text-3xl font-extrabold tracking-tight">Mentora</span>
+            </Link>
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-ink-secondary">
+              Platform pertukaran keahlian antarmahasiswa untuk berbagi ilmu, menambah relasi, dan membangun portofolio.
             </p>
-
-            <div className="text-lg font-handwriting text-[#2563EB]">
-              More Skills Brighter Friends ✨
-            </div>
-
+            <p className="mt-4 font-handwriting text-2xl text-primary">More Skills Brighter Friends</p>
           </div>
-
-          {/* FITUR UTAMA */}
-          <div>
-
-            <h4 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">
-              Fitur Utama
-            </h4>
-
-            <ul className="space-y-2 text-sm text-slate-500">
-
-              <li>
-                <Link href="/#fitur" className="hover:text-[#2563EB] transition">
-                  Pencocokan Keahlian
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/#fitur" className="hover:text-[#2563EB] transition">
-                  Nearby Peer-Finder
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/dashboard" className="hover:text-[#2563EB] transition">
-                  Verifikasi Mentor
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/#fitur" className="hover:text-[#2563EB] transition">
-                  EduPoints & Sertifikat
-                </Link>
-              </li>
-
-            </ul>
-
-          </div>
-
-          {/* PLATFORM */}
-          <div>
-
-            <h4 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">
-              Platform
-            </h4>
-
-            <ul className="space-y-2 text-sm text-slate-500">
-
-              <li>
-                <Link href="/skills" className="hover:text-[#2563EB] transition">
-                  Katalog Keahlian
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/mentor/apply" className="hover:text-[#2563EB] transition">
-                  Daftar Jadi Mentor
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/dashboard" className="hover:text-[#2563EB] transition">
-                  Jadwal Sesi Belajar
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/faq" className="hover:text-[#2563EB] transition">
-                  Panduan & FAQ
-                </Link>
-              </li>
-
-            </ul>
-
-          </div>
-
-          {/* TENTANG PLATFORM */}
-          <div>
-
-            <h4 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">
-              Tentang Platform
-            </h4>
-
-            <p className="text-xs text-slate-500 leading-relaxed mb-3">
-              Dikembangkan oleh mahasiswa Telkom University dalam inisiatif
-              pembelajaran kolaboratif yang terarah dan menyenangkan.
-            </p>
-
-            <p className="text-xs text-slate-400">
-              Mendukung SDGs Tujuan 4: Pendidikan Berkualitas yang Inklusif
-              dan Merata.
-            </p>
-
-          </div>
-
+          {groups.map(({ title, links }) => (
+            <nav key={title} aria-label={title} className="min-w-0">
+              <h2 className="mb-2 text-base font-bold">{title}</h2>
+              <ul>
+                {links.map(([label, href]) => <li key={label}><Link href={href} className={linkStyle}>{label}</Link></li>)}
+              </ul>
+            </nav>
+          ))}
         </div>
-
-        {/* COPYRIGHT */}
-        <div className="border-t border-slate-100 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
-
-          <p>
-            &copy; {new Date().getFullYear()} Mentora Platform.
-            Hak cipta dilindungi.
+        <div className="grid items-center gap-x-8 gap-y-1 border-y border-line py-5 sm:grid-cols-[1fr_auto]">
+          <p className="max-w-2xl text-sm leading-relaxed text-ink-secondary">
+            Dikembangkan oleh mahasiswa Telkom University untuk mendukung pembelajaran kolaboratif dan pendidikan berkualitas yang inklusif.
           </p>
-
-          <div className="flex gap-6 mt-4 sm:mt-0">
-
-            <Link href="/" className="hover:text-slate-900 transition">
-              Kebijakan Privasi
-            </Link>
-
-            <Link href="/" className="hover:text-slate-900 transition">
-              Syarat Ketentuan
-            </Link>
-
-            <Link href="/faq" className="hover:text-slate-900 transition">
-              Pusat Bantuan
-            </Link>
-
-          </div>
-
+          <Link href="/tentang" className={linkStyle + ' justify-self-start gap-2 font-semibold text-primary'}>Kenali Mentora <span aria-hidden="true">→</span></Link>
         </div>
-
+        <div className="flex flex-wrap items-center justify-between gap-x-5 py-2">
+          <p className="text-xs text-ink-muted">© {new Date().getFullYear()} Mentora Platform. Hak cipta dilindungi.</p>
+          <Link href="/bantuan" className={linkStyle}>Pusat Bantuan</Link>
+        </div>
       </div>
-
     </footer>
   );
 }

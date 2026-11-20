@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { approvalCount, mentorIdentity } from '@/lib/mentor-eligibility';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
 
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
     // Ambil skills milik pengguna yang sedang login
     const userSkills = await (p.user_skills || p.userSkill)?.findMany({
       where: { user_id: currentUserId },
-      include: { skills: true, skill: true },
+      include: { skills: true },
     }) || [];
 
     const taughtSkills = userSkills
@@ -59,8 +60,9 @@ export async function GET(req: NextRequest) {
         id: { not: currentUserId },
       },
       include: {
+        _count: approvalCount,
         user_skills: {
-          include: { skills: true, skill: true },
+          include: { skills: true },
         },
       },
     }) || [];
@@ -93,7 +95,7 @@ export async function GET(req: NextRequest) {
         ? 75 + Math.min(20, (theyTeachMe.length + iTeachThem.length) * 5)
         : 50 + Math.min(25, Math.max(theyTeachMe.length, iTeachThem.length) * 8);
 
-      const isVerified = cand.status_mentor === 'APPROVED' || cand.statusMentor === 'APPROVED' || cand.role === 'Mentor';
+      const isVerified = mentorIdentity(cand).statusMentor === 'APPROVED';
       if (isVerified) score = Math.min(99, score + 5);
 
       const candLat = Number(cand.latitude ?? userLat + (idx + 1) * 0.003);
@@ -106,7 +108,7 @@ export async function GET(req: NextRequest) {
         namaPanggilan: cand.nama_panggilan || cand.namaPanggilan,
         universitas: cand.universitas || 'Universitas Telkom',
         prodi: cand.prodi || 'Informatika',
-        domisili: cand.domisili || 'Bandung',
+        domisili: cand.domisili || 'Lokasi belum diatur',
         fotoProfil: cand.foto_profil || cand.fotoProfil,
         isVerifiedMentor: isVerified,
         matchScore: score,
@@ -137,50 +139,7 @@ export async function GET(req: NextRequest) {
       matches: filteredMatches,
     });
   } catch (error) {
-    console.warn('Prisma matching query fallback:', error);
-    const fallbackMatches = [
-      {
-        id: '2',
-        namaLengkap: 'Sulthoni Prima Rafasya',
-        namaPanggilan: 'Sulthoni',
-        universitas: 'Universitas Telkom',
-        prodi: 'Informatika',
-        domisili: 'Bandung',
-        fotoProfil: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
-        isVerifiedMentor: true,
-        matchScore: 92,
-        isTwoWay: true,
-        latitude: -6.9745,
-        longitude: 107.6315,
-        distanceKm: 0.8,
-        modeSesi: 'Fleksibel',
-        skillsDitawarkan: ['Programming', 'Web Development'],
-        skillsDibutuhkan: ['UI/UX Design', 'Figma'],
-      },
-      {
-        id: '3',
-        namaLengkap: 'Aulia Rahisa Putri',
-        namaPanggilan: 'Aulia',
-        universitas: 'Universitas Telkom',
-        prodi: 'Desain Komunikasi Visual',
-        domisili: 'Bandung',
-        fotoProfil: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80',
-        isVerifiedMentor: true,
-        matchScore: 88,
-        isTwoWay: true,
-        latitude: -6.9755,
-        longitude: 107.6320,
-        distanceKm: 1.2,
-        modeSesi: 'Online',
-        skillsDitawarkan: ['UI/UX Design', 'Figma'],
-        skillsDibutuhkan: ['Programming'],
-      },
-    ];
-
-    return NextResponse.json({
-      success: true,
-      total: fallbackMatches.length,
-      matches: fallbackMatches,
-    });
+    console.error('Gagal memuat rekomendasi:', error);
+    return NextResponse.json({ message: 'Gagal memuat rekomendasi.' }, { status: 500 });
   }
 }
