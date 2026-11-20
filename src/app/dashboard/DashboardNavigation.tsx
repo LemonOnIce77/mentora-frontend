@@ -19,8 +19,8 @@ const sections = [
   { key: "mentors", label: "Daftar mentor", icon: Users },
   { key: "sessions", label: "Sesi belajar", icon: CalendarDays },
   { key: "skills", label: "Keahlian saya", icon: Layers },
-  { key: "profile", label: "Profil saya", icon: UserRound },
   { key: "apply", label: "Status mentor", icon: ShieldCheck },
+  { key: "profile", label: "Profil saya", icon: UserRound },
   { key: "admin", label: "Verifikasi mentor", icon: ClipboardCheck },
 ] as const;
 
@@ -28,7 +28,9 @@ export type DashboardTab = (typeof sections)[number]["key"];
 
 function availableSections(isAdmin: boolean) {
   return sections.filter(({ key }) =>
-    isAdmin ? key !== "apply" : key !== "admin" && key !== "overview",
+    isAdmin
+      ? key !== "apply" && key !== "profile"
+      : key !== "admin" && key !== "overview" && key !== "profile",
   );
 }
 
@@ -158,44 +160,21 @@ export default function DashboardNavigation({
               />
               <span>Administrator Mentora</span>
             </span>
-          ) : verified ? (
-            <Link
-              href={dashboardUrl("apply")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-xs font-bold text-ink-secondary shadow-2xs transition-colors hover:border-primary hover:text-primary"
-            >
-              <BadgeCheck className="size-4 shrink-0 text-success" aria-hidden="true" />
-              <span>Mentor terverifikasi</span>
-            </Link>
-          ) : pending ? (
-            <Link
-              href={dashboardUrl("apply")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-warning-soft bg-warning-tint px-4 py-2 text-xs font-bold text-ink shadow-2xs transition-colors hover:border-warning-accent"
-            >
-              <Clock
-                className="size-4 shrink-0 text-warning-accent"
-                aria-hidden="true"
-              />
-              <span>Verifikasi ditinjau</span>
-            </Link>
           ) : (
-            <Link
-              href={dashboardUrl("profile")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-xs font-medium text-ink-secondary shadow-2xs transition-colors hover:border-primary hover:text-primary"
-            >
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-xs font-medium text-ink-secondary shadow-2xs">
               <GraduationCap
                 className="size-4 shrink-0 text-primary"
                 aria-hidden="true"
               />
-              <span>
+              <span className="max-w-[200px] truncate">
                 {user.universitas ? user.universitas : "Mahasiswa / Mentee"}
               </span>
-            </Link>
+            </span>
           )}
 
           {!isAdmin && (
-            <Link
-              href={dashboardUrl("apply")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-warning-soft/70 bg-warning-tint px-4 py-2 text-xs font-bold text-warning shadow-2xs transition-colors hover:opacity-90"
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border border-warning-soft/70 bg-warning-tint px-4 py-2 text-xs font-bold text-warning shadow-2xs"
             >
               <Award
                 className="size-4 shrink-0 text-warning"
@@ -205,7 +184,7 @@ export default function DashboardNavigation({
                 {user.totalPoin}
               </span>
               <span>EduPoints</span>
-            </Link>
+            </span>
           )}
         </div>
       </div>
