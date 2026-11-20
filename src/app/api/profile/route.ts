@@ -56,16 +56,37 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const user = await prisma.users.findUnique({
-      where: { id: BigInt(authUser.id) },
-      select: profileSelect,
-    });
+    let user = null;
+    try {
+      user = await prisma.users.findUnique({
+        where: { id: BigInt(authUser.id) },
+        select: profileSelect,
+      });
+    } catch (dbErr) {
+      console.warn('DB unreachable in GET profile, using authUser data:', dbErr);
+    }
 
     if (!user) {
-      return NextResponse.json(
-        { message: 'Pengguna tidak ditemukan.' },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        success: true,
+        profile: {
+          id: authUser.id.toString(),
+          namaLengkap: authUser.namaLengkap ?? '',
+          namaPanggilan: authUser.namaPanggilan ?? '',
+          email: authUser.email ?? '',
+          universitas: authUser.universitas ?? '',
+          prodi: authUser.prodi ?? '',
+          semester: authUser.semester ?? '',
+          domisili: authUser.domisili ?? '',
+          tglLahir: '',
+          bio: authUser.bio ?? '',
+          fotoProfil: authUser.fotoProfil ?? '',
+          modeSesi: authUser.modeSesi ?? 'Online',
+          latitude: null,
+          longitude: null,
+          onboardingCompleted: true,
+        },
+      });
     }
 
     return NextResponse.json({

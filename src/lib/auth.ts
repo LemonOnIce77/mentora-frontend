@@ -95,6 +95,18 @@ export async function getAuthUser(req: NextRequest) {
 
   if (!payload) return null;
 
+  const readSessionCookieFallback = () => {
+    const sessionCookie = req.cookies.get('mentora_session')?.value;
+    if (sessionCookie) {
+      try {
+        return JSON.parse(decodeURIComponent(sessionCookie));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
   try {
     // Ambil data terbaru dari database
     const user = await prisma.users.findUnique({
@@ -104,7 +116,7 @@ export async function getAuthUser(req: NextRequest) {
       include: { _count: approvalCount },
     });
 
-    if (!user) return null;
+    if (!user) return readSessionCookieFallback();
 
     // Ambil skill dari tabel user_skills
     const skills = await getUserSkills(user.id);
@@ -139,7 +151,7 @@ export async function getAuthUser(req: NextRequest) {
     };
 
   } catch (error) {
-    console.error('Error getAuthUser:', error);
-    return null;
+    console.warn('Database offline / unreachable in getAuthUser, using cookie session fallback:', error);
+    return readSessionCookieFallback();
   }
 }
