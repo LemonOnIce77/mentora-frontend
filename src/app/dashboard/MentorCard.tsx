@@ -1,80 +1,153 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { BadgeCheck, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, ChevronRight, MapPin, Video } from "lucide-react";
 import type { BookingMentor } from "@/components/BookingModal";
 import { cleanInitials } from "./DashboardNavigation";
 
-type Mentor = BookingMentor & {
-  bio?: string;
+export interface MentorCardData extends BookingMentor {
   domisili?: string;
+  bio?: string;
   modeSesi?: string;
-};
+  totalPoin?: number;
+}
 
-type Props = {
-  mentor: Mentor;
-  own: boolean;
+/* Jiro-inspired Minimal Student Mentor Card:
+ * - Clean rounded-2xl with hairline border (border-line) & subtle soft card shadow
+ * - Soft brand avatar (bg-primary-soft text-primary)
+ * - Academic info with inline verified check
+ * - Pill chips with subtle emerald dot indicator
+ * - Proportional hairline footer with availability indicator & crisp CTAs
+ */
+export default function MentorCard({
+  mentor,
+  own,
+  onBook,
+}: {
   wide?: boolean;
+  mentor: MentorCardData;
+  own: boolean;
   onBook: (mentor: BookingMentor) => void;
-};
-
-export default function MentorCard({ mentor, own, wide = false, onBook }: Props) {
+}) {
   const [failedPhoto, setFailedPhoto] = useState<string>();
-  const profileUrl = `/mentors/${mentor.id}`;
-  const titleId = `mentor-name-${mentor.id}`;
-  const academicLine = [mentor.prodi, mentor.universitas].filter(Boolean).join(" · ");
-  const skills = (mentor.skills ?? []).flatMap(({ skill }) => skill?.namaSkill ? [skill] : []);
-  const visibleSkills = skills.slice(0, 6);
-  const sessionDetails = [mentor.modeSesi ? `Sesi 1-on-1 (${mentor.modeSesi})` : "Sesi 1-on-1", mentor.domisili].filter(Boolean).join(" · ");
+  const initials = cleanInitials(mentor.namaPanggilan, mentor.namaLengkap);
+
+  const academicLine = [mentor.prodi, mentor.universitas]
+    .filter(Boolean)
+    .join(" · ");
+
+  const rawSkills = mentor.skills ?? [];
+  const skills: string[] = rawSkills
+    .map((item: any) => item?.skill?.namaSkill ?? item?.namaSkill)
+    .filter((s): s is string => Boolean(s))
+    .slice(0, 4);
+
+  const showPhoto =
+    Boolean(mentor.fotoProfil) && failedPhoto !== mentor.fotoProfil;
 
   return (
-    <article aria-labelledby={titleId}
-      className={`min-w-0 rounded-2xl border border-line bg-surface p-5 sm:p-6 ${wide ? "grid items-start gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(12rem,0.85fr)_auto] lg:items-center lg:gap-7" : "flex h-full flex-col gap-4"}`}>
-      <div className="min-w-0">
-        <header className="flex items-center gap-3.5">
-          <div className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full bg-primary-soft text-xl font-bold text-primary">
-            {mentor.fotoProfil && failedPhoto !== mentor.fotoProfil ? (
-              <img src={mentor.fotoProfil} alt="" onError={() => setFailedPhoto(mentor.fotoProfil)} className="size-full object-cover object-top" />
-            ) : (
-              <span aria-hidden="true">{cleanInitials(mentor.namaPanggilan, mentor.namaLengkap)}</span>
+    <article className="flex flex-col justify-between rounded-2xl border border-line bg-surface shadow-soft-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-cloud">
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <div className="flex items-start gap-3.5">
+          {showPhoto ? (
+            <img
+              src={mentor.fotoProfil}
+              alt={mentor.namaLengkap}
+              onError={() => setFailedPhoto(mentor.fotoProfil)}
+              className="size-12 shrink-0 rounded-2xl border border-line object-cover object-top"
+            />
+          ) : (
+            <span
+              className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary-soft text-[15px] font-extrabold text-primary"
+              aria-hidden="true"
+            >
+              {initials}
+            </span>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <h3 className="flex items-center gap-1.5 text-[15.5px] font-bold leading-snug text-ink">
+              <span className="truncate">{mentor.namaLengkap}</span>
+              <CheckCircle2
+                className="size-4 shrink-0 fill-success text-white"
+                aria-label="Mentor terverifikasi"
+              />
+            </h3>
+
+            {academicLine && (
+              <p className="mt-1 text-[13px] leading-relaxed text-ink-secondary">
+                {academicLine}
+              </p>
             )}
-          </div>
-          <div className="min-w-0">
-            <h3 id={titleId} className="break-words text-xl font-bold leading-snug tracking-tight text-ink">{mentor.namaLengkap}</h3>
-            <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-ink-secondary">
-              <BadgeCheck className="text-success" aria-hidden="true" size={15} /> Mentor terverifikasi
+
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-ink-muted">
+              {mentor.domisili && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="size-3.5" />
+                  <span>{mentor.domisili}</span>
+                </span>
+              )}
+              {mentor.domisili && <span aria-hidden="true">·</span>}
+              <span className="inline-flex items-center gap-1">
+                <Video className="size-3.5" />
+                <span>Sesi {mentor.modeSesi || "Online"}</span>
+              </span>
             </p>
           </div>
-        </header>
-        {academicLine && <p className="mt-3 break-words text-sm font-medium leading-relaxed text-ink-secondary">{academicLine}</p>}
-        {mentor.bio && <p className="mt-1 line-clamp-2 break-words text-sm leading-relaxed text-ink-muted">{mentor.bio}</p>}
-      </div>
+        </div>
 
-      <div className={`min-w-0 border-t border-line pt-3 ${wide ? "lg:border-t-0 lg:pt-0" : ""}`}>
-        {visibleSkills.length > 0 && (
-          <>
-            <p className="mb-2 text-xs font-semibold text-ink-muted">Keahlian yang diajarkan</p>
-            <ul aria-label="Keahlian yang diajarkan" className="flex flex-wrap gap-1.5">
-              {visibleSkills.map(skill => (
-                <li key={skill.id} className="max-w-full break-words rounded-md border border-line bg-canvas px-2.5 py-1 text-sm font-medium text-ink-secondary">{skill.namaSkill}</li>
-              ))}
-              {skills.length > visibleSkills.length && (
-                <li><Link href={profileUrl} className="inline-flex min-h-7 items-center px-1 text-xs font-semibold text-primary hover:underline">+{skills.length - visibleSkills.length} lainnya</Link></li>
-              )}
-            </ul>
-          </>
+        <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-ink-secondary">
+          {mentor.bio ||
+            "Siap membimbing dan berdiskusi seputar materi akademik maupun praktik keahlian."}
+        </p>
+
+        {skills.length > 0 ? (
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            {skills.map((s) => (
+              <span
+                key={s}
+                className="inline-flex items-center gap-1.5 rounded-full border border-success-soft bg-success-tint px-3 py-1 text-xs font-semibold text-success"
+              >
+                <span
+                  className="size-1.5 rounded-full bg-success"
+                  aria-hidden="true"
+                />
+                <span>{s}</span>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-xs italic text-ink-muted">
+            Belum ada keahlian tercantum
+          </p>
         )}
-        <p className={`break-words text-sm leading-relaxed text-ink-muted ${visibleSkills.length ? "mt-2" : ""}`}>{sessionDetails}</p>
       </div>
 
-      <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 ${wide ? "lg:flex-col lg:items-end lg:gap-1" : "mt-auto"}`}>
-        <Link href={profileUrl} className={own
-          ? "inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line px-4 text-sm font-semibold text-ink hover:border-primary hover:text-primary"
-          : "inline-flex min-h-11 items-center text-sm font-semibold text-primary underline-offset-4 hover:underline"}>
-          {own ? "Lihat profil publik" : "Lihat profil"}{own && <ChevronRight size={15} aria-hidden="true" />}
-        </Link>
-        {!own && <button type="button" onClick={() => onBook(mentor)} className="action-primary inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold">Pesan sesi</button>}
+      <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-3.5">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-secondary">
+          <span className="size-2 rounded-full bg-success" aria-hidden="true" />
+          <span>{own ? "Profil mentor kamu" : "Tersedia untuk sesi 1-on-1"}</span>
+        </span>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/mentors/${mentor.id}`}
+            className="rounded-full px-3 py-1.5 text-xs font-semibold text-ink-secondary transition-colors hover:bg-canvas hover:text-primary"
+          >
+            Lihat profil
+          </Link>
+          {!own && (
+            <button
+              type="button"
+              onClick={() => onBook(mentor)}
+              className="action-primary inline-flex min-h-8 items-center gap-1 rounded-full px-4 text-xs font-semibold text-white shadow-2xs transition-colors"
+            >
+              <span>Pesan sesi</span>
+              <ChevronRight className="size-3" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );

@@ -78,10 +78,10 @@ type NavigationProps = {
   };
 };
 
-/* Minimal Beranda-tinted Sub-Header:
- * - No redundant large profile block or duplicate Navbar buttons
- * - Vibrant bg-primary-soft band with sculpted white segmented tab dock (ReUI c-tabs-6/8)
- * - Clean separated status & EduPoints pills on the right
+/* Modern Clean Sub-Header ala Jiro:
+ * - Clean translucent surface bar with hairline bottom border
+ * - Sculpted pill dock: rounded-2xl bg-canvas p-1 with rounded-xl active tab
+ * - Floating campus & EduPoints badge pills on the right
  */
 export default function DashboardNavigation({
   active,
@@ -101,55 +101,57 @@ export default function DashboardNavigation({
   };
 
   return (
-    <header className="border-b border-line bg-primary-soft/75 text-ink">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3.5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <nav
-          aria-label="Bagian dashboard"
-          className="inline-flex flex-wrap items-center gap-1 rounded-2xl border border-line bg-surface p-1.5 shadow-soft-card"
-        >
-          {items.map(({ key, label, icon: Icon }) => {
-            const isCurrent = active === key;
-            const badgeCount = countFor(key);
-            return (
-              <Link
-                key={key}
-                href={dashboardUrl(key)}
-                aria-current={isCurrent ? "page" : undefined}
-                className={cn(
-                  "inline-flex min-h-10 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-xs font-bold transition-colors sm:text-sm",
-                  isCurrent
-                    ? "bg-primary text-white"
-                    : "text-ink-secondary hover:bg-canvas hover:text-primary",
-                )}
-              >
-                <Icon
+    <nav
+      aria-label="Navigasi dasbor"
+      className="border-b border-line bg-surface/85 backdrop-blur-sm"
+    >
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <div className="-mx-1 overflow-x-auto px-1 pb-1 lg:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="inline-flex items-center gap-1 rounded-2xl border border-line bg-canvas p-1">
+            {items.map(({ key, label, icon: Icon }) => {
+              const isCurrent = active === key;
+              const badgeCount = countFor(key);
+              return (
+                <Link
+                  key={key}
+                  href={dashboardUrl(key)}
+                  aria-current={isCurrent ? "page" : undefined}
                   className={cn(
-                    "size-4 shrink-0",
-                    isCurrent ? "text-white" : "text-ink-muted",
+                    "inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-150 sm:text-[13.5px]",
+                    isCurrent
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-ink-secondary hover:bg-surface hover:text-ink",
                   )}
-                  aria-hidden="true"
-                />
-                <span>{label}</span>
-                {badgeCount !== null && (
-                  <span
+                >
+                  <Icon
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-xs font-extrabold tabular-nums",
-                      isCurrent
-                        ? "bg-white/20 text-white"
-                        : "bg-primary-soft text-primary",
+                      "size-4 shrink-0",
+                      isCurrent ? "text-white" : "text-ink-muted",
                     )}
-                  >
-                    {badgeCount}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+                    aria-hidden="true"
+                  />
+                  <span>{label}</span>
+                  {badgeCount !== null && (
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-xs font-extrabold tabular-nums",
+                        isCurrent
+                          ? "bg-white/20 text-white"
+                          : "bg-primary-soft text-primary",
+                      )}
+                    >
+                      {badgeCount}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin ? (
-            <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-line bg-surface px-4 text-xs font-bold text-ink-secondary">
+            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-xs font-bold text-ink-secondary shadow-2xs">
               <ShieldCheck
                 className="size-4 shrink-0 text-primary"
                 aria-hidden="true"
@@ -159,7 +161,7 @@ export default function DashboardNavigation({
           ) : verified ? (
             <Link
               href={dashboardUrl("apply")}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-xs font-bold text-ink-secondary transition-colors hover:border-primary hover:text-primary"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-xs font-bold text-ink-secondary shadow-2xs transition-colors hover:border-primary hover:text-primary"
             >
               <BadgeCheck className="size-4 shrink-0 text-success" aria-hidden="true" />
               <span>Mentor terverifikasi</span>
@@ -167,7 +169,7 @@ export default function DashboardNavigation({
           ) : pending ? (
             <Link
               href={dashboardUrl("apply")}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-warning-soft bg-warning-tint px-4 text-xs font-bold text-ink transition-colors hover:border-warning-accent"
+              className="inline-flex items-center gap-1.5 rounded-full border border-warning-soft bg-warning-tint px-4 py-2 text-xs font-bold text-ink shadow-2xs transition-colors hover:border-warning-accent"
             >
               <Clock
                 className="size-4 shrink-0 text-warning-accent"
@@ -178,7 +180,7 @@ export default function DashboardNavigation({
           ) : (
             <Link
               href={dashboardUrl("profile")}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-xs font-semibold text-ink-secondary transition-colors hover:border-primary hover:text-primary"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-xs font-medium text-ink-secondary shadow-2xs transition-colors hover:border-primary hover:text-primary"
             >
               <GraduationCap
                 className="size-4 shrink-0 text-primary"
@@ -193,13 +195,13 @@ export default function DashboardNavigation({
           {!isAdmin && (
             <Link
               href={dashboardUrl("apply")}
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-xs font-bold text-ink transition-colors hover:border-primary"
+              className="inline-flex items-center gap-1.5 rounded-full border border-warning-soft/70 bg-warning-tint px-4 py-2 text-xs font-bold text-warning shadow-2xs transition-colors hover:opacity-90"
             >
               <Award
-                className="size-4 shrink-0 text-primary"
+                className="size-4 shrink-0 text-warning"
                 aria-hidden="true"
               />
-              <span className="tabular-nums text-primary">
+              <span className="tabular-nums">
                 {user.totalPoin}
               </span>
               <span>EduPoints</span>
@@ -207,6 +209,6 @@ export default function DashboardNavigation({
           )}
         </div>
       </div>
-    </header>
+    </nav>
   );
 }

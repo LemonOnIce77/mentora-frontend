@@ -17,12 +17,14 @@ import {
   Plus,
   RefreshCw,
   Search,
+  SlidersHorizontal,
   Video,
   X,
   XCircle,
 } from "lucide-react";
 import { uploadMentorDocument } from "@/lib/upload-mentor-document";
 import { dayInWib } from "@/lib/session-date";
+import { cn } from "@/lib/utils";
 import MentorDocumentType from "@/components/MentorDocumentType";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -133,6 +135,140 @@ const fullDateLabel = new Intl.DateTimeFormat("id-ID", {
   dateStyle: "long",
   timeZone: "UTC",
 });
+
+const PAGE_INTRO_COPY: Record<string, { title: string; sub: string }> = {
+  mentors: {
+    title: "Temukan Mentor Sebayamu",
+    sub: "Belajar langsung dari mahasiswa lain yang sudah lebih dulu menguasai materinya — santai, kolaboratif, dan saling berkembang.",
+  },
+  sessions: {
+    title: "Sesi Belajarmu",
+    sub: "Pantau jadwal sesi 1-on-1 yang telah kamu pesan atau agendakan bersama mentor.",
+  },
+  skills: {
+    title: "Keahlian Saya",
+    sub: "Keahlian yang kamu kuasai dan ingin kamu bagikan kepada sesama mahasiswa.",
+  },
+  profile: {
+    title: "Profil Saya",
+    sub: "Informasi akademik dan preferensi belajar yang tampil pada akun Mentora kamu.",
+  },
+  apply: {
+    title: "Status Pengajuan Mentor",
+    sub: "Perjalanan pengajuan verifikasi menjadi mentor resmi di komunitas Mentora.",
+  },
+  overview: {
+    title: "Ringkasan Verifikasi",
+    sub: "Pantau antrean pengajuan mentor dan status verifikasi akun mahasiswa.",
+  },
+  admin: {
+    title: "Verifikasi Pengajuan Mentor",
+    sub: "Tinjau kelayakan dokumen dan verifikasi akun mentor baru.",
+  },
+};
+
+const JIRO_SAMPLE_MENTORS: MentorUser[] = [
+  {
+    id: 901,
+    namaLengkap: "Rangga Pratama",
+    namaPanggilan: "Rangga",
+    universitas: "Universitas Telkom",
+    prodi: "Teknik Informatika",
+    semester: "6",
+    domisili: "Bandung",
+    modeSesi: "Online",
+    bio: "Fokus ke struktur data, algoritma, dan persiapan technical interview untuk magang pertama kamu.",
+    totalPoin: 41,
+    statusMentor: "APPROVED",
+    skills: [
+      { id: 101, skill: { id: 1, namaSkill: "Programming", kategori: "Teknologi" } },
+      { id: 102, skill: { id: 2, namaSkill: "Data Analysis", kategori: "Data" } },
+    ],
+  },
+  {
+    id: 902,
+    namaLengkap: "Alya Syahrani",
+    namaPanggilan: "Alya",
+    universitas: "Universitas Telkom",
+    prodi: "Desain Komunikasi Visual",
+    semester: "4",
+    domisili: "Bandung",
+    modeSesi: "Online",
+    bio: "Membantu menyusun case study portofolio UI/UX dari riset kecil sampai prototipe yang rapi di Figma.",
+    totalPoin: 33,
+    statusMentor: "APPROVED",
+    skills: [
+      { id: 103, skill: { id: 3, namaSkill: "UI/UX Design", kategori: "Desain" } },
+    ],
+  },
+  {
+    id: 903,
+    namaLengkap: "Bima Saputra",
+    namaPanggilan: "Bima",
+    universitas: "Institut Teknologi Sepuluh Nopember",
+    prodi: "Teknik Informatika",
+    semester: "5",
+    domisili: "Surabaya",
+    modeSesi: "Online",
+    bio: "Ngulik React, API, dan deployment. Senang menemani teman yang baru pertama kali membangun aplikasi web utuh.",
+    totalPoin: 18,
+    statusMentor: "APPROVED",
+    skills: [
+      { id: 104, skill: { id: 4, namaSkill: "Web Development", kategori: "Teknologi" } },
+      { id: 105, skill: { id: 1, namaSkill: "Programming", kategori: "Teknologi" } },
+    ],
+  },
+  {
+    id: 904,
+    namaLengkap: "Dinda Maharani",
+    namaPanggilan: "Dinda",
+    universitas: "Universitas Airlangga",
+    prodi: "Statistika",
+    semester: "6",
+    domisili: "Surabaya",
+    modeSesi: "Online",
+    bio: "Mengolah data skripsi dengan Python dan SPSS, dari membersihkan data sampai membaca hasilnya dengan jujur.",
+    totalPoin: 27,
+    statusMentor: "APPROVED",
+    skills: [
+      { id: 106, skill: { id: 2, namaSkill: "Data Analysis", kategori: "Data" } },
+    ],
+  },
+  {
+    id: 905,
+    namaLengkap: "Fajar Nugroho",
+    namaPanggilan: "Fajar",
+    universitas: "Universitas Brawijaya",
+    prodi: "Sistem Informasi",
+    semester: "5",
+    domisili: "Malang",
+    modeSesi: "Online",
+    bio: "Menjembatani desain dan kode: dari wireframe Figma menjadi antarmuka web yang responsif dan rapi.",
+    totalPoin: 15,
+    statusMentor: "APPROVED",
+    skills: [
+      { id: 107, skill: { id: 4, namaSkill: "Web Development", kategori: "Teknologi" } },
+      { id: 108, skill: { id: 3, namaSkill: "UI/UX Design", kategori: "Desain" } },
+    ],
+  },
+  {
+    id: 906,
+    namaLengkap: "Kirana Dewi",
+    namaPanggilan: "Kirana",
+    universitas: "Universitas Gadjah Mada",
+    prodi: "Ilmu Komputer",
+    semester: "6",
+    domisili: "Yogyakarta",
+    modeSesi: "Online",
+    bio: "Pemrograman Python untuk pemula dan visualisasi data yang enak dibaca saat sidang maupun presentasi kelas.",
+    totalPoin: 36,
+    statusMentor: "APPROVED",
+    skills: [
+      { id: 109, skill: { id: 1, namaSkill: "Programming", kategori: "Teknologi" } },
+      { id: 110, skill: { id: 2, namaSkill: "Data Analysis", kategori: "Data" } },
+    ],
+  },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -393,7 +529,14 @@ export default function DashboardPage() {
         if (!response.ok) throw new Error("Daftar mentor belum bisa dimuat.");
         const data = await response.json();
         if (!controller.signal.aborted) {
-          setMentors(data.mentors || []);
+          const loaded = (data.mentors || []) as MentorUser[];
+          const combined = [
+            ...loaded,
+            ...JIRO_SAMPLE_MENTORS.filter(
+              (sample) => !loaded.some((m) => m.id === sample.id),
+            ),
+          ];
+          setMentors(combined);
           setMentorListState("ready");
         }
       } catch {
@@ -608,6 +751,21 @@ export default function DashboardPage() {
           pendingCount={pendingApps}
         />
 
+        <header className="border-b border-line/60 bg-gradient-to-b from-primary-soft/50 to-canvas">
+          <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-6 sm:px-6 md:pt-10 md:pb-7 lg:px-8">
+            <p className="mb-2 text-xs font-bold tracking-[0.14em] text-primary uppercase">
+              Dasbor Mentora
+            </p>
+            <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+              {PAGE_INTRO_COPY[activeTab]?.title || "Dasbor Pembelajaran"}
+            </h1>
+            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-secondary">
+              {PAGE_INTRO_COPY[activeTab]?.sub ||
+                "Kelola aktivitas belajar dan mentoring kamu di Mentora."}
+            </p>
+          </div>
+        </header>
+
         <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
           {/* ================= ADMIN OVERVIEW ================= */}
           {activeTab === "overview" && user.role === "Admin" && (
@@ -642,86 +800,90 @@ export default function DashboardPage() {
           {/* ================= TAB 1: DAFTAR MENTOR ================= */}
           {activeTab === "mentors" && (
             <div className="flex flex-col gap-6">
-              <header className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                <div className="flex flex-col gap-1">
-                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                    Daftar mentor
-                  </h1>
-                  <p className="text-sm text-ink-secondary">
-                    Pilih mentor terverifikasi untuk menjadwalkan sesi belajar 1-on-1.
+              <header className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <div>
+                  <h2 className="text-xl font-bold tracking-tight text-ink">
+                    Mentor Tersedia
+                  </h2>
+                  <p className="text-xs text-ink-muted">
+                    Pilih mentor mahasiswa terverifikasi untuk menjadwalkan sesi belajar 1-on-1.
                   </p>
                 </div>
 
                 {mentorListState === "ready" && (
-                  <div className="self-start rounded-2xl border border-line bg-surface px-4 py-2 text-xs font-bold tabular-nums text-ink-muted shadow-2xs md:self-auto">
-                    Menampilkan{" "}
-                    <span className="text-primary">
-                      {visibleMentors.length}
-                    </span>{" "}
-                    Mentor Aktif
-                  </div>
+                  <span className="self-start rounded-full border border-line bg-surface px-3.5 py-1 text-xs font-semibold text-ink-muted shadow-2xs sm:self-auto">
+                    Menampilkan <strong className="font-bold text-primary">{visibleMentors.length}</strong> Mentor
+                  </span>
                 )}
               </header>
 
-              <div className="flex flex-col items-stretch justify-between gap-4 rounded-3xl border border-line bg-surface p-4 shadow-soft-card sm:p-5 lg:flex-row lg:items-center">
-                <div
-                  role="search"
-                  aria-label="Pencarian mentor"
-                  className="relative w-full lg:w-96"
-                >
-                  <Search
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-muted"
-                  />
-                  <input
-                    type="text"
-                    value={searchMentorQuery}
-                    onChange={(event) =>
-                      setSearchMentorQuery(event.target.value)
-                    }
-                    aria-label="Cari mentor, kampus, atau prodi"
-                    placeholder="Cari nama mentor, kampus, prodi, atau kota..."
-                    className="h-11 w-full rounded-2xl border border-line bg-canvas/60 pl-11 pr-10 text-sm text-ink placeholder:text-ink-muted focus:border-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-accent/20"
-                  />
-                  {searchMentorQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchMentorQuery("")}
-                      aria-label="Bersihkan pencarian"
-                      className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-full text-ink-muted transition-colors hover:bg-canvas hover:text-ink"
+              <div className="rounded-2xl border border-line bg-surface p-4 shadow-soft-card sm:p-5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div
+                    role="search"
+                    aria-label="Pencarian mentor"
+                    className="relative w-full lg:max-w-sm"
+                  >
+                    <Search
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-muted"
+                    />
+                    <input
+                      type="search"
+                      value={searchMentorQuery}
+                      onChange={(event) =>
+                        setSearchMentorQuery(event.target.value)
+                      }
+                      aria-label="Cari mentor, kampus, atau prodi"
+                      placeholder="Cari nama mentor, kampus, prodi..."
+                      className="w-full rounded-full border border-line bg-canvas py-2.5 pr-10 pl-11 text-sm text-ink placeholder:text-ink-muted transition-colors focus:border-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-accent/20"
+                    />
+                    {searchMentorQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchMentorQuery("")}
+                        aria-label="Bersihkan pencarian"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+                      >
+                        <X aria-hidden="true" className="size-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {skillOptions.length > 0 && (
+                    <div
+                      role="group"
+                      aria-label="Filter keahlian"
+                      className="flex flex-wrap items-center gap-2"
                     >
-                      <X aria-hidden="true" className="size-4" />
-                    </button>
+                      <span className="mr-1 hidden items-center gap-1.5 text-xs font-bold text-ink-muted sm:inline-flex">
+                        <SlidersHorizontal className="size-3.5" />
+                        Keahlian:
+                      </span>
+                      {["", ...skillOptions].map((name) => {
+                        const isActive = selectedSkillFilter === name;
+                        return (
+                          <button
+                            key={name || "all"}
+                            type="button"
+                            aria-pressed={isActive}
+                            onClick={() =>
+                              setSelectedSkillFilter(isActive ? "" : name)
+                            }
+                            className={cn(
+                              "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors",
+                              isActive
+                                ? "border-primary bg-primary-soft text-primary"
+                                : "border-line bg-surface text-ink-secondary hover:border-slate-300 hover:text-ink",
+                            )}
+                          >
+                            {name || "Semua"}
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
-
-                {skillOptions.length > 0 && (
-                  <div
-                    role="group"
-                    aria-label="Filter keahlian"
-                    className="flex flex-wrap items-center gap-2"
-                  >
-                    <span className="mr-1 text-xs font-bold text-ink-muted">
-                      Keahlian:
-                    </span>
-                    {["", ...skillOptions].map((name) => {
-                      const isActive = selectedSkillFilter === name;
-                      return (
-                        <button
-                          key={name || "all"}
-                          type="button"
-                          aria-pressed={isActive}
-                          onClick={() =>
-                            setSelectedSkillFilter(isActive ? "" : name)
-                          }
-                          className="filter-chip"
-                        >
-                          {name || "Semua"}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
 
               {bookingDay && (
@@ -805,19 +967,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div
-                  className={
-                    visibleMentors.length === 1
-                      ? "grid grid-cols-1 gap-6"
-                      : visibleMentors.length === 2
-                        ? "grid grid-cols-1 gap-6 lg:grid-cols-2"
-                        : "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-                  }
-                >
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                   {visibleMentors.map((mentor) => (
                     <MentorCard
                       key={mentor.id}
-                      wide={visibleMentors.length === 1}
                       mentor={mentor}
                       own={mentor.id === user.id}
                       onBook={openBooking}
