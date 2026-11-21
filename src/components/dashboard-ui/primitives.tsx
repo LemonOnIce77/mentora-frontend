@@ -348,7 +348,7 @@ export function FileDropzone({
             : "Tarik dan letakkan berkas, atau pilih dari perangkat"}
         </p>
         <p className="mt-1 text-xs text-ink-muted">
-          Transkrip nilai, sertifikat, atau portofolio · PDF, JPG, PNG (Maks 5 MB)
+          Transkrip nilai, sertifikat, atau portofolio · PDF, JPG, PNG (Maks 4.5 MB)
         </p>
         <input
           ref={inputRef}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  AlertCircle,
   Calendar,
   Check,
   CheckCircle2,
@@ -353,6 +354,7 @@ export default function DashboardPage() {
   const [applyLoading, setApplyLoading] = useState(false);
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
+  const [applyError, setApplyError] = useState("");
 
   // Profile edit state
   const [editProfileMode, setEditProfileMode] = useState(false);
@@ -554,6 +556,14 @@ export default function DashboardPage() {
   }, [user]);
 
   const handleUploadCredential = async (file: File) => {
+    setApplyError("");
+    const MAX_SIZE = 4.5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setApplyError(
+        `Ukuran berkas (${(file.size / (1024 * 1024)).toFixed(1)} MB) melebihi batas maksimal 4.5 MB serverless. Harap kompres berkas atau pilih dokumen yang lebih kecil.`
+      );
+      return;
+    }
     setUploadingDocument(true);
     try {
       const doc = await uploadMentorDocument(file);
@@ -564,8 +574,8 @@ export default function DashboardPage() {
       setApplyDocName("");
       setApplyDocSize(undefined);
       setApplyDocUrl("");
-      alert(
-        error instanceof Error ? error.message : "Gagal mengunggah berkas.",
+      setApplyError(
+        error instanceof Error ? error.message : "Gagal mengunggah berkas."
       );
     } finally {
       setUploadingDocument(false);
@@ -574,8 +584,9 @@ export default function DashboardPage() {
 
   const handleApplyMentor = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setApplyError("");
     if (!applySkills || !applyDocUrl || uploadingDocument) {
-      alert("Mohon isi skill yang ditawarkan dan dokumen kredensial.");
+      setApplyError("Mohon isi skill yang ditawarkan dan unggah dokumen kredensial terlebih dahulu.");
       return;
     }
     setApplyLoading(true);
@@ -594,13 +605,14 @@ export default function DashboardPage() {
 
       if (res.ok) {
         setApplySuccess(true);
+        setApplyError("");
         await loadUserData();
       } else {
-        const d = await res.json();
-        alert(d.message || "Gagal mengirim pengajuan.");
+        const d = await res.json().catch(() => ({}));
+        setApplyError(d.message || "Gagal mengirim pengajuan.");
       }
     } catch {
-      alert("Terjadi kesalahan pada server.");
+      setApplyError("Terjadi kesalahan pada server saat mengirim pengajuan.");
     } finally {
       setApplyLoading(false);
     }
@@ -1689,6 +1701,19 @@ export default function DashboardPage() {
                       onSubmit={handleApplyMentor}
                       className="flex flex-col gap-5"
                     >
+                      {applyError && (
+                        <div
+                          role="alert"
+                          className="flex items-center gap-2 rounded-xl border border-danger-soft bg-danger-soft p-4 text-xs font-semibold text-danger"
+                        >
+                          <AlertCircle
+                            className="size-4 shrink-0"
+                            aria-hidden="true"
+                          />
+                          <span>{applyError}</span>
+                        </div>
+                      )}
+
                       {applySuccess && (
                         <div
                           role="status"

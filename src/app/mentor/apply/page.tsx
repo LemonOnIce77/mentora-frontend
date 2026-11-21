@@ -82,8 +82,8 @@ export default function MentorApplyPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg("Ukuran berkas melebihi batas maksimal 5MB.");
+    if (file.size > 4.5 * 1024 * 1024) {
+      setErrorMsg("Ukuran berkas melebihi batas maksimal 4.5 MB serverless. Harap kompres dokumen Anda.");
       return;
     }
 
@@ -370,7 +370,7 @@ export default function MentorApplyPage() {
                       : "Pilih Transkrip Nilai Akademik atau Portofolio (PDF)"}
                   </p>
                   <p className="text-[11px] text-ink-muted mt-0.5">
-                    Format file yang didukung: PDF, JPG, PNG (Maksimal 5MB)
+                    Format file yang didukung: PDF, JPG, PNG (Maksimal 4.5 MB)
                   </p>
                   <label className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface border border-line text-xs font-bold text-ink-secondary hover:bg-canvas cursor-pointer shadow-xs transition">
                     {uploading ? (

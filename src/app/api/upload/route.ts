@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
     const user = await getAuthUser(req);
     if (!user) return NextResponse.json({ message: 'Silakan masuk terlebih dahulu.' }, { status: 401 });
     const file = (await req.formData()).get('file');
-    if (!file || typeof file === 'string' || !file.size || file.size > 5 * 1024 * 1024 || file.name.length > 255) {
-      return NextResponse.json({ message: 'Pilih dokumen PDF, JPG, atau PNG maksimal 5 MB.' }, { status: 400 });
+    if (!file || typeof file === 'string' || !file.size || file.size > 4.5 * 1024 * 1024 || file.name.length > 255) {
+      return NextResponse.json({ message: 'Pilih dokumen PDF, JPG, atau PNG maksimal 4.5 MB.' }, { status: 400 });
     }
     const formats = [
       { type: 'application/pdf', ext: 'pdf', signature: Buffer.from('%PDF-') },
