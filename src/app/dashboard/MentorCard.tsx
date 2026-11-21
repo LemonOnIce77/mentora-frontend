@@ -41,15 +41,16 @@ export default function MentorCard({
   const skills: string[] = rawSkills
     .map((item: any) => item?.skill?.namaSkill ?? item?.namaSkill)
     .filter((s): s is string => Boolean(s))
-    .slice(0, 4);
+    .slice(0, 3);
 
   const showPhoto =
     Boolean(mentor.fotoProfil) && failedPhoto !== mentor.fotoProfil;
 
   return (
-    <article className="flex flex-col justify-between rounded-2xl border border-line bg-surface shadow-soft-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-cloud">
-      <div className="flex flex-1 flex-col p-4 sm:p-6">
-        <div className="flex items-start gap-3 sm:gap-3.5">
+    <article className="group flex flex-col justify-between rounded-2xl border border-line/80 bg-surface shadow-soft-card transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-cloud">
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        {/* Header: Avatar & Info */}
+        <div className="flex items-start gap-3.5">
           {showPhoto ? (
             <img
               src={mentor.fotoProfil}
@@ -67,73 +68,72 @@ export default function MentorCard({
           )}
 
           <div className="min-w-0 flex-1">
-            <h3 className="flex items-center gap-1.5 text-[15px] font-bold leading-snug text-ink sm:text-[15.5px]">
+            <h3 className="flex items-center gap-1.5 text-[15px] font-bold text-ink group-hover:text-primary transition-colors sm:text-base">
               <span className="truncate">{mentor.namaLengkap}</span>
               <CheckCircle2
-                className="size-4 shrink-0 fill-success text-white"
+                className="size-4 shrink-0 fill-primary text-white"
                 aria-label="Mentor terverifikasi"
               />
             </h3>
 
             {academicLine && (
-              <p className="mt-0.5 text-xs leading-relaxed text-ink-secondary sm:mt-1 sm:text-[13px]">
+              <p className="mt-1 truncate text-xs text-ink-secondary">
                 {academicLine}
               </p>
             )}
 
-            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink-muted sm:text-[12px]">
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-ink-muted">
               {mentor.domisili && (
                 <span className="inline-flex items-center gap-1">
-                  <MapPin className="size-3.5" />
+                  <MapPin className="size-3" />
                   <span>{mentor.domisili}</span>
                 </span>
               )}
               {mentor.domisili && <span aria-hidden="true">·</span>}
               <span className="inline-flex items-center gap-1">
-                <Video className="size-3.5" />
+                <Video className="size-3" />
                 <span>Sesi {mentor.modeSesi || "Online"}</span>
               </span>
             </p>
           </div>
         </div>
 
-        <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-ink-secondary sm:mt-4 sm:text-sm">
+        {/* Bio */}
+        <p className="mt-3.5 line-clamp-2 text-xs leading-relaxed text-ink-muted sm:text-[13px]">
           {mentor.bio ||
             "Siap membimbing dan berdiskusi seputar materi akademik maupun praktik keahlian."}
         </p>
 
+        {/* Skill Tags */}
         {skills.length > 0 ? (
-          <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4">
+          <div className="mt-4 flex flex-wrap gap-1.5">
             {skills.map((s) => (
               <span
                 key={s}
-                className="inline-flex items-center gap-1.5 rounded-full border border-success-soft bg-success-tint px-2.5 py-0.5 text-[11px] font-semibold text-success sm:px-3 sm:py-1 sm:text-xs"
+                className="inline-flex items-center rounded-lg border border-line/70 bg-canvas px-2.5 py-1 text-[11px] font-medium text-ink-secondary transition-colors group-hover:border-primary-soft group-hover:bg-primary-soft/40 group-hover:text-primary"
               >
-                <span
-                  className="size-1.5 rounded-full bg-success"
-                  aria-hidden="true"
-                />
                 <span>{s}</span>
               </span>
             ))}
           </div>
         ) : (
-          <p className="mt-3 text-xs italic text-ink-muted sm:mt-4">
+          <p className="mt-4 text-xs italic text-ink-muted">
             Belum ada keahlian tercantum
           </p>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-line px-4 py-3 sm:px-5 sm:py-3.5">
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-ink-secondary sm:text-xs">
-          <span className="size-2 rounded-full bg-success" aria-hidden="true" />
-          <span>{own ? "Profil mentor kamu" : "Tersedia untuk sesi 1-on-1"}</span>
+      {/* Footer Card */}
+      <div className="flex items-center justify-between gap-3 border-t border-line/70 bg-canvas/40 px-5 py-3 rounded-b-2xl">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-ink-secondary">
+          <span className="size-1.5 rounded-full bg-success" aria-hidden="true" />
+          <span>{own ? "Profil mentor kamu" : "Tersedia sesi 1-on-1"}</span>
         </span>
 
         <div className="flex items-center gap-2">
           <Link
             href={`/mentors/${mentor.id}`}
-            className="rounded-full px-2.5 py-1 text-xs font-semibold text-ink-secondary transition-colors hover:bg-canvas hover:text-primary sm:px-3 sm:py-1.5"
+            className="rounded-full px-2.5 py-1 text-xs font-semibold text-ink-secondary transition-colors hover:bg-white hover:text-primary"
           >
             Lihat profil
           </Link>
@@ -141,7 +141,7 @@ export default function MentorCard({
             <button
               type="button"
               onClick={() => onBook(mentor)}
-              className="action-primary inline-flex min-h-8 items-center gap-1 rounded-full px-3.5 py-1 text-xs font-semibold text-white shadow-2xs transition-colors active:scale-95 sm:px-4"
+              className="inline-flex min-h-8 items-center gap-1 rounded-full bg-primary px-3.5 py-1 text-xs font-bold text-white shadow-2xs transition-all hover:bg-primary-accent active:scale-95"
             >
               <span>Pesan sesi</span>
               <ChevronRight className="size-3" aria-hidden="true" />
