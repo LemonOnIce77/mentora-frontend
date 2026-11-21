@@ -11,7 +11,6 @@ import {
 const navLinks = [
   { label: "Beranda", href: "/" },
   { label: "Tentang", href: "/tentang" },
-  { label: "Fitur", href: "/#fitur" },
   { label: "Testimoni", href: "/testimoni" },
   { label: "FAQ", href: "/faq" },
 ];
@@ -102,8 +101,7 @@ export default function Navbar() {
   const visibleNavLinks = isAdmin ? adminNavLinks : navLinks;
 
   const isActive = (href: string) => {
-    if (href === "/#fitur") return pathname === "/" && activeHash === "#fitur";
-    if (href === "/") return pathname === "/" && activeHash !== "#fitur";
+    if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(href + "/");
   };
 
@@ -112,8 +110,7 @@ export default function Navbar() {
     setAccountOpen(false);
   };
 
-  const handleNavigation = (href: string) => {
-    setActiveHash(href === "/#fitur" ? "#fitur" : "");
+  const handleNavigation = (_href?: string) => {
     closeMenus();
   };
 

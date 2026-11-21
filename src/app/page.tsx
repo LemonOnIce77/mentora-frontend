@@ -6,7 +6,6 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-import LearningFeatures from "@/components/LearningFeatures";
 import LearningRoadmap from "@/components/LearningRoadmap";
 import { ChevronDown } from "lucide-react";
 import { ArrowRight, Check } from "@/components/animated-icons";
@@ -62,10 +61,10 @@ export default async function LandingPage() {
                   </Link>
 
                   <a
-                    href="#fitur"
+                    href="#cara-kerja"
                     className="action-secondary inline-flex min-h-12 items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-colors"
                   >
-                    <span>Jelajahi fitur</span>
+                    <span>Pelajari cara kerja</span>
                     <ChevronDown aria-hidden="true" className="size-4" />
                   </a>
                 </div>
@@ -98,8 +97,6 @@ export default async function LandingPage() {
             </div>
           </div>
         </section>
-
-        <LearningFeatures />
 
         <section id="cara-kerja" aria-labelledby="judul-cara-kerja" className="bg-canvas py-14 sm:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
