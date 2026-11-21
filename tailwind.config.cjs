@@ -31,9 +31,9 @@ module.exports = {
         subtle: slate,
         "cloud-shadow": cloudShadow,
         success: {
-          DEFAULT: googleBlueDeep,
-          soft: blueSoft,
-          tint: canvas,
+          DEFAULT: "#137333",
+          soft: "#E6F4EA",
+          tint: "#F6FBF7",
         },
         danger: {
           DEFAULT: "#A50E0E",
