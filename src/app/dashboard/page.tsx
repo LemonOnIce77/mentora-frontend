@@ -799,15 +799,7 @@ export default function DashboardPage() {
           {/* ================= ADMIN OVERVIEW ================= */}
           {activeTab === "overview" && user.role === "Admin" && (
             <div className="flex flex-col gap-6">
-              <header className="flex flex-wrap items-end justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                    Ringkasan pengajuan
-                  </h1>
-                  <p className="text-sm text-ink-secondary">
-                    Pantau antrean verifikasi mentor dan status persetujuan terbaru.
-                  </p>
-                </div>
+              <div className="flex flex-wrap items-center justify-end gap-4">
                 <button
                   type="button"
                   onClick={loadAdminApplications}
@@ -817,7 +809,7 @@ export default function DashboardPage() {
                   <RefreshCw className="size-3.5" aria-hidden="true" />
                   <span>{adminLoading ? "Memuat…" : "Muat ulang"}</span>
                 </button>
-              </header>
+              </div>
 
               <AdminOverview
                 applications={applicationsReady ? applications : null}
@@ -1015,60 +1007,49 @@ export default function DashboardPage() {
           {/* ================= TAB 2: SESI BELAJAR ================= */}
           {activeTab === "sessions" && (
             <div className="flex flex-col gap-6">
-              <header className="flex flex-wrap items-end justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                    Sesi belajar
-                  </h1>
-                  <p className="text-sm text-ink-secondary">
-                    Jadwal sesi mentoring yang telah kamu reservasi bersama mentor.
-                  </p>
-                </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <nav
+                  aria-label="Tampilan sesi belajar"
+                  className="inline-flex rounded-full border border-line bg-surface p-1 shadow-2xs"
+                >
+                  {[
+                    {
+                      label: "Daftar sesi",
+                      calendar: false,
+                      href: dashboardUrl("sessions"),
+                    },
+                    {
+                      label: "Kalender",
+                      calendar: true,
+                      href: dashboardUrl("sessions") + "&view=calendar",
+                    },
+                  ].map((view) => (
+                    <Link
+                      key={view.href}
+                      href={view.href}
+                      aria-current={
+                        showCalendar === view.calendar ? "page" : undefined
+                      }
+                      className={`inline-flex min-h-9 items-center rounded-full px-4 text-xs font-semibold transition-colors sm:text-sm ${
+                        showCalendar === view.calendar
+                          ? "bg-primary-soft text-primary font-bold shadow-2xs"
+                          : "text-ink-muted hover:text-ink"
+                      }`}
+                    >
+                      {view.label}
+                    </Link>
+                  ))}
+                </nav>
 
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <nav
-                    aria-label="Tampilan sesi belajar"
-                    className="inline-flex rounded-full border border-line bg-surface p-1"
-                  >
-                    {[
-                      {
-                        label: "Daftar sesi",
-                        calendar: false,
-                        href: dashboardUrl("sessions"),
-                      },
-                      {
-                        label: "Kalender",
-                        calendar: true,
-                        href: dashboardUrl("sessions") + "&view=calendar",
-                      },
-                    ].map((view) => (
-                      <Link
-                        key={view.href}
-                        href={view.href}
-                        aria-current={
-                          showCalendar === view.calendar ? "page" : undefined
-                        }
-                        className={`inline-flex min-h-9 items-center rounded-full px-4 text-xs font-semibold transition-colors sm:text-sm ${
-                          showCalendar === view.calendar
-                            ? "bg-primary-soft text-primary"
-                            : "text-ink-muted hover:text-ink"
-                        }`}
-                      >
-                        {view.label}
-                      </Link>
-                    ))}
-                  </nav>
-
-                  <button
-                    type="button"
-                    onClick={() => router.push(dashboardUrl("mentors"))}
-                    className="action-primary inline-flex min-h-10 items-center gap-1.5 rounded-full px-5 text-xs font-bold transition-colors sm:text-sm"
-                  >
-                    <Plus className="size-4" aria-hidden="true" />
-                    <span>Pesan sesi</span>
-                  </button>
-                </div>
-              </header>
+                <button
+                  type="button"
+                  onClick={() => router.push(dashboardUrl("mentors"))}
+                  className="action-primary inline-flex min-h-10 items-center gap-1.5 rounded-full px-5 text-xs font-bold transition-colors sm:text-sm shadow-xs"
+                >
+                  <Plus className="size-4" aria-hidden="true" />
+                  <span>Pesan sesi</span>
+                </button>
+              </div>
 
               {showCalendar ? (
                 <Frame>
@@ -1458,36 +1439,25 @@ export default function DashboardPage() {
           {/* ================= TAB 4: PROFIL SAYA (blocks.so form-layout-02) ================= */}
           {activeTab === "profile" && (
             <div className="flex flex-col gap-8">
-              <header className="flex flex-wrap items-end justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                    Profil saya
-                  </h1>
-                  <p className="text-sm text-ink-secondary">
-                    Kelola informasi akademik, domisili GPS untuk fitur Nearby, dan bio singkatmu.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <Link
-                    href="/onboarding"
-                    className="inline-flex min-h-10 items-center gap-1 px-2 text-xs font-semibold text-primary underline-offset-4 hover:underline sm:text-sm"
-                  >
-                    <span>Ulangi onboarding</span>
-                    <ChevronRight className="size-4" aria-hidden="true" />
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => setEditProfileMode(!editProfileMode)}
-                    className="action-secondary inline-flex min-h-10 items-center gap-2 rounded-full px-5 text-xs font-semibold transition-colors sm:text-sm"
-                  >
-                    <Edit3 className="size-4" aria-hidden="true" />
-                    <span>
-                      {editProfileMode ? "Batal edit" : "Edit profil"}
-                    </span>
-                  </button>
-                </div>
-              </header>
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                <Link
+                  href="/onboarding"
+                  className="inline-flex min-h-10 items-center gap-1 px-2 text-xs font-semibold text-primary underline-offset-4 hover:underline sm:text-sm"
+                >
+                  <span>Ulangi onboarding</span>
+                  <ChevronRight className="size-4" aria-hidden="true" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setEditProfileMode(!editProfileMode)}
+                  className="action-secondary inline-flex min-h-10 items-center gap-2 rounded-full px-5 text-xs font-semibold transition-colors sm:text-sm"
+                >
+                  <Edit3 className="size-4" aria-hidden="true" />
+                  <span>
+                    {editProfileMode ? "Batal edit" : "Edit profil"}
+                  </span>
+                </button>
+              </div>
 
               <form
                 onSubmit={handleSaveProfile}
@@ -1724,19 +1694,14 @@ export default function DashboardPage() {
           {/* ================= TAB 5: STATUS MENTOR (blocks.so form-layout-02) ================= */}
           {activeTab === "apply" && user.role !== "Admin" && (
             <div className="flex flex-col gap-8">
-              <header className="flex flex-wrap items-end justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                    Status mentor
-                  </h1>
-                  <p className="text-sm text-ink-secondary">
-                    {user.statusMentor === "APPROVED"
-                      ? "Profil mentormu telah diverifikasi dan aktif di direktori mentor."
-                      : user.statusMentor === "PENDING"
-                        ? "Pantau pengajuanmu selama tim admin meninjau dokumen kredensial."
-                        : "Ajukan keahlian dan dokumen pendukung untuk mulai mengajar di Mentora."}
-                  </p>
-                </div>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <p className="text-sm text-ink-secondary">
+                  {user.statusMentor === "APPROVED"
+                    ? "Profil mentormu telah diverifikasi dan aktif di direktori mentor."
+                    : user.statusMentor === "PENDING"
+                      ? "Pantau pengajuanmu selama tim admin meninjau dokumen kredensial."
+                      : "Ajukan keahlian dan dokumen pendukung untuk mulai mengajar di Mentora."}
+                </p>
 
                 {user.statusMentor === "APPROVED" ? (
                   <Badge variant="success-light">Mentor terverifikasi</Badge>
@@ -1745,7 +1710,7 @@ export default function DashboardPage() {
                 ) : (
                   <Badge variant="outline">Belum mengajukan</Badge>
                 )}
-              </header>
+              </div>
 
               <div className="grid grid-cols-1 gap-8 border-t border-line pt-8 md:grid-cols-3">
                 <div className="flex flex-col gap-2">
