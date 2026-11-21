@@ -88,6 +88,19 @@ export default function AdminDashboardPage() {
       try {
         const res = await fetch('/api/auth/me');
         if (!res.ok) {
+          // Fallback ke localStorage jika sesi ada di local storage
+          const sessionData = typeof window !== 'undefined' ? localStorage.getItem('user_session') : null;
+          if (sessionData) {
+            try {
+              const localUser = JSON.parse(sessionData);
+              if (localUser && (localUser.role === 'Admin' || localUser.role?.toLowerCase() === 'admin')) {
+                setAdminUser(localUser);
+                setAuthStatus('authorized');
+                await fetchAdminData();
+                return;
+              }
+            } catch (e) {}
+          }
           router.replace('/auth');
           return;
         }
@@ -96,7 +109,7 @@ export default function AdminDashboardPage() {
         const currentUser = data.user;
 
         // Proteksi Ketat: Hanya izinkan role Admin
-        if (!currentUser || currentUser.role !== 'Admin') {
+        if (!currentUser || (currentUser.role !== 'Admin' && currentUser.role?.toLowerCase() !== 'admin')) {
           setAuthStatus('unauthorized');
           setTimeout(() => {
             router.replace('/dashboard');

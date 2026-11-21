@@ -153,13 +153,21 @@ export default function DashboardNavigation({
 
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-bold text-ink-secondary shadow-2xs sm:gap-2 sm:px-4 sm:py-2">
-              <ShieldCheck
-                className="size-3.5 shrink-0 text-primary sm:size-4"
-                aria-hidden="true"
-              />
-              <span>Administrator Mentora</span>
-            </span>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-1.5 text-xs font-bold transition shadow-2xs sm:gap-2 sm:px-4 sm:py-2"
+              >
+                <ShieldCheck
+                  className="size-3.5 shrink-0 text-purple-600 sm:size-4"
+                  aria-hidden="true"
+                />
+                <span>Buka Portal Admin</span>
+              </Link>
+              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-bold text-ink-secondary shadow-2xs sm:gap-2 sm:px-4 sm:py-2">
+                <span>👑 Super Admin</span>
+              </span>
+            </div>
           ) : (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink-secondary shadow-2xs sm:px-4 sm:py-2">
               <GraduationCap
