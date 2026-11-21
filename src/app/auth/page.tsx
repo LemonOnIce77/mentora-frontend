@@ -320,6 +320,71 @@ function AuthContent() {
             </div>
           )}
 
+          {/* Quick Demo Login Pills */}
+          <div className="mb-6 rounded-2xl border border-line bg-canvas p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                Akses Cepat Akun Demo (Otomatis Terisi):
+              </span>
+              <a
+                href="/api/auth/demo-login?role=admin"
+                className="text-[11px] font-bold text-primary hover:underline underline-offset-2"
+              >
+                Masuk Admin Instan ⚡
+              </a>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("masuk");
+                  setEmail("admin@mentora.my.id");
+                  setPassword("admin123");
+                }}
+                className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 px-2.5 text-xs font-bold transition shadow-2xs ${
+                  email === "admin@mentora.my.id"
+                    ? "border-primary bg-primary-soft text-primary"
+                    : "border-line bg-surface text-ink hover:border-primary"
+                }`}
+              >
+                <span>👑</span>
+                <span>Admin</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("masuk");
+                  setEmail("sulthoni@telkomuniversity.ac.id");
+                  setPassword("password123");
+                }}
+                className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 px-2.5 text-xs font-bold transition shadow-2xs ${
+                  email === "sulthoni@telkomuniversity.ac.id"
+                    ? "border-primary bg-primary-soft text-primary"
+                    : "border-line bg-surface text-ink hover:border-primary"
+                }`}
+              >
+                <span>🎓</span>
+                <span>Mentor</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("masuk");
+                  setEmail("mentee@mentora.my.id");
+                  setPassword("password123");
+                }}
+                className={`flex items-center justify-center gap-1.5 rounded-xl border py-2 px-2.5 text-xs font-bold transition shadow-2xs ${
+                  email === "mentee@mentora.my.id"
+                    ? "border-primary bg-primary-soft text-primary"
+                    : "border-line bg-surface text-ink hover:border-primary"
+                }`}
+              >
+                <span>🎒</span>
+                <span>Mentee</span>
+              </button>
+            </div>
+          </div>
+
           {/* Google Social Button */}
           <button
             type="button"
