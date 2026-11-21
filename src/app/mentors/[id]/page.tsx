@@ -50,6 +50,11 @@ export default function MentorDetailPage() {
   const mentorId = params?.id;
 
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{
+    id: number;
+    email: string;
+    role?: string;
+  } | null>(null);
   const [mentor, setMentor] = useState<MentorDetail | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -61,6 +66,10 @@ export default function MentorDetailPage() {
         if (!authRes.ok) {
           router.replace('/auth');
           return;
+        }
+        const authData = await authRes.json();
+        if (authData?.user) {
+          setCurrentUser(authData.user);
         }
 
         const detailRes = await fetch(`/api/mentor/${mentorId}`).catch(() => null);
@@ -277,15 +286,32 @@ export default function MentorDetailPage() {
 
             <div className="mt-8 pt-6 border-t border-line flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-xs text-ink-muted">
-                Pilih waktu yang sesuai untuk memulai mentoring.
+                {currentUser && mentor && (String(currentUser.id) === String(mentor.id) || currentUser.email === mentor.email)
+                  ? 'Ini adalah profil akun mentor kamu.'
+                  : 'Pilih waktu yang sesuai untuk memulai mentoring.'}
               </p>
-              <button
-                onClick={() => setIsBookingOpen(true)}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl action-primary text-xs font-bold shadow-xs transition flex items-center justify-center gap-2"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>Ajukan Sesi Belajar</span>
-              </button>
+              {currentUser && mentor && (String(currentUser.id) === String(mentor.id) || currentUser.email === mentor.email) ? (
+                <div className="flex items-center gap-2.5">
+                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-primary-soft bg-primary-soft px-3.5 py-2 text-xs font-bold text-primary">
+                    <CheckCircle2 className="size-4" />
+                    <span>Profil Kamu</span>
+                  </span>
+                  <Link
+                    href="/profile"
+                    className="action-secondary inline-flex items-center rounded-xl px-4 py-2 text-xs font-bold"
+                  >
+                    Edit Profil
+                  </Link>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsBookingOpen(true)}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl action-primary text-xs font-bold shadow-xs transition flex items-center justify-center gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Ajukan Sesi Belajar</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

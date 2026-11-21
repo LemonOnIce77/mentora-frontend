@@ -18,6 +18,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  ShieldCheck,
   SlidersHorizontal,
   Video,
   X,
@@ -101,6 +102,7 @@ interface MentorUser {
   id: number;
   namaLengkap: string;
   namaPanggilan?: string;
+  email?: string;
   universitas?: string;
   prodi?: string;
   semester?: string;
@@ -328,6 +330,17 @@ export default function DashboardPage() {
       localStorage.setItem("mentora_booked_sessions", JSON.stringify(updated));
       setBookedSessions(updated);
     }
+  };
+
+  const handleUpdateSessionStatus = (
+    sessionId: string,
+    newStatus: "CONFIRMED" | "REJECTED",
+  ) => {
+    const updated = bookedSessions.map((s) =>
+      s.id === sessionId ? { ...s, status: newStatus } : s,
+    );
+    localStorage.setItem("mentora_booked_sessions", JSON.stringify(updated));
+    setBookedSessions(updated);
   };
 
   // Mentors list state
@@ -688,6 +701,7 @@ export default function DashboardPage() {
 
   const visibleMentors = mentors.filter(
     (mentor) =>
+      (!user || (mentor.id !== user.id && mentor.email !== user.email)) &&
       (!selectedSkillFilter ||
         mentor.skills.some(
           (item) => item.skill.namaSkill === selectedSkillFilter,
@@ -1146,9 +1160,19 @@ export default function DashboardPage() {
                               <h3 className="text-sm font-bold text-ink sm:text-base">
                                 {session.mentorName}
                               </h3>
-                              <Badge variant="success-light">
-                                Terkonfirmasi
-                              </Badge>
+                              {session.status === "PENDING" ? (
+                                <Badge variant="warning-light">
+                                  Menunggu Persetujuan Mentor
+                                </Badge>
+                              ) : session.status === "REJECTED" ? (
+                                <Badge variant="destructive-light">
+                                  Ditolak Mentor
+                                </Badge>
+                              ) : (
+                                <Badge variant="success-light">
+                                  Terkonfirmasi
+                                </Badge>
+                              )}
                             </div>
                             <p className="mt-0.5 text-xs text-ink-secondary sm:text-sm">
                               Materi:{" "}
@@ -1189,12 +1213,34 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2 border-t border-line/60 pt-3 sm:gap-3 lg:border-t-0 lg:pt-0">
+                          {/* Tombol Terima / Tolak khusus bagi Mentor yang dituju */}
+                          {session.status === "PENDING" && String(user.id) === String(session.mentorId) && (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateSessionStatus(session.id, "CONFIRMED")}
+                                className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-success px-3.5 py-1 text-xs font-bold text-white shadow-2xs hover:bg-success/90 transition-colors"
+                              >
+                                <Check className="size-3.5" aria-hidden="true" />
+                                <span>Terima sesi</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateSessionStatus(session.id, "REJECTED")}
+                                className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-danger-soft bg-danger-tint px-3 py-1 text-xs font-bold text-danger hover:bg-danger-soft transition-colors"
+                              >
+                                <X className="size-3.5" aria-hidden="true" />
+                                <span>Tolak</span>
+                              </button>
+                            </div>
+                          )}
+
                           <button
                             type="button"
                             onClick={() => handleCancelSession(session.id)}
                             className="inline-flex min-h-9 items-center px-2 text-xs font-semibold text-danger underline-offset-4 hover:underline sm:min-h-10"
                           >
-                            Batalkan sesi
+                            {session.status === "PENDING" ? "Batalkan pengajuan" : "Batalkan sesi"}
                           </button>
                           <Link
                             href={`/mentors/${session.mentorId}`}
@@ -1297,15 +1343,10 @@ export default function DashboardPage() {
           {/* ================= TAB 3: KEAHLIAN SAYA ================= */}
           {activeTab === "skills" && (
             <div className="flex flex-col gap-6">
-              <header className="flex flex-wrap items-end justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                    Keahlian saya
-                  </h1>
-                  <p className="text-sm text-ink-secondary">
-                    Keahlian yang kamu kuasai untuk diajarkan dan materi yang ingin dipelajari.
-                  </p>
-                </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs font-semibold text-ink-muted">
+                  Kelola daftar keahlian untuk pertukaran ilmu dan pencocokan partner belajar.
+                </p>
 
                 <button
                   type="button"
@@ -1315,7 +1356,7 @@ export default function DashboardPage() {
                   <Edit3 className="size-4" aria-hidden="true" />
                   <span>Ubah pilihan skill</span>
                 </button>
-              </header>
+              </div>
 
               <Frame>
                 <div className="grid grid-cols-1 divide-y divide-line md:grid-cols-2 md:divide-x md:divide-y-0">
@@ -1352,23 +1393,49 @@ export default function DashboardPage() {
                           Skill yang sudah dimiliki
                         </h2>
                         <p className="mt-0.5 text-xs text-ink-muted">
-                          Materi yang dapat kamu bagikan ke teman belajar
+                          {user.role === "Mentor" && user.statusMentor === "APPROVED"
+                            ? "Materi yang dapat kamu ajarkan ke sesama mahasiswa"
+                            : "Keahlian kamu yang dapat diajarkan setelah diverifikasi sebagai mentor"}
                         </p>
                       </div>
-                      <Badge variant="outline">Mentor</Badge>
+                      <Badge variant={user.role === "Mentor" && user.statusMentor === "APPROVED" ? "success-light" : "outline"}>
+                        {user.role === "Mentor" && user.statusMentor === "APPROVED" ? "Mentor Terverifikasi" : "Khusus Mentor"}
+                      </Badge>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {taughtSkills.map((s) => (
-                        <Badge key={s.id} variant="outline">
-                          {s.skill.namaSkill}
-                        </Badge>
-                      ))}
-                      {taughtSkills.length === 0 && (
-                        <p className="text-sm text-ink-muted">
-                          Belum ada skill yang ditambahkan.
+
+                    {user.role !== "Mentor" || user.statusMentor !== "APPROVED" ? (
+                      <div className="rounded-2xl border border-warning-soft bg-warning-tint p-4 space-y-2.5">
+                        <p className="text-xs font-bold text-ink flex items-center gap-1.5">
+                          <ShieldCheck className="size-4 text-warning-accent" />
+                          <span>Status Akun: Mentee (Belum Menjadi Mentor)</span>
                         </p>
-                      )}
-                    </div>
+                        <p className="text-xs leading-relaxed text-ink-secondary">
+                          Mentee hanya dapat memesan sesi belajar. Hanya mentor yang telah diverifikasi dan disetujui Admin yang dapat mengajar sesi belajar.
+                        </p>
+                        <div className="pt-1">
+                          <Link
+                            href="/dashboard?tab=apply"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-primary-accent transition-colors"
+                          >
+                            <span>Ajukan diri jadi mentor</span>
+                            <ChevronRight className="size-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {taughtSkills.map((s) => (
+                          <Badge key={s.id} variant="outline">
+                            {s.skill.namaSkill}
+                          </Badge>
+                        ))}
+                        {taughtSkills.length === 0 && (
+                          <p className="text-sm text-ink-muted">
+                            Belum ada skill yang ditambahkan.
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

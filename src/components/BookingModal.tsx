@@ -46,6 +46,16 @@ export default function BookingModal({
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [currentUser, setCurrentUser] = useState<{ id: number; namaLengkap: string; email?: string } | null>(null);
+
+  React.useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.user) setCurrentUser(data.user);
+      })
+      .catch(() => {});
+  }, []);
 
   // Set default values saat modal dibuka
   React.useEffect(() => {
@@ -92,6 +102,11 @@ export default function BookingModal({
     e.preventDefault();
     setErrorMsg("");
 
+    if (currentUser && (currentUser.id === mentor.id || currentUser.email === (mentor as any).email)) {
+      setErrorMsg("Kamu tidak dapat mengajukan sesi belajar ke profil sendiri.");
+      return;
+    }
+
     if (!selectedSkill) {
       setErrorMsg("Pilih skill atau materi yang ingin dipelajari.");
       return;
@@ -116,12 +131,14 @@ export default function BookingModal({
     setLoading(true);
 
     try {
-      // Simpan riwayat booking sesi ke localStorage agar tersinkron ke riwayat / chat pengguna
+      // Simpan riwayat booking sesi ke localStorage dengan status PENDING menunggu persetujuan mentor
       const bookingData = {
         id: `sesi-${Date.now()}`,
         mentorId: mentor.id,
         mentorName: mentor.namaLengkap,
         mentorPhoto: mentor.fotoProfil || "",
+        menteeId: currentUser?.id,
+        menteeName: currentUser?.namaLengkap || "Mentee",
         skill: selectedSkill,
         tanggalSesi,
         jamMulai,
@@ -129,7 +146,7 @@ export default function BookingModal({
         metode,
         lokasi,
         topik: topik.trim() || "Diskusi materi & konsultasi belajar",
-        status: "BOOKED",
+        status: "PENDING",
         createdAt: new Date().toISOString(),
       };
 
@@ -183,20 +200,21 @@ export default function BookingModal({
           {/* Sukses State */}
           {success ? (
             <div className="text-center py-6 space-y-4 animate-in zoom-in-95 duration-200">
-              <div className="w-16 h-16 rounded-3xl bg-success-tint text-success border border-success-soft flex items-center justify-center mx-auto shadow-inner">
+              <div className="w-16 h-16 rounded-3xl bg-primary-soft text-primary border border-primary-soft flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle2 className="w-9 h-9" />
               </div>
               <div>
                 <h4 className="text-lg font-extrabold text-ink">
-                  Sesi Belajar Berhasil Dipesan!
+                  Pengajuan Sesi Terkirim!
                 </h4>
                 <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto leading-relaxed">
-                  Jadwal sesi bersama{" "}
+                  Permintaan sesi belajar bersama{" "}
                   <strong className="text-ink">
                     {mentor.namaLengkap}
                   </strong>{" "}
-                  telah tercatat untuk materi{" "}
-                  <strong className="text-primary">{selectedSkill}</strong>.
+                  telah dikirim untuk materi{" "}
+                  <strong className="text-primary">{selectedSkill}</strong>. Status saat ini{" "}
+                  <strong className="text-warning font-semibold">Menunggu Persetujuan Mentor</strong>.
                 </p>
               </div>
 

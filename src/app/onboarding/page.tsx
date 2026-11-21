@@ -538,13 +538,19 @@ export default function OnboardingPage() {
 
                 {/* Bottom Actions */}
                 <div className="pt-4 flex flex-wrap items-center gap-2 border-t border-line">
-                  {returnHref && <Link
-                    href={returnHref}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-ink-muted hover:bg-canvas transition"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>{returnHref === "/admin" ? "Kembali ke portal admin" : "Kembali ke dashboard"}</span>
-                  </Link>}
+                  {returnHref && (
+                    <Link
+                      href={returnHref}
+                      className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-bold text-ink shadow-2xs transition hover:border-primary hover:text-primary active:scale-[0.98]"
+                    >
+                      <ArrowLeft className="size-4 shrink-0" />
+                      <span>
+                        {returnHref === "/admin"
+                          ? "Kembali ke portal admin"
+                          : "Kembali ke dashboard"}
+                      </span>
+                    </Link>
+                  )}
 
                   <button
                     type="submit"
@@ -711,10 +717,10 @@ export default function OnboardingPage() {
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-ink-muted hover:bg-canvas transition"
+                  className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-bold text-ink shadow-2xs transition hover:border-primary hover:text-primary active:scale-[0.98]"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Kembali</span>
+                  <ArrowLeft className="size-4 shrink-0" />
+                  <span>Kembali ke Data Diri</span>
                 </button>
               </div>
             </div>

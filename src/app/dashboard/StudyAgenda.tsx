@@ -88,7 +88,12 @@ export default function StudyAgenda({
   const cells = monthly ? Math.ceil((leadingDays + daysInMonth) / 7) * 7 : 7;
 
   const bookings = sessions
-    .filter((session) => session.status === "BOOKED")
+    .filter(
+      (session) =>
+        session.status === "BOOKED" ||
+        session.status === "CONFIRMED" ||
+        session.status === "PENDING",
+    )
     .sort((a, b) =>
       (a.tanggalSesi + a.jamMulai).localeCompare(b.tanggalSesi + b.jamMulai),
     );

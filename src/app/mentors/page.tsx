@@ -28,6 +28,7 @@ interface MentorUser {
   id: number;
   namaLengkap: string;
   namaPanggilan?: string;
+  email?: string;
   universitas?: string;
   prodi?: string;
   semester?: string;
@@ -43,6 +44,7 @@ interface MentorUser {
 export default function MentorsListPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<{ id: number; email: string } | null>(null);
   const [mentors, setMentors] = useState<MentorUser[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSkill, setSelectedSkill] = useState('');
@@ -54,6 +56,10 @@ export default function MentorsListPage() {
         if (!authRes.ok) {
           router.replace('/auth');
           return;
+        }
+        const authData = await authRes.json();
+        if (authData?.user) {
+          setCurrentUser(authData.user);
         }
 
         const mentorRes = await fetch('/api/mentor/list');
@@ -86,6 +92,9 @@ export default function MentorsListPage() {
 
   const filteredMentors = useMemo(() => {
     return mentors.filter((mentor) => {
+      if (currentUser && (mentor.id === currentUser.id || mentor.email === currentUser.email)) {
+        return false;
+      }
       const q = searchQuery.toLowerCase();
       const matchesQuery =
         mentor.namaLengkap.toLowerCase().includes(q) ||
