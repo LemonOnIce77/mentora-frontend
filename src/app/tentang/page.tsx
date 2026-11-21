@@ -93,22 +93,22 @@ export default function TentangPage() {
 
         <section id="visi-misi" aria-label="Visi dan misi Mentora" className="border-b border-line bg-surface px-4 py-14 sm:px-6 sm:py-20">
           <div className="mx-auto grid max-w-5xl items-start gap-10 md:grid-cols-2 md:gap-16">
-            <div className="rounded-2xl bg-primary-tint p-6 sm:p-9">
-              <h2 className="inline-block rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">Visi Kami</h2>
-              <p className="mt-5 font-serif text-2xl leading-snug tracking-tight text-ink sm:text-3xl">
+            <div className="rounded-3xl border border-primary-soft bg-primary-tint/70 p-6 sm:p-9 shadow-soft-card">
+              <span className="inline-block rounded-full bg-primary px-3.5 py-1 text-xs font-bold text-white shadow-2xs">Visi Kami</span>
+              <p className="mt-5 text-xl sm:text-2xl font-extrabold leading-snug tracking-tight text-ink">
                 Menciptakan ekosistem pembelajaran sebaya digital nomor satu di lingkungan perguruan tinggi,
                 di mana setiap mahasiswa memiliki akses setara untuk meningkatkan keahlian tanpa batasan biaya formalitas bimbingan belajar konvensional.
               </p>
-              <p className="mt-6 border-t border-primary-soft pt-4 text-xs font-medium text-ink-secondary">Kolaboratif · Aksesibel · Berkelanjutan</p>
+              <p className="mt-6 border-t border-primary-soft pt-4 text-xs font-semibold text-ink-muted">Kolaboratif · Aksesibel · Berkelanjutan</p>
             </div>
-            <div className="px-1 md:py-6">
-              <h2 className="font-serif text-3xl tracking-tight text-ink sm:text-4xl">Misi Kami</h2>
-              <ul className="mt-4 divide-y divide-line border-y border-line text-base leading-relaxed text-ink-secondary">
+            <div className="px-1 md:py-4">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">Misi Kami</h2>
+              <ul className="mt-4 divide-y divide-line border-y border-line text-sm sm:text-base leading-relaxed text-ink-secondary">
                 <li className="py-4">Menyediakan wadah terpercaya untuk pencocokan mentor dan mentee berbasis keahlian spesifik.</li>
                 <li className="py-4">Menjamin kualitas sesi bimbingan melalui kurasi dan verifikasi dokumen portofolio secara transparan.</li>
                 <li className="py-4">Mendorong mahasiswa mengasah keterampilan <em>soft skill</em> komunikasi dan kepemimpinan melalui pengajaran.</li>
               </ul>
-              <p className="mt-4 text-xs font-medium text-ink-muted">Transparansi · Pembelajaran Praktis</p>
+              <p className="mt-4 text-xs font-semibold text-ink-muted">Transparansi · Pembelajaran Praktis</p>
             </div>
           </div>
         </section>
