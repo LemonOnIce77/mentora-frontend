@@ -708,6 +708,9 @@ export default function DashboardPage() {
       .map((s) => s.tanggalSesi),
   );
   const activeMiniDay = agendaDay ?? todayWib;
+  const displayedSessions = agendaDay
+    ? bookedSessions.filter((s) => s.tanggalSesi === agendaDay)
+    : bookedSessions;
 
   if (!user) {
     return (
@@ -1073,21 +1076,50 @@ export default function DashboardPage() {
                   <FramePanel>
                     <MiniCalendarStrip
                       today={todayWib}
-                      selectedDay={activeMiniDay}
+                      selectedDay={agendaDay}
                       bookedDays={bookedDaysSet}
                       onSelectDay={(day) => {
                         setAgendaDay(day);
-                        if (bookedDaysSet.has(day)) {
-                          router.push(
-                            dashboardUrl("sessions") + "&view=calendar",
-                          );
-                        }
                       }}
                     />
                   </FramePanel>
 
-                  {bookedSessions.length > 0 ? (
-                    bookedSessions.map((session) => (
+                  {/* Filter Status Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line/60 bg-canvas/40 px-4 py-2.5 sm:px-6">
+                    <p className="text-xs text-ink-secondary">
+                      {agendaDay ? (
+                        <span>
+                          Menampilkan jadwal tanggal:{" "}
+                          <strong className="font-bold text-ink">
+                            {fullDateLabel.format(
+                              new Date(agendaDay + "T00:00:00Z"),
+                            )}
+                          </strong>{" "}
+                          ({displayedSessions.length} sesi)
+                        </span>
+                      ) : (
+                        <span>
+                          Menampilkan{" "}
+                          <strong className="font-bold text-ink">
+                            semua sesi belajar
+                          </strong>{" "}
+                          ({bookedSessions.length} sesi terdaftar)
+                        </span>
+                      )}
+                    </p>
+                    {agendaDay && (
+                      <button
+                        type="button"
+                        onClick={() => setAgendaDay(null)}
+                        className="text-xs font-bold text-primary hover:underline"
+                      >
+                        Tampilkan semua sesi
+                      </button>
+                    )}
+                  </div>
+
+                  {displayedSessions.length > 0 ? (
+                    displayedSessions.map((session) => (
                       <article
                         key={session.id}
                         className="flex flex-col gap-4 bg-surface px-4 py-4 sm:px-6 sm:py-5 lg:flex-row lg:items-center lg:justify-between"
@@ -1190,6 +1222,46 @@ export default function DashboardPage() {
                         </div>
                       </article>
                     ))
+                  ) : bookedSessions.length > 0 ? (
+                    <FramePanel className="flex flex-col items-center justify-center p-8 text-center sm:p-12">
+                      <div className="mb-3 grid size-12 place-items-center rounded-2xl border border-line bg-canvas text-ink-muted">
+                        <Calendar className="size-6" aria-hidden="true" />
+                      </div>
+                      <h3 className="text-base font-bold text-ink">
+                        Tidak ada jadwal sesi pada tanggal ini
+                      </h3>
+                      <p className="mt-1 max-w-md text-xs text-ink-secondary sm:text-sm">
+                        Kamu belum memiliki reservasi sesi belajar pada tanggal{" "}
+                        <strong className="text-ink">
+                          {agendaDay
+                            ? fullDateLabel.format(
+                                new Date(agendaDay + "T00:00:00Z"),
+                              )
+                            : ""}
+                        </strong>
+                        .
+                      </p>
+                      <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setAgendaDay(null)}
+                          className="action-secondary inline-flex min-h-9 items-center rounded-full px-4 text-xs font-semibold transition-colors"
+                        >
+                          Lihat semua sesi ({bookedSessions.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (agendaDay) setBookingDay(agendaDay);
+                            router.push(dashboardUrl("mentors"));
+                          }}
+                          className="action-primary inline-flex min-h-9 items-center gap-1.5 rounded-full px-4 text-xs font-bold transition-colors"
+                        >
+                          <Plus className="size-3.5" aria-hidden="true" />
+                          <span>Pesan sesi di tanggal ini</span>
+                        </button>
+                      </div>
+                    </FramePanel>
                   ) : (
                     <FramePanel className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                       <div className="flex flex-col gap-1">

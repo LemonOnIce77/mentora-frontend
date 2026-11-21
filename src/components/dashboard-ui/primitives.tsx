@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, FileText, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { shiftDay } from "@/lib/session-date";
@@ -181,13 +181,23 @@ export function MiniCalendarStrip({
   days = 7,
 }: {
   today: string;
-  selectedDay: string;
+  selectedDay?: string | null;
   bookedDays: Set<string>;
-  onSelectDay: (day: string) => void;
+  onSelectDay: (day: string | null) => void;
   days?: number;
 }) {
   const [startDay, setStartDay] = useState(selectedDay || today);
   const effectiveStart = startDay || today;
+
+  useEffect(() => {
+    if (selectedDay) {
+      const endDay = shiftDay(startDay, days - 1);
+      if (selectedDay < startDay || selectedDay > endDay) {
+        setStartDay(selectedDay);
+      }
+    }
+  }, [selectedDay, days, startDay]);
+
   const dayList = Array.from({ length: days }, (_, idx) =>
     shiftDay(effectiveStart, idx),
   );
@@ -202,11 +212,28 @@ export function MiniCalendarStrip({
         <div className="flex items-center gap-1">
           <button
             type="button"
+            onClick={() => onSelectDay(null)}
+            className={cn(
+              "min-h-8 rounded-full px-2.5 text-xs font-semibold transition-colors",
+              !selectedDay
+                ? "bg-primary text-white shadow-2xs"
+                : "text-ink-secondary hover:bg-primary-soft hover:text-primary",
+            )}
+          >
+            Semua
+          </button>
+          <button
+            type="button"
             onClick={() => {
               setStartDay(today);
               onSelectDay(today);
             }}
-            className="min-h-8 rounded-full px-2.5 text-xs font-semibold text-primary transition-colors hover:bg-primary-soft"
+            className={cn(
+              "min-h-8 rounded-full px-2.5 text-xs font-semibold transition-colors",
+              selectedDay === today
+                ? "bg-primary text-white shadow-2xs"
+                : "text-primary hover:bg-primary-soft",
+            )}
           >
             Hari ini
           </button>
@@ -246,7 +273,7 @@ export function MiniCalendarStrip({
               aria-pressed={isSelected}
               aria-current={isToday ? "date" : undefined}
               aria-label={fullAriaDate.format(d) + (hasSession ? ", ada sesi" : "")}
-              onClick={() => onSelectDay(iso)}
+              onClick={() => onSelectDay(isSelected ? null : iso)}
               className={cn(
                 "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border text-center transition-colors",
                 isSelected
