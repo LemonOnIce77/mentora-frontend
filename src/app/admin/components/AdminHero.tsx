@@ -66,7 +66,7 @@ export default function AdminHero({ refreshing, onRefresh }: Props) {
               </div>
 
               <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl lg:text-4xl">
-                Portal Administrator Mentora
+                Dashboard Administrator Mentora
               </h1>
               <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-ink-secondary sm:text-base">
                 Pusat kendali verifikasi calon mentor, validasi dokumen kredensial akademik, dan pengelolaan direktori mentor resmi di platform Mentora.
@@ -76,11 +76,11 @@ export default function AdminHero({ refreshing, onRefresh }: Props) {
 
           <div className="flex flex-wrap items-center gap-3 lg:shrink-0">
             <Link
-              href="/dashboard"
+              href="/"
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-bold text-ink-secondary shadow-2xs transition hover:bg-canvas hover:text-ink sm:text-sm"
             >
               <LayoutDashboard className="h-4 w-4 text-ink-muted" />
-              <span>Ke Dashboard Pengguna</span>
+              <span>Lihat Beranda</span>
             </Link>
             <button
               type="button"

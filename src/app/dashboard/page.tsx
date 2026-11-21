@@ -449,6 +449,11 @@ export default function DashboardPage() {
 
       const authData = await authRes.json();
       const authUser = authData.user ?? {};
+
+      if (authUser.role === "Admin") {
+        router.replace("/admin");
+        return;
+      }
       const profileData = profileRes.ok ? await profileRes.json() : {};
       const skillsData = skillsRes.ok ? await skillsRes.json() : {};
       const profile = profileData.profile ?? authUser;

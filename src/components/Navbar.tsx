@@ -16,8 +16,10 @@ const navLinks = [
 ];
 
 const adminNavLinks = [
-  { label: "Dashboard Admin", href: "/dashboard" },
-  { label: "Portal Admin", href: "/admin" },
+  { label: "Dashboard Admin", href: "/admin" },
+  { label: "Tentang", href: "/tentang" },
+  { label: "Testimoni", href: "/testimoni" },
+  { label: "FAQ", href: "/faq" },
 ];
 
 interface CurrentUser {
@@ -208,17 +210,23 @@ export default function Navbar() {
                         <p className="text-xs text-slate-500 truncate">{profile.email || ""}</p>
                       </div>
                     </div>
-                    {!isAdmin && <Link href="/profile" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
-                      <UserRound className="w-4 h-4" /> Profil Saya
-                    </Link>}
-                    <Link href="/dashboard" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
-                      <LayoutDashboard className="w-4 h-4" /> {isAdmin ? "Dashboard Admin" : "Dashboard"}
-                    </Link>
-                    {isAdmin ? <Link href="/admin" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-purple-700 hover:bg-purple-50">
-                      <ShieldCheck className="w-4 h-4" /> Portal Admin
-                    </Link> : <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
-                      <MessageSquare className="w-4 h-4" /> Pesan & Diskusi
-                    </Link>}
+                    {isAdmin ? (
+                      <Link href="/admin" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold text-primary hover:bg-primary-soft">
+                        <ShieldCheck className="w-4 h-4 text-primary" /> Dashboard Admin
+                      </Link>
+                    ) : (
+                      <>
+                        <Link href="/profile" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
+                          <UserRound className="w-4 h-4" /> Profil Saya
+                        </Link>
+                        <Link href="/dashboard" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
+                          <LayoutDashboard className="w-4 h-4" /> Dashboard
+                        </Link>
+                        <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-slate-700 hover:bg-blue-50 hover:text-[#2563EB]">
+                          <MessageSquare className="w-4 h-4" /> Pesan &amp; Diskusi
+                        </Link>
+                      </>
+                    )}
                     <button type="button" onClick={handleLogout} disabled={logoutLoading} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-red-600 hover:bg-red-50 disabled:opacity-60">
                       <LogOut className="w-4 h-4" /> {logoutLoading ? "Keluar..." : "Keluar"}
                     </button>
@@ -263,17 +271,23 @@ export default function Navbar() {
                       <p className="text-xs text-emerald-600">{role}</p>
                     </div>
                   </div>
-                  {!isAdmin && <Link href="/profile" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                    <UserRound className="w-5 h-5" /> Profil Saya
-                  </Link>}
-                  <Link href="/dashboard" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-[#2563EB] hover:bg-blue-50">
-                    <LayoutDashboard className="w-5 h-5" /> {isAdmin ? "Dashboard Admin" : "Dashboard"}
-                  </Link>
-                  {isAdmin ? <Link href="/admin" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-purple-700 hover:bg-purple-50">
-                    <ShieldCheck className="w-5 h-5" /> Portal Admin
-                  </Link> : <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                    <MessageSquare className="w-5 h-5" /> Pesan & Diskusi
-                  </Link>}
+                  {isAdmin ? (
+                    <Link href="/admin" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-primary hover:bg-primary-soft">
+                      <ShieldCheck className="w-5 h-5 text-primary" /> Dashboard Admin
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href="/profile" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                        <UserRound className="w-5 h-5" /> Profil Saya
+                      </Link>
+                      <Link href="/dashboard" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-[#2563EB] hover:bg-blue-50">
+                        <LayoutDashboard className="w-5 h-5" /> Dashboard
+                      </Link>
+                      <Link href="/chat" onClick={closeMenus} className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                        <MessageSquare className="w-5 h-5" /> Pesan &amp; Diskusi
+                      </Link>
+                    </>
+                  )}
                   <button type="button" onClick={handleLogout} disabled={logoutLoading} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60">
                     <LogOut className="w-5 h-5" /> {logoutLoading ? "Keluar..." : "Keluar"}
                   </button>
