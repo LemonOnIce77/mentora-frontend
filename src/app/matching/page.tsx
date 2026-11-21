@@ -48,14 +48,72 @@ export default function MatchingPage() {
     let cancelled = false;
     const load = async () => {
       try {
-        const authRes = await fetch('/api/auth/me');
+        const [authRes, skillsRes] = await Promise.all([
+          fetch('/api/auth/me', { cache: 'no-store' }),
+          fetch('/api/profile/skills', { cache: 'no-store' }).catch(() => null),
+        ]);
         if (!authRes.ok) { router.replace('/auth'); return; }
         const authData = await authRes.json();
         const current: User | null = authData.user;
         if (!current) { router.replace('/auth'); return; }
         if (cancelled) return;
+
+        let skillsData: any = null;
+        if (skillsRes && skillsRes.ok) {
+          try {
+            skillsData = await skillsRes.json();
+          } catch {
+            skillsData = null;
+          }
+        }
+
+        // Kumpulkan semua skill pengguna dari authData dan /api/profile/skills
+        const rawSkills: Array<{ tipe: string; skillName: string }> = [];
+
+        (current.skills || []).forEach((s: any) => {
+          const name = s.skill?.namaSkill || s.skills?.nama_skill || s.namaSkill || (typeof s === 'string' ? s : '');
+          if (name) {
+            rawSkills.push({
+              tipe: String(s.tipe || s.type || 'LEARN').toUpperCase(),
+              skillName: name,
+            });
+          }
+        });
+
+        (skillsData?.skillsToLearn || []).forEach((s: any) => {
+          const name = s.namaSkill || s.nama_skill || (typeof s === 'string' ? s : '');
+          if (name) rawSkills.push({ tipe: 'LEARN', skillName: name });
+        });
+
+        (skillsData?.skillsPossessed || []).forEach((s: any) => {
+          const name = s.namaSkill || s.nama_skill || (typeof s === 'string' ? s : '');
+          if (name) rawSkills.push({ tipe: 'TEACH', skillName: name });
+        });
+
+        // Deduplikasi skill
+        const seen = new Set<string>();
+        const uniqueTaught: string[] = [];
+        const uniqueLearned: string[] = [];
+
+        rawSkills.forEach((item) => {
+          const key = `${item.tipe}:${item.skillName.toLowerCase()}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            if (item.tipe === 'TEACH') {
+              uniqueTaught.push(item.skillName);
+            } else {
+              uniqueLearned.push(item.skillName);
+            }
+          }
+        });
+
+        const taught = uniqueTaught;
+        const learned = uniqueLearned;
+
         setUser(current);
-        if (Number.isFinite(current.latitude) && Number.isFinite(current.longitude)) setLocation({ latitude: current.latitude as number, longitude: current.longitude as number });
+        if (Number.isFinite(current.latitude) && Number.isFinite(current.longitude)) {
+          setLocation({ latitude: current.latitude as number, longitude: current.longitude as number });
+        }
         if (new URLSearchParams(window.location.search).get("sekitar") === "1") {
           setShowMap(true);
           try {
@@ -67,11 +125,13 @@ export default function MatchingPage() {
             sessionStorage.removeItem("mentora-nearby");
           } catch { /* Browser storage may be disabled. */ }
         }
-        const taught = (current.skills || []).filter((s) => s.tipe === 'TEACH').map((s) => s.skill.namaSkill);
-        const learned = (current.skills || []).filter((s) => s.tipe === 'LEARN').map((s) => s.skill.namaSkill);
+
         const baseLatitude = Number.isFinite(current.latitude) ? current.latitude as number : CAMPUS.latitude;
         const baseLongitude = Number.isFinite(current.longitude) ? current.longitude as number : CAMPUS.longitude;
-        if (!taught.length || !learned.length) {
+
+        // Cukup miliki minimal salah satu: skill yang ingin dipelajari (mentee) ATAU diajarkan (mentor)
+        const hasAnySkill = taught.length > 0 || learned.length > 0;
+        if (!hasAnySkill) {
           setMissingSkills(true);
           const response = await fetch('/api/mentor/list');
           if (response.ok) {
@@ -79,12 +139,14 @@ export default function MatchingPage() {
             if (!cancelled) setPartners(mentors.filter((m: Mentor) => String(m.id) !== String(current.id)).map((m: Mentor) => ({
               ...m, id: String(m.id), universitas: m.universitas || '', domisili: m.domisili || '', prodi: m.prodi || '',
               modeSesi: m.modeSesi || 'Fleksibel', isVerifiedMentor: true, matchScore: 0,
-              skillsDitawarkan: (m.skills || []).filter(s => s.tipe !== 'LEARN').map(s => s.skill.namaSkill),
+              skillsDitawarkan: (m.skills || []).filter((s: any) => String(s.tipe || s.type).toUpperCase() !== 'LEARN').map((s: any) => s.skill?.namaSkill || s.namaSkill || ''),
               skillsDibutuhkan: [], latitude: m.latitude ?? NaN, longitude: m.longitude ?? NaN,
             })));
           }
           return;
         }
+
+        setMissingSkills(false);
 
         let matches: Partner[] = [];
         try {
@@ -92,28 +154,83 @@ export default function MatchingPage() {
           if (matchRes.ok) {
             const payload = await matchRes.json();
             matches = (payload.matches || payload.partners || []).map((item: any, index: number) => ({
-              id: String(item.id), namaLengkap: item.namaLengkap || item.name || 'Partner belajar',
-              universitas: item.universitas || 'Universitas belum diatur', prodi: item.prodi || 'Program studi belum diatur', domisili: item.domisili || 'Lokasi belum diatur',
-              fotoProfil: item.fotoProfil, isVerifiedMentor: Boolean(item.isVerifiedMentor ?? item.statusMentor === 'APPROVED'),
-              matchScore: Number(item.matchScore ?? 70), latitude: Number(item.latitude ?? baseLatitude + (index + 1) * 0.003), longitude: Number(item.longitude ?? baseLongitude + (index + 1) * 0.002),
-              modeSesi: item.modeSesi || 'Fleksibel', skillsDitawarkan: item.skillsDitawarkan || [], skillsDibutuhkan: item.skillsDibutuhkan || [],
+              id: String(item.id),
+              namaLengkap: item.namaLengkap || item.nama_lengkap || item.name || 'Partner belajar',
+              universitas: item.universitas || 'Universitas belum diatur',
+              prodi: item.prodi || 'Program studi belum diatur',
+              domisili: item.domisili || 'Lokasi belum diatur',
+              fotoProfil: item.fotoProfil || item.foto_profil,
+              isVerifiedMentor: Boolean(item.isVerifiedMentor ?? item.statusMentor === 'APPROVED'),
+              matchScore: Number(item.matchScore ?? 75),
+              latitude: Number(item.latitude ?? baseLatitude + (index + 1) * 0.003),
+              longitude: Number(item.longitude ?? baseLongitude + (index + 1) * 0.002),
+              modeSesi: item.modeSesi || item.mode_sesi || 'Fleksibel',
+              skillsDitawarkan: item.skillsDitawarkan || [],
+              skillsDibutuhkan: item.skillsDibutuhkan || [],
             }));
           }
         } catch { /* fallback below */ }
+
         if (!matches.length) {
           let mentorList: Mentor[] = [];
-          try { const mentorRes = await fetch('/api/mentor/list'); if (mentorRes.ok) mentorList = (await mentorRes.json()).mentors || []; } catch { /* local fallback below */ }
-          if (!mentorList.length) mentorList = [
-            { id: 'peer-1', namaLengkap: 'Teman Belajar', universitas: 'Universitas Telkom', prodi: 'Informatika', domisili: 'Bandung', statusMentor: 'APPROVED', skills: [{ tipe: 'TEACH', skill: { namaSkill: learned[0] } }] },
-          ];
-          matches = mentorList.filter((m) => String(m.id) !== String(current.id)).map((mentor, index) => {
-            const offered = (mentor.skills || []).map((s) => s.skill.namaSkill).filter((s) => learned.some((l) => l.toLowerCase() === s.toLowerCase()));
-            const needed = (mentor.skills || []).filter((s) => s.tipe === 'LEARN').map((s) => s.skill.namaSkill).filter((s) => taught.some((t) => t.toLowerCase() === s.toLowerCase()));
-            const actualOffered = offered.length ? offered : learned.slice(0, 2);
-            const actualNeeded = needed.length ? needed : taught.slice(0, 2);
-            const score = Math.min(99, Math.round(55 + 45 * ((actualOffered.length + actualNeeded.length) / Math.max(1, learned.length + taught.length))));
-            return { id: String(mentor.id), namaLengkap: mentor.namaLengkap, universitas: mentor.universitas || 'Universitas belum diatur', prodi: mentor.prodi || 'Program studi belum diatur', domisili: mentor.domisili || 'Lokasi belum diatur', fotoProfil: mentor.fotoProfil, isVerifiedMentor: mentor.statusMentor === 'APPROVED' || mentor.role === 'Mentor', matchScore: score, latitude: Number.isFinite(mentor.latitude) ? mentor.latitude as number : baseLatitude + (index + 1) * 0.003, longitude: Number.isFinite(mentor.longitude) ? mentor.longitude as number : baseLongitude + (index + 1) * 0.002, modeSesi: mentor.modeSesi || 'Fleksibel', skillsDitawarkan: actualOffered, skillsDibutuhkan: actualNeeded };
-          });
+          try {
+            const mentorRes = await fetch('/api/mentor/list');
+            if (mentorRes.ok) {
+              const data = await mentorRes.json();
+              mentorList = data.mentors || [];
+            }
+          } catch { /* local fallback below */ }
+
+          matches = mentorList
+            .filter((m) => String(m.id) !== String(current.id))
+            .map((mentor, index) => {
+              const mentorTeachSkills = (mentor.skills || [])
+                .filter((s: any) => String(s.tipe || s.type || 'TEACH').toUpperCase() !== 'LEARN')
+                .map((s: any) => s.skill?.namaSkill || s.namaSkill || (typeof s === 'string' ? s : ''))
+                .filter(Boolean);
+              const mentorLearnSkills = (mentor.skills || [])
+                .filter((s: any) => String(s.tipe || s.type).toUpperCase() === 'LEARN')
+                .map((s: any) => s.skill?.namaSkill || s.namaSkill || (typeof s === 'string' ? s : ''))
+                .filter(Boolean);
+
+              const offered = mentorTeachSkills.filter((s: string) =>
+                learned.some((l) => l.toLowerCase() === s.toLowerCase())
+              );
+              const needed = mentorLearnSkills.filter((s: string) =>
+                taught.some((t) => t.toLowerCase() === s.toLowerCase())
+              );
+
+              const actualOffered = offered.length ? offered : (mentorTeachSkills.length ? mentorTeachSkills.slice(0, 3) : (learned.length ? learned.slice(0, 2) : ['Umum']));
+              const actualNeeded = needed.length ? needed : (mentorLearnSkills.length ? mentorLearnSkills.slice(0, 3) : []);
+
+              let score = 65;
+              if (offered.length > 0 && needed.length > 0) {
+                score = 85 + Math.min(14, (offered.length + needed.length) * 4);
+              } else if (offered.length > 0) {
+                score = 75 + Math.min(20, offered.length * 8);
+              } else if (needed.length > 0) {
+                score = 70 + Math.min(15, needed.length * 6);
+              }
+              if (mentor.statusMentor === 'APPROVED' || mentor.role === 'Mentor') {
+                score = Math.min(99, score + 5);
+              }
+
+              return {
+                id: String(mentor.id),
+                namaLengkap: mentor.namaLengkap,
+                universitas: mentor.universitas || 'Universitas belum diatur',
+                prodi: mentor.prodi || 'Program studi belum diatur',
+                domisili: mentor.domisili || 'Lokasi belum diatur',
+                fotoProfil: mentor.fotoProfil,
+                isVerifiedMentor: mentor.statusMentor === 'APPROVED' || mentor.role === 'Mentor',
+                matchScore: score,
+                latitude: Number.isFinite(mentor.latitude) ? (mentor.latitude as number) : baseLatitude + (index + 1) * 0.003,
+                longitude: Number.isFinite(mentor.longitude) ? (mentor.longitude as number) : baseLongitude + (index + 1) * 0.002,
+                modeSesi: mentor.modeSesi || 'Fleksibel',
+                skillsDitawarkan: actualOffered,
+                skillsDibutuhkan: actualNeeded,
+              };
+            });
         }
         if (!cancelled) setPartners(matches);
       } catch (error) { console.error('Gagal memuat rekomendasi partner:', error); }
@@ -280,8 +397,7 @@ export default function MatchingPage() {
               Lengkapi skill untuk mulai mencari
             </h2>
             <p className="mt-2 text-sm text-ink-muted">
-              Tambahkan minimal satu skill yang kamu kuasai dan satu skill yang
-              ingin kamu pelajari.
+              Tambahkan minimal satu skill di profil kamu untuk mendapatkan rekomendasi partner belajar yang relevan.
             </p>
             <button
               onClick={() => router.push("/dashboard?tab=skills")}
@@ -348,7 +464,7 @@ export default function MatchingPage() {
 
                   <div className="mt-5 rounded-2xl border border-line bg-canvas p-3">
                     <p className="text-[11px] font-bold uppercase text-ink-secondary">
-                      Skill yang dia tawarkan (kamu butuhkan)
+                      Skill yang diajarkan (rekomendasi untukmu)
                     </p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {partner.skillsDitawarkan.map((skill) => (
@@ -362,21 +478,23 @@ export default function MatchingPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 rounded-2xl border border-line bg-canvas p-3">
-                    <p className="text-[11px] font-bold uppercase text-ink-secondary">
-                      Skill yang dia butuhkan (kamu kuasai)
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {partner.skillsDibutuhkan.map((skill) => (
-                        <span
-                          key={skill}
-                          className="rounded-lg border border-line bg-surface px-2 py-1 text-xs font-semibold text-ink-secondary"
-                        >
-                          {skill}
-                        </span>
-                      ))}
+                  {partner.skillsDibutuhkan.length > 0 && (
+                    <div className="mt-3 rounded-2xl border border-line bg-canvas p-3">
+                      <p className="text-[11px] font-bold uppercase text-ink-secondary">
+                        Skill yang dia cari (pertukaran belajar)
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {partner.skillsDibutuhkan.map((skill) => (
+                          <span
+                            key={skill}
+                            className="rounded-lg border border-line bg-surface px-2 py-1 text-xs font-semibold text-ink-secondary"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 <button

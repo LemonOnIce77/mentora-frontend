@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { approvalCount, mentorIdentity } from '@/lib/mentor-eligibility';
 import { prisma } from '@/lib/prisma';
 import { getAuthUser } from '@/lib/auth';
+import { DEFAULT_COMMUNITY_MENTORS } from '@/lib/community-mentors';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,22 +30,40 @@ export async function GET(req: NextRequest) {
     const currentUserId = BigInt(authUser.id);
 
     // Ambil skills milik pengguna yang sedang login
-    const userSkills = await (p.user_skills || p.userSkill)?.findMany({
-      where: { user_id: currentUserId },
-      include: { skills: true },
-    }) || [];
+    let userSkills: any[] = [];
+    try {
+      userSkills = await (p.user_skills || p.userSkill)?.findMany({
+        where: { user_id: currentUserId },
+        include: { skills: true },
+      }) || [];
+    } catch {
+      userSkills = [];
+    }
 
-    const taughtSkills = userSkills
+    let taughtSkills = userSkills
       .filter((s: any) => s.type?.toLowerCase() === 'teach' || s.tipe?.toLowerCase() === 'teach')
       .map((s: any) => s.skills?.nama_skill || s.skill?.namaSkill || s.skill?.nama_skill || '')
       .filter(Boolean);
 
-    const learnSkills = userSkills
+    let learnSkills = userSkills
       .filter((s: any) => s.type?.toLowerCase() === 'learn' || s.tipe?.toLowerCase() === 'learn')
       .map((s: any) => s.skills?.nama_skill || s.skill?.namaSkill || s.skill?.nama_skill || '')
       .filter(Boolean);
 
-    // Kasus Tepi FR-08 SCRUM-136
+    // Fallback ke authUser.skills jika data database kosong (cloud serverless / session fallback)
+    if (taughtSkills.length === 0 && learnSkills.length === 0 && Array.isArray((authUser as any).skills)) {
+      const authSkills = (authUser as any).skills;
+      taughtSkills = authSkills
+        .filter((s: any) => String(s.tipe || s.type).toLowerCase() === 'teach')
+        .map((s: any) => s.skill?.namaSkill || s.skills?.nama_skill || s.namaSkill || '')
+        .filter(Boolean);
+      learnSkills = authSkills
+        .filter((s: any) => String(s.tipe || s.type).toLowerCase() === 'learn')
+        .map((s: any) => s.skill?.namaSkill || s.skills?.nama_skill || s.namaSkill || '')
+        .filter(Boolean);
+    }
+
+    // Kasus Tepi FR-08 SCRUM-136: Hanya gagal jika sama sekali tidak memiliki skill (baik teach maupun learn)
     if (taughtSkills.length === 0 && learnSkills.length === 0) {
       return NextResponse.json({
         success: false,
@@ -55,17 +74,44 @@ export async function GET(req: NextRequest) {
     }
 
     // Ambil daftar kandidat pengguna lain
-    const candidates = await (p.users || p.user)?.findMany({
-      where: {
-        id: { not: currentUserId },
-      },
-      include: {
-        _count: approvalCount,
-        user_skills: {
-          include: { skills: true },
+    let candidates: any[] = [];
+    try {
+      candidates = await (p.users || p.user)?.findMany({
+        where: {
+          id: { not: currentUserId },
         },
-      },
-    }) || [];
+        include: {
+          _count: approvalCount,
+          user_skills: {
+            include: { skills: true },
+          },
+        },
+      }) || [];
+    } catch {
+      candidates = [];
+    }
+
+    // Fallback kandidat komunitas jika database pengguna lain belum terisi
+    if (!candidates.length) {
+      candidates = DEFAULT_COMMUNITY_MENTORS.filter((m) => m.id !== Number(currentUserId)).map((m) => ({
+        id: BigInt(m.id),
+        nama_lengkap: m.namaLengkap,
+        nama_panggilan: m.namaPanggilan,
+        universitas: m.universitas,
+        prodi: m.prodi,
+        domisili: m.domisili,
+        foto_profil: m.fotoProfil,
+        role: m.role,
+        mode_sesi: m.modeSesi,
+        latitude: -6.9740 + Math.random() * 0.01,
+        longitude: 107.6303 + Math.random() * 0.01,
+        user_skills: m.skills.map((s: any) => ({
+          type: 'teach',
+          skills: { nama_skill: s.skill.namaSkill },
+        })),
+        _count: { mentor_applications: 1 },
+      }));
+    }
 
     const userLat = Number((authUser as any).latitude ?? -6.9740);
     const userLng = Number((authUser as any).longitude ?? 107.6303);
