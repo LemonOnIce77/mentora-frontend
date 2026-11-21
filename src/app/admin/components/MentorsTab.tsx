@@ -39,22 +39,22 @@ export default function MentorsTab({ mentors, activeMentors }: Props) {
       id="direktori-mentor"
       data-jiro-section="mentors"
       data-jiro-label="Tab Direktori Mentor"
-      className="mx-auto max-w-[1280px] scroll-mt-32 px-4 py-8 sm:px-6 lg:px-8 lg:py-10"
+      className="mx-auto max-w-7xl scroll-mt-32 px-4 py-8 sm:px-6 lg:px-8"
     >
       <div className="flex flex-col gap-1">
-        <h2 className="text-[20px] font-extrabold tracking-tight text-[#0F172A] sm:text-[24px]">
+        <h2 className="text-xl font-extrabold tracking-tight text-ink sm:text-2xl">
           Direktori Mentor Terverifikasi
         </h2>
-        <p className="text-[14px] leading-relaxed text-[#64748B]">
+        <p className="text-sm text-ink-secondary">
           Daftar mahasiswa yang telah lolos verifikasi kredensial dan aktif
-          membuka sesi pertukaran keterampilan di Mentora.
+          membuka sesi mentoring keterampilan di platform Mentora.
         </p>
       </div>
 
-      {/* Toolbar */}
-      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between lg:p-5">
-        <div className="relative sm:w-96">
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4.5 w-4.5 -translate-y-1/2 text-[#94A3B8]" />
+      {/* Toolbar Pencarian */}
+      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-line bg-surface p-4 shadow-soft-card sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative sm:w-80">
+          <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-ink-muted" />
           <label htmlFor="cari-mentor" className="sr-only">
             Cari mentor terverifikasi
           </label>
@@ -63,120 +63,108 @@ export default function MentorsTab({ mentors, activeMentors }: Props) {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari mentor, universitas, kota, atau keahlian..."
-            className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] py-2.5 pr-3.5 pl-11 text-[13.5px] font-medium text-[#0F172A] outline-none transition placeholder:text-[#94A3B8] focus:border-[#93C5FD] focus:bg-white focus:ring-4 focus:ring-[#EFF6FF]"
+            placeholder="Cari mentor, kampus, atau keahlian..."
+            className="w-full rounded-xl border border-line bg-canvas py-2.5 pr-3.5 pl-10 text-xs font-medium text-ink outline-none transition placeholder:text-ink-muted focus:border-primary focus:bg-surface sm:text-sm"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#A7F3D0] bg-[#ECFDF5] px-4 py-2 text-[12.5px] font-bold text-[#059669]">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-full border border-success/20 bg-success-soft px-3.5 py-1.5 text-xs font-bold text-success">
             <Users className="h-4 w-4" />
-            Total {activeMentors} Mentor Aktif
+            <span>Total {activeMentors} Mentor Aktif</span>
           </span>
-          <span className="hidden rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-2 text-[12.5px] font-semibold text-[#64748B] sm:inline-flex">
+          <span className="hidden rounded-full border border-line bg-canvas px-3 py-1.5 text-xs font-semibold text-ink-muted sm:inline-flex">
             Menampilkan {filtered.length} profil
           </span>
         </div>
       </div>
 
-      {/* Grid mentor */}
+      {/* Grid Mentor */}
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((m) => (
           <article
             key={m.id}
-            className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-sm transition duration-300 hover:-translate-y-1.5 hover:border-[#BFDBFE] hover:shadow-xl hover:shadow-blue-600/10"
+            className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-soft-card transition hover:shadow-cloud"
           >
-            {/* Cover */}
-            <div className="relative h-20 bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED]">
-              <span
-                aria-hidden="true"
-                className="absolute inset-0 bg-[linear-gradient(to_right,#FFFFFF22_1px,transparent_1px),linear-gradient(to_bottom,#FFFFFF22_1px,transparent_1px)] bg-[size:22px_22px]"
-              />
-              <span
-                className={`absolute top-3.5 right-3.5 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-bold backdrop-blur ${
-                  m.mode === "Online"
-                    ? "bg-white/90 text-[#1D4ED8]"
-                    : "bg-white/90 text-[#6D28D9]"
-                }`}
-              >
+            {/* Header tenang */}
+            <div className="relative h-16 bg-primary-soft/60 border-b border-line flex items-center justify-end px-4">
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1 text-[11px] font-bold text-ink-secondary shadow-2xs">
                 {m.mode === "Online" ? (
-                  <Laptop className="h-3.5 w-3.5" />
+                  <Laptop className="h-3.5 w-3.5 text-primary" />
                 ) : (
-                  <UsersRound className="h-3.5 w-3.5" />
+                  <UsersRound className="h-3.5 w-3.5 text-primary" />
                 )}
-                {m.mode}
+                <span>{m.mode}</span>
               </span>
             </div>
 
             <div className="flex flex-1 flex-col px-5 pb-5 sm:px-6 sm:pb-6">
-              <span className="relative -mt-9 w-fit">
-                <span
-                  className={`flex h-18 w-18 items-center justify-center rounded-2xl text-[20px] font-extrabold shadow-md ring-4 ring-white ${m.tone}`}
-                >
+              <span className="relative -mt-8 w-fit">
+                <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-soft text-primary text-lg font-extrabold shadow-sm border-2 border-surface">
                   {m.initials}
                 </span>
                 <BadgeCheck
-                  className="absolute -right-1.5 -bottom-1.5 h-6.5 w-6.5 rounded-full bg-white text-[#2563EB]"
+                  className="absolute -right-1 -bottom-1 h-5 w-5 rounded-full bg-surface text-primary"
                   strokeWidth={2.4}
                   aria-label="Mentor terverifikasi"
                 />
               </span>
 
-              <h3 className="mt-3.5 text-[16.5px] leading-tight font-extrabold tracking-tight text-[#0F172A]">
+              <h3 className="mt-3 text-base font-extrabold text-ink truncate">
                 {m.name}
               </h3>
-              <p className="mt-1 text-[12.5px] leading-snug text-[#64748B]">
+              <p className="mt-0.5 text-xs text-ink-muted leading-snug">
                 {m.program}
-                <span className="block font-semibold text-[#475569]">
+                <span className="block font-semibold text-ink-secondary">
                   {m.university}
                 </span>
               </p>
 
-              <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-lg bg-[#F1F5F9] px-2.5 py-1.5 text-[12px] font-semibold text-[#475569]">
-                <MapPin className="h-3.5 w-3.5 text-[#7C3AED]" />
-                {m.city}
+              <span className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-lg bg-canvas border border-line px-2.5 py-1 text-xs font-medium text-ink-secondary">
+                <MapPin className="h-3.5 w-3.5 text-primary" />
+                <span>{m.city}</span>
               </span>
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-3.5 flex flex-wrap gap-1.5">
                 {m.skills.slice(0, 3).map((skill) => (
                   <span
                     key={skill}
-                    className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-1 text-[12px] font-semibold text-[#334155] transition group-hover:border-[#BFDBFE] group-hover:bg-[#EFF6FF] group-hover:text-[#1D4ED8]"
+                    className="rounded-lg border border-line bg-canvas px-2.5 py-1 text-xs font-medium text-ink-secondary"
                   >
                     {skill}
                   </span>
                 ))}
                 {m.skills.length > 3 && (
-                  <span className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-2.5 py-1 text-[12px] font-bold text-[#64748B]">
+                  <span className="rounded-lg border border-line bg-canvas px-2 py-1 text-xs font-medium text-ink-muted">
                     +{m.skills.length - 3} lainnya
                   </span>
                 )}
               </div>
 
               {/* EduPoints */}
-              <div className="mt-5 rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-3.5">
+              <div className="mt-4 rounded-xl border border-warning-soft bg-warning-tint p-3">
                 <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1.5 text-[13px] font-extrabold text-[#D97706]">
-                    <Sparkles className="h-4 w-4" />
-                    {m.eduPoints} EduPoints
+                  <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-warning-accent">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>{m.eduPoints} EduPoints</span>
                   </span>
-                  <span className="text-[10.5px] font-bold tracking-wider text-[#B45309] uppercase">
+                  <span className="text-[10px] font-bold text-ink-muted uppercase">
                     {m.id}
                   </span>
                 </div>
-                <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-[#FDE68A]/70">
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-warning-soft">
                   <span
                     style={{
                       width: `${Math.min(100, (m.eduPoints / MAX_POINTS) * 100)}%`,
                     }}
-                    className="block h-full rounded-full bg-gradient-to-r from-[#D97706] to-[#FBBF24] transition-all duration-700"
+                    className="block h-full rounded-full bg-warning-accent transition-all duration-700"
                   />
                 </div>
               </div>
 
               <div className="mt-4">
-                <span className="block text-center rounded-xl border border-[#CBD5E1] bg-white px-4 py-2.5 text-[13px] font-bold text-[#334155] transition hover:border-[#93C5FD] hover:bg-[#EFF6FF] hover:text-[#1D4ED8]">
-                  Profil Mentor Aktif
+                <span className="block text-center rounded-xl border border-line bg-surface px-4 py-2 text-xs font-bold text-ink-secondary shadow-2xs transition hover:border-primary hover:text-primary hover:bg-canvas">
+                  Mentor Aktif
                 </span>
               </div>
             </div>
@@ -185,11 +173,11 @@ export default function MentorsTab({ mentors, activeMentors }: Props) {
       </div>
 
       {filtered.length === 0 && (
-        <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#CBD5E1] bg-white p-12 text-center shadow-sm">
-          <p className="text-[16px] font-extrabold text-[#0F172A]">
+        <div className="mt-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-line bg-surface p-12 text-center shadow-soft-card">
+          <p className="text-sm font-extrabold text-ink sm:text-base">
             Tidak ada mentor yang sesuai pencarian
           </p>
-          <p className="mt-1.5 text-[13px] text-[#64748B]">
+          <p className="mt-1 text-xs text-ink-muted">
             Coba gunakan kata kunci nama, kampus, atau keahlian lain.
           </p>
         </div>

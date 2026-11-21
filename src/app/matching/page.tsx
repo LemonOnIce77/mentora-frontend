@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { AlertCircle, ArrowDownWideNarrow, Loader2, LocateFixed } from 'lucide-react';
 import {
   CheckCircle2,
@@ -18,7 +19,7 @@ import Footer from '@/components/Footer';
 const PartnerMap = dynamic(() => import('@/components/PartnerMap'), { ssr: false, loading: () => <p role="status">Memuat peta...</p> });
 
 type Skill = { id?: number; tipe?: string; skill: { id?: number; namaSkill: string; kategori?: string } };
-type User = { id: number | string; namaLengkap: string; universitas?: string; prodi?: string; domisili?: string; latitude?: number | null; longitude?: number | null; skills?: Skill[] };
+type User = { id: number | string; email?: string; namaLengkap: string; universitas?: string; prodi?: string; domisili?: string; latitude?: number | null; longitude?: number | null; skills?: Skill[] };
 type Partner = { id: string; namaLengkap: string; universitas: string; prodi: string; domisili: string; fotoProfil?: string; isVerifiedMentor: boolean; matchScore: number; latitude: number; longitude: number; modeSesi: string; skillsDitawarkan: string[]; skillsDibutuhkan: string[]; distanceKm?: number };
 type Mentor = { id: string | number; namaLengkap: string; universitas?: string; prodi?: string; domisili?: string; latitude?: number; longitude?: number; fotoProfil?: string; statusMentor?: string; role?: string; modeSesi?: string; skills?: Skill[] };
 
@@ -80,6 +81,16 @@ export default function MatchingPage() {
           }
         });
 
+        ((current as any).user_skills || []).forEach((s: any) => {
+          const name = s.skill?.namaSkill || s.skills?.nama_skill || s.namaSkill || (typeof s === 'string' ? s : '');
+          if (name) {
+            rawSkills.push({
+              tipe: String(s.type || s.tipe || 'LEARN').toUpperCase(),
+              skillName: name,
+            });
+          }
+        });
+
         (skillsData?.skillsToLearn || []).forEach((s: any) => {
           const name = s.namaSkill || s.nama_skill || (typeof s === 'string' ? s : '');
           if (name) rawSkills.push({ tipe: 'LEARN', skillName: name });
@@ -129,6 +140,15 @@ export default function MatchingPage() {
         const baseLatitude = Number.isFinite(current.latitude) ? current.latitude as number : CAMPUS.latitude;
         const baseLongitude = Number.isFinite(current.longitude) ? current.longitude as number : CAMPUS.longitude;
 
+        const isSelfPartner = (p: any) => {
+          if (!current) return false;
+          if (p.id && current.id && String(p.id) === String(current.id)) return true;
+          if (p.email && current.email && p.email.toLowerCase() === current.email.toLowerCase()) return true;
+          const pName = p.namaLengkap || p.nama_lengkap || p.name || '';
+          if (pName && current.namaLengkap && pName.trim().toLowerCase() === current.namaLengkap.trim().toLowerCase()) return true;
+          return false;
+        };
+
         // Cukup miliki minimal salah satu: skill yang ingin dipelajari (mentee) ATAU diajarkan (mentor)
         const hasAnySkill = taught.length > 0 || learned.length > 0;
         if (!hasAnySkill) {
@@ -136,7 +156,7 @@ export default function MatchingPage() {
           const response = await fetch('/api/mentor/list');
           if (response.ok) {
             const { mentors = [] } = await response.json();
-            if (!cancelled) setPartners(mentors.filter((m: Mentor) => String(m.id) !== String(current.id)).map((m: Mentor) => ({
+            if (!cancelled) setPartners(mentors.filter((m: any) => !isSelfPartner(m)).map((m: Mentor) => ({
               ...m, id: String(m.id), universitas: m.universitas || '', domisili: m.domisili || '', prodi: m.prodi || '',
               modeSesi: m.modeSesi || 'Fleksibel', isVerifiedMentor: true, matchScore: 0,
               skillsDitawarkan: (m.skills || []).filter((s: any) => String(s.tipe || s.type).toUpperCase() !== 'LEARN').map((s: any) => s.skill?.namaSkill || s.namaSkill || ''),
@@ -153,7 +173,9 @@ export default function MatchingPage() {
           const matchRes = await fetch('/api/matching');
           if (matchRes.ok) {
             const payload = await matchRes.json();
-            matches = (payload.matches || payload.partners || []).map((item: any, index: number) => ({
+            matches = (payload.matches || payload.partners || [])
+              .filter((item: any) => !isSelfPartner(item))
+              .map((item: any, index: number) => ({
               id: String(item.id),
               namaLengkap: item.namaLengkap || item.nama_lengkap || item.name || 'Partner belajar',
               universitas: item.universitas || 'Universitas belum diatur',
@@ -390,7 +412,22 @@ export default function MatchingPage() {
           {showMap && missingSkills && <p className="text-sm text-ink-muted">Peta ini menampilkan direktori mentor. Lengkapi skill untuk mendapat rekomendasi pribadi.</p>}
           {showMap && <PartnerMap partners={filtered} />}
         </div>
-        {missingSkills ? (
+        {missingSkills && filtered.length > 0 && (
+          <div className="rounded-2xl border border-warning-soft bg-warning-tint p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-xs text-ink-secondary">
+              <AlertCircle className="size-4 shrink-0 text-warning-accent" />
+              <span>Menampilkan direktori mentor komunitas. Lengkapi skill di profilmu untuk rekomendasi kecocokan yang lebih akurat.</span>
+            </div>
+            <Link
+              href="/dashboard?tab=skills"
+              className="action-primary inline-flex shrink-0 items-center justify-center rounded-xl px-4 py-2 text-xs font-bold shadow-2xs"
+            >
+              Lengkapi Skill
+            </Link>
+          </div>
+        )}
+
+        {missingSkills && filtered.length === 0 ? (
           <section className="mx-auto max-w-xl rounded-3xl border border-warning-soft bg-warning-tint p-8 text-center">
             <AlertCircle className="mx-auto h-10 w-10 text-warning" />
             <h2 className="mt-3 text-xl font-extrabold text-ink">

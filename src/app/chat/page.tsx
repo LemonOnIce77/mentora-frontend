@@ -242,9 +242,9 @@ export default function ChatPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 text-xs font-bold text-ink-muted hover:text-ink transition"
+              className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-3.5 py-1.5 text-xs font-bold text-ink shadow-2xs transition hover:border-primary hover:text-primary hover:bg-primary-soft/30 active:scale-[0.98]"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 text-primary" />
               <span>Kembali ke Dashboard</span>
             </Link>
             <span aria-hidden="true" className="h-4 border-l border-line" />

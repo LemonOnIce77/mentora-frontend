@@ -12,9 +12,9 @@ type Props = {
 };
 
 const QUICK_REASONS = [
-  "Dokumen tidak terbaca",
-  "Transkrip belum resmi",
-  "Pengalaman belum memadai",
+  "Dokumen tidak terbaca jelas",
+  "Transkrip nilai belum resmi",
+  "Kualifikasi keahlian belum mencukupi",
 ];
 
 export default function ConfirmModal({
@@ -43,7 +43,7 @@ export default function ConfirmModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-[#0F172A]/50 p-4 backdrop-blur-sm sm:items-center animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 backdrop-blur-sm sm:items-center animate-in fade-in duration-200"
       onClick={() => {
         if (!loading) onClose();
       }}
@@ -57,14 +57,14 @@ export default function ConfirmModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-2xl shadow-slate-900/20 animate-in zoom-in-95 duration-200"
+        className="w-full max-w-lg overflow-hidden rounded-2xl border border-line bg-surface shadow-cloud animate-in zoom-in-95 duration-200"
       >
-        <div className="flex items-start gap-4 border-b border-[#E2E8F0] p-5 sm:p-6">
+        <div className="flex items-start gap-4 border-b border-line p-5 sm:p-6">
           <span
-            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
               approve
-                ? "bg-[#ECFDF5] text-[#059669]"
-                : "bg-[#FFF1F2] text-[#E11D48]"
+                ? "bg-success-soft text-success"
+                : "bg-danger-tint text-danger"
             }`}
           >
             {approve ? (
@@ -74,28 +74,28 @@ export default function ConfirmModal({
             )}
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="text-[17px] font-extrabold text-[#0F172A]">
+            <h2 className="text-base font-extrabold text-ink sm:text-lg">
               {approve
                 ? "Setujui pengajuan mentor ini?"
                 : "Tolak pengajuan calon mentor ini?"}
             </h2>
-            <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#64748B]">
+            <p className="mt-1 text-xs text-ink-secondary leading-relaxed sm:text-sm">
               {approve ? (
                 <>
                   Peran akun{" "}
-                  <span className="font-bold text-[#0F172A]">
+                  <strong className="text-ink">
                     {state.submission.name}
-                  </span>{" "}
-                  akan diubah menjadi <strong>Mentor</strong> dan profilnya
-                  langsung tampil di direktori mentor Mentora.
+                  </strong>{" "}
+                  akan diaktifkan sebagai <strong>Mentor</strong> dan profilnya
+                  dapat menerima pemesanan sesi belajar.
                 </>
               ) : (
                 <>
                   Pengajuan{" "}
-                  <span className="font-bold text-[#0F172A]">
+                  <strong className="text-ink">
                     {state.submission.name}
-                  </span>{" "}
-                  akan ditandai ditolak. Sampaikan alasan agar calon mentor dapat
+                  </strong>{" "}
+                  akan ditolak. Berikan catatan evaluasi agar calon mentor dapat
                   memperbaiki berkasnya.
                 </>
               )}
@@ -106,21 +106,21 @@ export default function ConfirmModal({
             disabled={loading}
             onClick={onClose}
             aria-label="Tutup dialog"
-            className="rounded-lg p-1.5 text-[#94A3B8] transition hover:bg-[#F1F5F9] hover:text-[#334155] disabled:opacity-50"
+            className="rounded-lg p-1.5 text-ink-muted transition hover:bg-canvas hover:text-ink disabled:opacity-50"
           >
-            <X className="h-4.5 w-4.5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="p-5 sm:p-6">
-          <div className="rounded-xl bg-[#F8FAFC] p-4">
-            <p className="text-[11px] font-bold tracking-wider text-[#94A3B8] uppercase">
-              Ringkasan pengajuan
+          <div className="rounded-xl border border-line bg-canvas p-3.5">
+            <p className="text-[10px] font-bold tracking-wider text-ink-muted uppercase">
+              Ringkasan Calon Mentor
             </p>
-            <p className="mt-2 text-[14px] font-bold text-[#0F172A]">
+            <p className="mt-1 text-xs sm:text-sm font-bold text-ink">
               {state.submission.name} · {state.submission.id}
             </p>
-            <p className="mt-1 text-[13px] text-[#475569]">
+            <p className="mt-0.5 text-xs text-ink-muted">
               {state.submission.program} — {state.submission.university}
             </p>
           </div>
@@ -129,9 +129,9 @@ export default function ConfirmModal({
             <div className="mt-4">
               <label
                 htmlFor="alasan-penolakan"
-                className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase"
+                className="text-[10px] font-bold tracking-wider text-ink-secondary uppercase"
               >
-                Alasan penolakan
+                Catatan Alasan Penolakan
               </label>
               <textarea
                 id="alasan-penolakan"
@@ -139,18 +139,18 @@ export default function ConfirmModal({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Contoh: Dokumen transkrip belum resmi dan pengalaman mengajar belum memenuhi standar minimum."
-                className="mt-2 w-full resize-none rounded-xl border border-[#E2E8F0] bg-white p-3 text-[13.5px] leading-relaxed text-[#0F172A] outline-none transition placeholder:text-[#94A3B8] focus:border-[#FDA4AF] focus:ring-4 focus:ring-[#FFF1F2]"
+                className="mt-1.5 w-full resize-none rounded-xl border border-line bg-surface p-3 text-xs sm:text-sm text-ink outline-none transition placeholder:text-ink-muted focus:border-danger focus:ring-2 focus:ring-danger-soft"
               />
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-bold tracking-wider text-[#94A3B8] uppercase">
-                  Alasan cepat:
+              <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-bold text-ink-muted uppercase">
+                  Pilihan cepat:
                 </span>
                 {QUICK_REASONS.map((r) => (
                   <button
                     key={r}
                     type="button"
                     onClick={() => setReason(r)}
-                    className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-1 text-[12px] font-semibold text-[#475569] transition hover:border-[#CBD5E1] hover:bg-white"
+                    className="rounded-lg border border-line bg-canvas px-2.5 py-1 text-[11px] font-medium text-ink-secondary transition hover:bg-surface hover:border-primary"
                   >
                     {r}
                   </button>
@@ -159,12 +159,12 @@ export default function ConfirmModal({
             </div>
           )}
 
-          <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button
               type="button"
               disabled={loading}
               onClick={onClose}
-              className="rounded-xl border border-[#CBD5E1] bg-white px-5 py-2.5 text-[13.5px] font-bold text-[#334155] transition hover:bg-[#F8FAFC] disabled:opacity-50"
+              className="rounded-xl border border-line bg-surface px-4 py-2 text-xs font-bold text-ink-secondary transition hover:bg-canvas sm:text-sm disabled:opacity-50"
             >
               Batal
             </button>
@@ -172,26 +172,26 @@ export default function ConfirmModal({
               type="button"
               disabled={loading}
               onClick={() => onConfirm(reason)}
-              className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-[13.5px] font-bold text-white shadow-md transition disabled:opacity-70 ${
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold text-white shadow-sm transition sm:text-sm disabled:opacity-70 ${
                 approve
-                  ? "bg-gradient-to-r from-[#059669] to-[#047857] shadow-emerald-600/25 hover:shadow-lg hover:shadow-emerald-600/30"
-                  : "bg-gradient-to-r from-[#E11D48] to-[#BE123C] shadow-rose-600/25 hover:shadow-lg hover:shadow-rose-600/30"
+                  ? "bg-success hover:bg-emerald-800"
+                  : "bg-danger hover:bg-danger-hover"
               }`}
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                  Memproses…
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Memproses…</span>
                 </>
               ) : approve ? (
                 <>
-                  <Check className="h-4.5 w-4.5" strokeWidth={3} />
-                  Ya, Setujui Mentor
+                  <Check className="h-4 w-4" strokeWidth={3} />
+                  <span>Ya, Setujui Mentor</span>
                 </>
               ) : (
                 <>
-                  <XCircle className="h-4.5 w-4.5" />
-                  Ya, Tolak Pengajuan
+                  <XCircle className="h-4 w-4" />
+                  <span>Ya, Tolak Pengajuan</span>
                 </>
               )}
             </button>

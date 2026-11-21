@@ -24,15 +24,7 @@ import {
   type ToastItem,
 } from './components/adminData';
 
-const TONES = [
-  'bg-[#EEF2FF] text-[#4338CA]',
-  'bg-[#ECFEFF] text-[#0E7490]',
-  'bg-[#FDF2F8] text-[#BE185D]',
-  'bg-[#F0FDF4] text-[#15803D]',
-  'bg-[#FFF7ED] text-[#C2410C]',
-  'bg-[#EFF6FF] text-[#1D4ED8]',
-  'bg-[#F5F3FF] text-[#6D28D9]',
-];
+const CALM_AVATAR = 'bg-primary-soft text-primary border border-primary/20';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -88,7 +80,7 @@ export default function AdminPage() {
               name: app.user?.namaLengkap || 'Calon Mentor',
               email: app.user?.email || 'mentor@mentora.com',
               initials: getInitials(app.user?.namaLengkap || 'CM'),
-              tone: TONES[idx % TONES.length],
+              tone: CALM_AVATAR,
               university: app.user?.universitas || 'Universitas Mitra Mentora',
               program: app.user?.prodi || 'Program Studi',
               semester: app.user?.semester ? `Semester ${app.user.semester}` : 'Semester Aktif',
@@ -124,7 +116,7 @@ export default function AdminPage() {
                 id: `MTR-${m.id || idx + 1}`,
                 name: m.namaLengkap,
                 initials: getInitials(m.namaLengkap),
-                tone: TONES[idx % TONES.length],
+                tone: CALM_AVATAR,
                 program: m.prodi || 'Program Studi',
                 university: m.universitas || 'Universitas Mitra',
                 city: m.domisili || 'Indonesia',
@@ -259,9 +251,9 @@ export default function AdminPage() {
   // State: Sedang memeriksa sesi
   if (authStatus === 'checking') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC]">
-        <Loader2 className="w-10 h-10 text-[#2563EB] animate-spin mb-3" />
-        <p className="text-sm font-bold text-[#475569]">Memverifikasi hak akses administrator Mentora...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-canvas">
+        <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
+        <p className="text-sm font-bold text-ink-secondary">Memverifikasi hak akses administrator Mentora...</p>
       </div>
     );
   }
@@ -269,13 +261,13 @@ export default function AdminPage() {
   // State: Akses ditolak (bukan admin)
   if (authStatus === 'unauthorized') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] p-6">
-        <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-rose-200 text-center shadow-lg space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-canvas p-6">
+        <div className="max-w-md w-full bg-surface rounded-3xl p-8 border border-danger-soft text-center shadow-cloud space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-danger-tint text-danger flex items-center justify-center mx-auto">
             <ShieldAlert className="w-8 h-8" />
           </div>
-          <h1 className="text-xl font-extrabold text-[#0F172A]">Akses Ditolak</h1>
-          <p className="text-xs text-[#64748B] leading-relaxed">
+          <h1 className="text-xl font-extrabold text-ink">Akses Ditolak</h1>
+          <p className="text-xs text-ink-muted leading-relaxed">
             Halaman ini khusus untuk akun Administrator Mentora. Anda sedang dialihkan kembali ke dashboard pengguna...
           </p>
         </div>
@@ -288,7 +280,7 @@ export default function AdminPage() {
   const activeMentorsCount = Math.max(mentorsList.length, BASE_ACTIVE_MENTORS + Math.max(0, approvedCount - 2));
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A] antialiased">
+    <div className="min-h-screen flex flex-col bg-canvas text-ink antialiased">
       <Navbar />
 
       <main className="flex-1">

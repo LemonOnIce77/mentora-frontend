@@ -178,9 +178,9 @@ export default function SkillManagementPage() {
         <div className="mb-6">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-xs font-bold text-ink-muted hover:text-ink transition"
+            className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-bold text-ink shadow-2xs transition hover:border-primary hover:text-primary hover:bg-primary-soft/30 active:scale-[0.98]"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-primary" />
             <span>Kembali ke Dashboard Mentora</span>
           </Link>
         </div>
@@ -467,9 +467,10 @@ export default function SkillManagementPage() {
         <div className="flex items-center justify-between pt-2">
           <Link
             href="/dashboard"
-            className="px-5 py-2.5 rounded-xl text-xs font-bold text-ink-muted hover:bg-canvas transition"
+            className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-5 py-2.5 text-xs font-bold text-ink-secondary shadow-2xs transition hover:border-primary hover:text-primary active:scale-[0.98]"
           >
-            Batal &amp; Kembali
+            <ArrowLeft className="w-4 h-4 text-primary" />
+            <span>Batal &amp; Kembali</span>
           </Link>
 
           <button

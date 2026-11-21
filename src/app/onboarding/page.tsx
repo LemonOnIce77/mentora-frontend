@@ -29,7 +29,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { profile } = useSession();
   const home = profile ? accountHome(profile) : undefined;
-  const returnHref = home === "/onboarding" ? undefined : home;
+  const returnHref = home && home !== "/onboarding" ? home : "/dashboard";
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -541,9 +541,9 @@ export default function OnboardingPage() {
                   {returnHref && (
                     <Link
                       href={returnHref}
-                      className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-bold text-ink shadow-2xs transition hover:border-primary hover:text-primary active:scale-[0.98]"
+                      className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-bold text-ink shadow-2xs transition hover:border-primary hover:text-primary hover:bg-primary-soft/30 active:scale-[0.98]"
                     >
-                      <ArrowLeft className="size-4 shrink-0" />
+                      <ArrowLeft className="size-4 shrink-0 text-primary" />
                       <span>
                         {returnHref === "/admin"
                           ? "Kembali ke portal admin"

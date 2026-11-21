@@ -53,6 +53,7 @@ export default function MentorDetailPage() {
   const [currentUser, setCurrentUser] = useState<{
     id: number;
     email: string;
+    namaLengkap?: string;
     role?: string;
   } | null>(null);
   const [mentor, setMentor] = useState<MentorDetail | null>(null);
@@ -153,13 +154,19 @@ export default function MentorDetailPage() {
       <Navbar />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 space-y-6">
-        <div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2 text-xs font-bold text-ink shadow-2xs transition hover:border-primary hover:text-primary active:scale-[0.98]"
+          >
+            <ArrowLeft className="w-4 h-4 text-primary" />
+            <span>Kembali ke Dashboard</span>
+          </Link>
           <Link
             href="/mentors"
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-surface border border-line text-xs font-bold text-ink-secondary hover:text-ink hover:bg-canvas shadow-2xs transition"
+            className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink-muted shadow-2xs transition hover:text-ink active:scale-[0.98]"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Kembali ke Daftar Mentor</span>
+            <span>Daftar Mentor</span>
           </Link>
         </div>
 
@@ -284,35 +291,52 @@ export default function MentorDetailPage() {
               )}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-line flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-xs text-ink-muted">
-                {currentUser && mentor && (String(currentUser.id) === String(mentor.id) || currentUser.email === mentor.email)
-                  ? 'Ini adalah profil akun mentor kamu.'
-                  : 'Pilih waktu yang sesuai untuk memulai mentoring.'}
-              </p>
-              {currentUser && mentor && (String(currentUser.id) === String(mentor.id) || currentUser.email === mentor.email) ? (
-                <div className="flex items-center gap-2.5">
-                  <span className="inline-flex items-center gap-1.5 rounded-xl border border-primary-soft bg-primary-soft px-3.5 py-2 text-xs font-bold text-primary">
-                    <CheckCircle2 className="size-4" />
-                    <span>Profil Kamu</span>
-                  </span>
-                  <Link
-                    href="/profile"
-                    className="action-secondary inline-flex items-center rounded-xl px-4 py-2 text-xs font-bold"
-                  >
-                    Edit Profil
-                  </Link>
+            {(() => {
+              const isOwnProfile = Boolean(
+                currentUser &&
+                  mentor &&
+                  (String(currentUser.id) === String(mentor.id) ||
+                    (currentUser.email &&
+                      mentor.email &&
+                      currentUser.email.toLowerCase() === mentor.email.toLowerCase()) ||
+                    (currentUser.namaLengkap &&
+                      mentor.namaLengkap &&
+                      currentUser.namaLengkap.trim().toLowerCase() ===
+                        mentor.namaLengkap.trim().toLowerCase()))
+              );
+
+              return (
+                <div className="mt-8 pt-6 border-t border-line flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <p className="text-xs text-ink-muted">
+                    {isOwnProfile
+                      ? 'Ini adalah profil akun kamu. Kamu tidak dapat mengajukan sesi belajar ke profil sendiri.'
+                      : 'Pilih waktu yang sesuai untuk memulai mentoring.'}
+                  </p>
+                  {isOwnProfile ? (
+                    <div className="flex items-center gap-2.5">
+                      <span className="inline-flex items-center gap-1.5 rounded-xl border border-primary-soft bg-primary-soft px-3.5 py-2 text-xs font-bold text-primary">
+                        <CheckCircle2 className="size-4" />
+                        <span>Profil Kamu</span>
+                      </span>
+                      <Link
+                        href="/profile"
+                        className="action-secondary inline-flex items-center rounded-xl px-4 py-2 text-xs font-bold"
+                      >
+                        Edit Profil
+                      </Link>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setIsBookingOpen(true)}
+                      className="w-full sm:w-auto px-6 py-3 rounded-xl action-primary text-xs font-bold shadow-xs transition flex items-center justify-center gap-2"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span>Ajukan Sesi Belajar</span>
+                    </button>
+                  )}
                 </div>
-              ) : (
-                <button
-                  onClick={() => setIsBookingOpen(true)}
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl action-primary text-xs font-bold shadow-xs transition flex items-center justify-center gap-2"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Ajukan Sesi Belajar</span>
-                </button>
-              )}
-            </div>
+              );
+            })()}
           </div>
         </div>
       </main>

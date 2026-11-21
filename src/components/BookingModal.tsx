@@ -102,7 +102,15 @@ export default function BookingModal({
     e.preventDefault();
     setErrorMsg("");
 
-    if (currentUser && (currentUser.id === mentor.id || currentUser.email === (mentor as any).email)) {
+    const isSelfBooking = Boolean(
+      currentUser && (
+        String(currentUser.id) === String(mentor.id) ||
+        (currentUser.email && (mentor as any).email && currentUser.email.toLowerCase() === (mentor as any).email.toLowerCase()) ||
+        (currentUser.namaLengkap && mentor.namaLengkap && currentUser.namaLengkap.trim().toLowerCase() === mentor.namaLengkap.trim().toLowerCase())
+      )
+    );
+
+    if (isSelfBooking) {
       setErrorMsg("Kamu tidak dapat mengajukan sesi belajar ke profil sendiri.");
       return;
     }

@@ -33,25 +33,22 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 
 const STATUS: Record<
   SubmissionStatus,
-  { label: string; className: string; accent: string; dot: string }
+  { label: string; className: string; dot: string }
 > = {
   pending: {
     label: "Menunggu Verifikasi",
-    className: "border-[#FDE68A] bg-[#FFFBEB] text-[#D97706]",
-    accent: "from-[#D97706] to-[#FBBF24]",
-    dot: "bg-[#D97706]",
+    className: "border-warning-soft bg-warning-tint text-warning-accent",
+    dot: "bg-warning-accent",
   },
   approved: {
     label: "Telah Disetujui",
-    className: "border-[#A7F3D0] bg-[#ECFDF5] text-[#059669]",
-    accent: "from-[#059669] to-[#34D399]",
-    dot: "bg-[#059669]",
+    className: "border-success/25 bg-success-soft text-success",
+    dot: "bg-success",
   },
   rejected: {
     label: "Ditolak",
-    className: "border-[#FECDD3] bg-[#FFF1F2] text-[#E11D48]",
-    accent: "from-[#E11D48] to-[#FB7185]",
-    dot: "bg-[#E11D48]",
+    className: "border-danger-soft bg-danger-tint text-danger",
+    dot: "bg-danger",
   },
 };
 
@@ -92,29 +89,29 @@ export default function VerificationTab({
       role="tabpanel"
       data-jiro-section="verification"
       data-jiro-label="Tab Verifikasi Calon Mentor"
-      className="mx-auto max-w-[1280px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10"
+      className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-1">
-          <h2 className="text-[20px] font-extrabold tracking-tight text-[#0F172A] sm:text-[24px]">
+          <h2 className="text-xl font-extrabold tracking-tight text-ink sm:text-2xl">
             Pusat Verifikasi Mentor
           </h2>
-          <p className="max-w-2xl text-[14px] leading-relaxed text-[#64748B]">
+          <p className="max-w-2xl text-sm text-ink-secondary">
             Tinjau kredensial akademik dan rekam jejak mengajar setiap calon
             mentor sebelum menyetujui perubahan perannya.
           </p>
         </div>
-        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#FDE68A] bg-[#FFFBEB] px-4 py-2 text-[12.5px] font-bold text-[#D97706]">
+        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-warning-soft bg-warning-tint px-3.5 py-1.5 text-xs font-bold text-warning-accent">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#D97706] opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#D97706]" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-warning-accent opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-warning-accent" />
           </span>
-          {counts.pending} pengajuan menunggu tindakan Anda
+          {counts.pending} pengajuan menunggu tindakan
         </span>
       </div>
 
-      {/* Toolbar */}
-      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between lg:p-5">
+      {/* Toolbar Filter & Pencarian */}
+      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-line bg-surface p-4 shadow-soft-card lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => {
             const active = filter === f.key;
@@ -124,16 +121,16 @@ export default function VerificationTab({
                 type="button"
                 onClick={() => setFilter(f.key)}
                 aria-pressed={active}
-                className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-[12.5px] font-bold transition ${
+                className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-bold transition sm:text-sm ${
                   active
-                    ? "border-[#7C3AED] bg-[#7C3AED] text-white shadow-sm shadow-violet-600/20"
-                    : "border-[#E2E8F0] bg-white text-[#475569] hover:border-[#DDD6FE] hover:bg-[#F5F3FF] hover:text-[#6D28D9]"
+                    ? "border-primary bg-primary text-white shadow-sm"
+                    : "border-line bg-surface text-ink-secondary hover:bg-canvas hover:text-ink"
                 }`}
               >
-                {f.label}
+                <span>{f.label}</span>
                 <span
                   className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-extrabold ${
-                    active ? "bg-white/20 text-white" : "bg-[#F1F5F9] text-[#64748B]"
+                    active ? "bg-white/20 text-white" : "bg-canvas text-ink-muted"
                   }`}
                 >
                   {counts[f.key]}
@@ -144,7 +141,7 @@ export default function VerificationTab({
         </div>
 
         <div className="relative lg:w-80">
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4.5 w-4.5 -translate-y-1/2 text-[#94A3B8]" />
+          <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-ink-muted" />
           <label htmlFor="cari-pengajuan" className="sr-only">
             Cari pengajuan calon mentor
           </label>
@@ -153,101 +150,94 @@ export default function VerificationTab({
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari nama calon mentor, kampus, atau skill..."
-            className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] py-2.5 pr-3.5 pl-11 text-[13.5px] font-medium text-[#0F172A] outline-none transition placeholder:text-[#94A3B8] focus:border-[#93C5FD] focus:bg-white focus:ring-4 focus:ring-[#EFF6FF]"
+            placeholder="Cari calon mentor, kampus, atau skill..."
+            className="w-full rounded-xl border border-line bg-canvas py-2.5 pr-3.5 pl-10 text-xs font-medium text-ink outline-none transition placeholder:text-ink-muted focus:border-primary focus:bg-surface sm:text-sm"
           />
         </div>
       </div>
 
-      {/* Daftar pengajuan */}
+      {/* Daftar Pengajuan */}
       <div className="mt-6 flex flex-col gap-5">
         {filtered.map((s) => {
           const status = STATUS[s.status] || STATUS.pending;
           return (
             <article
               key={s.id}
-              className="group relative overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#CBD5E1] hover:shadow-xl hover:shadow-slate-900/5"
+              className="overflow-hidden rounded-2xl border border-line bg-surface shadow-soft-card transition hover:shadow-cloud"
             >
-              <span
-                aria-hidden="true"
-                className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${status.accent}`}
-              />
-
-              <div className="grid gap-0 lg:grid-cols-[320px_1fr]">
-                {/* Kolom identitas */}
-                <div className="relative border-b border-[#E2E8F0] bg-gradient-to-br from-[#F8FAFC] to-white p-5 sm:p-6 lg:border-r lg:border-b-0">
-                  <div className="flex items-center gap-4">
+              <div className="grid gap-0 lg:grid-cols-[300px_1fr]">
+                {/* Kolom Identitas */}
+                <div className="border-b border-line bg-canvas/40 p-5 sm:p-6 lg:border-r lg:border-b-0">
+                  <div className="flex items-center gap-3.5">
                     <span className="relative shrink-0">
-                      <span
-                        className={`flex h-16 w-16 items-center justify-center rounded-2xl text-[19px] font-extrabold shadow-sm ring-4 ring-white ${s.tone}`}
-                      >
+                      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary text-lg font-extrabold border border-primary/20">
                         {s.initials}
                       </span>
                       <span
-                        className={`absolute -right-1 -bottom-1 h-4 w-4 rounded-full border-[3px] border-white ${status.dot}`}
+                        className={`absolute -right-1 -bottom-1 h-3.5 w-3.5 rounded-full border-2 border-surface ${status.dot}`}
                       />
                     </span>
                     <div className="min-w-0">
-                      <h3 className="text-[17px] leading-tight font-extrabold tracking-tight text-[#0F172A]">
+                      <h3 className="text-base font-extrabold text-ink truncate">
                         {s.name}
                       </h3>
-                      <p className="mt-1 truncate text-[12.5px] text-[#64748B]">
+                      <p className="text-xs text-ink-muted truncate">
                         {s.email}
                       </p>
                     </div>
                   </div>
 
                   <span
-                    className={`mt-4 inline-flex items-center rounded-full border px-3.5 py-1.5 text-[12px] font-bold ${status.className}`}
+                    className={`mt-4 inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${status.className}`}
                   >
                     {status.label}
                   </span>
 
-                  <dl className="mt-5 flex flex-col gap-3 border-t border-dashed border-[#E2E8F0] pt-5">
-                    <div className="flex items-start gap-3">
-                      <GraduationCap className="mt-0.5 h-4.5 w-4.5 shrink-0 text-[#2563EB]" />
+                  <dl className="mt-5 flex flex-col gap-3 border-t border-line pt-4 text-xs">
+                    <div className="flex items-start gap-2.5">
+                      <GraduationCap className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       <div className="min-w-0">
-                        <dt className="text-[10.5px] font-bold tracking-wider text-[#94A3B8] uppercase">
-                          Asal kampus
+                        <dt className="text-[10px] font-bold tracking-wider text-ink-muted uppercase">
+                          Asal Kampus
                         </dt>
-                        <dd className="text-[13px] leading-snug font-bold text-[#0F172A]">
+                        <dd className="font-bold text-ink">
                           {s.university}
                         </dd>
-                        <dd className="text-[12.5px] text-[#64748B]">
+                        <dd className="text-ink-muted">
                           {s.program} · {s.semester}
                         </dd>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <MapPin className="mt-0.5 h-4.5 w-4.5 shrink-0 text-[#7C3AED]" />
+                    <div className="flex items-start gap-2.5">
+                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       <div>
-                        <dt className="text-[10.5px] font-bold tracking-wider text-[#94A3B8] uppercase">
+                        <dt className="text-[10px] font-bold tracking-wider text-ink-muted uppercase">
                           Domisili
                         </dt>
-                        <dd className="text-[13px] font-bold text-[#0F172A]">
+                        <dd className="font-bold text-ink">
                           {s.city}
                         </dd>
                       </div>
                     </div>
                   </dl>
 
-                  <p className="mt-5 text-[11.5px] font-semibold text-[#94A3B8]">
+                  <p className="mt-4 text-[11px] font-medium text-ink-muted">
                     {s.id} · Diajukan {s.submittedAt}
                   </p>
                 </div>
 
-                {/* Kolom detail */}
-                <div className="flex flex-col gap-5 p-5 sm:p-6">
+                {/* Kolom Detail */}
+                <div className="flex flex-col gap-4 p-5 sm:p-6">
                   <div>
-                    <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-[#64748B] uppercase">
-                      <Sparkles className="h-3.5 w-3.5 text-[#2563EB]" />
-                      Skill yang ditawarkan
+                    <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-ink-muted uppercase">
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      Keahlian yang Ditawarkan
                     </p>
-                    <div className="mt-2.5 flex flex-wrap gap-2">
+                    <div className="mt-2 flex flex-wrap gap-1.5">
                       {s.skills.map((skill) => (
                         <span
                           key={skill}
-                          className="rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-3 py-1.5 text-[12.5px] font-bold text-[#1D4ED8] transition hover:bg-[#DBEAFE]"
+                          className="rounded-lg border border-primary/20 bg-primary-soft px-3 py-1 text-xs font-bold text-primary"
                         >
                           {skill}
                         </span>
@@ -256,27 +246,27 @@ export default function VerificationTab({
                   </div>
 
                   <div>
-                    <p className="text-[11px] font-bold tracking-wider text-[#64748B] uppercase">
-                      Pengalaman mengajar
+                    <p className="text-[11px] font-bold tracking-wider text-ink-muted uppercase">
+                      Pengalaman Mengajar / Asistensi
                     </p>
-                    <blockquote className="mt-2.5 flex gap-3 rounded-xl border-l-4 border-[#DDD6FE] bg-[#F5F3FF]/60 p-4">
-                      <Quote className="h-4.5 w-4.5 shrink-0 text-[#7C3AED]" />
-                      <p className="text-[13.5px] leading-relaxed text-[#475569] italic">
+                    <blockquote className="mt-2 flex gap-3 rounded-xl border-l-4 border-primary/40 bg-canvas p-3.5 text-xs sm:text-sm text-ink-secondary leading-relaxed">
+                      <Quote className="h-4 w-4 shrink-0 text-primary opacity-60" />
+                      <p className="italic">
                         {s.experience}
                       </p>
                     </blockquote>
                   </div>
 
-                  <div className="flex flex-col gap-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-3 rounded-xl border border-line bg-canvas p-3.5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#E11D48] shadow-sm ring-1 ring-[#FECDD3]">
-                        <FileText className="h-5.5 w-5.5" strokeWidth={2.2} />
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface border border-line text-primary">
+                        <FileText className="h-5 w-5" />
                       </span>
                       <span className="min-w-0 leading-tight">
-                        <span className="block text-[11px] font-bold tracking-wider text-[#94A3B8] uppercase">
-                          Dokumen kredensial
+                        <span className="block text-[10px] font-bold tracking-wider text-ink-muted uppercase">
+                          Dokumen Kredensial
                         </span>
-                        <span className="mt-1 block truncate text-[13.5px] font-bold text-[#0F172A]">
+                        <span className="mt-0.5 block truncate text-xs sm:text-sm font-bold text-ink">
                           {s.documentName}
                         </span>
                       </span>
@@ -286,24 +276,24 @@ export default function VerificationTab({
                         href={s.documentUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#BFDBFE] bg-white px-4 py-2.5 text-[13px] font-bold text-[#1D4ED8] shadow-sm transition hover:bg-[#EFF6FF]"
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-line bg-surface px-3.5 py-2 text-xs font-bold text-primary shadow-2xs transition hover:bg-canvas"
                       >
-                        Lihat Dokumen Kredensial
-                        <ExternalLink className="h-4 w-4" />
+                        <span>Lihat Dokumen</span>
+                        <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     ) : (
-                      <span className="text-xs text-[#94A3B8] italic">
-                        Dokumen belum diunggah
+                      <span className="text-xs text-ink-muted italic">
+                        Dokumen belum terlampir
                       </span>
                     )}
                   </div>
 
                   {s.status === "rejected" && s.rejectionReason && (
-                    <div className="rounded-xl border border-[#FECDD3] bg-[#FFF1F2] p-4">
-                      <p className="text-[11px] font-bold tracking-wider text-[#E11D48] uppercase">
-                        Alasan penolakan
+                    <div className="rounded-xl border border-danger-soft bg-danger-tint p-3.5 text-xs text-danger">
+                      <p className="font-bold uppercase tracking-wider text-[10px]">
+                        Catatan Penolakan Admin:
                       </p>
-                      <p className="mt-1.5 text-[13px] leading-relaxed text-[#9F1239]">
+                      <p className="mt-1 leading-relaxed">
                         {s.rejectionReason}
                       </p>
                     </div>
@@ -311,45 +301,45 @@ export default function VerificationTab({
                 </div>
               </div>
 
-              {/* Footer aksi */}
-              <div className="border-t border-[#E2E8F0] bg-[#F8FAFC] px-5 py-4 sm:px-6">
+              {/* Footer Aksi */}
+              <div className="border-t border-line bg-canvas/40 px-5 py-3.5 sm:px-6">
                 {s.status === "pending" && (
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-[12.5px] leading-relaxed text-[#64748B]">
-                      Pastikan dokumen sesuai nama pemohon sebelum mengambil
-                      keputusan.
+                    <p className="text-xs text-ink-muted">
+                      Pastikan dokumen nilai dan identitas telah diverifikasi keabsahannya.
                     </p>
-                    <div className="flex flex-col gap-2.5 sm:flex-row">
+                    <div className="flex flex-wrap items-center gap-2.5">
                       <button
                         type="button"
                         onClick={() => onReject(s)}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#FECDD3] bg-white px-5 py-2.5 text-[13.5px] font-bold text-[#E11D48] transition hover:-translate-y-0.5 hover:bg-[#FFF1F2]"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-danger-soft bg-danger-tint px-4 py-2 text-xs font-bold text-danger transition hover:bg-danger-soft"
                       >
-                        <XCircle className="h-4.5 w-4.5" />
-                        Tolak
+                        <XCircle className="h-4 w-4" />
+                        <span>Tolak</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => onApprove(s)}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#059669] to-[#047857] px-5 py-2.5 text-[13.5px] font-bold text-white shadow-md shadow-emerald-600/25 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-600/30"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-success px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-800"
                       >
-                        <Check className="h-4.5 w-4.5" strokeWidth={3} />
-                        Setujui Mentor
+                        <Check className="h-4 w-4" strokeWidth={3} />
+                        <span>Setujui Jadi Mentor</span>
                       </button>
                     </div>
                   </div>
                 )}
 
                 {s.status === "approved" && (
-                  <p className="flex items-center gap-2 text-[13.5px] font-bold text-[#059669]">
-                    <CheckCircle2 className="h-4.5 w-4.5" />✓ Telah Disetujui &amp;
-                    Status Mentor Aktif
+                  <p className="flex items-center gap-2 text-xs font-bold text-success">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>✓ Telah Disetujui &amp; Status Mentor Aktif</span>
                   </p>
                 )}
 
                 {s.status === "rejected" && (
-                  <p className="flex items-center gap-2 text-[13.5px] font-bold text-[#E11D48]">
-                    <XCircle className="h-4.5 w-4.5" />✕ Pengajuan Ditolak
+                  <p className="flex items-center gap-2 text-xs font-bold text-danger">
+                    <XCircle className="h-4 w-4" />
+                    <span>✕ Pengajuan Ditolak</span>
                   </p>
                 )}
               </div>
@@ -358,14 +348,14 @@ export default function VerificationTab({
         })}
 
         {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#CBD5E1] bg-white p-12 text-center shadow-sm">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F8FAFC] text-[#94A3B8]">
-              <Inbox className="h-7 w-7" />
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-line bg-surface p-12 text-center shadow-soft-card">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-canvas text-ink-muted">
+              <Inbox className="h-6 w-6" />
             </span>
-            <p className="mt-4 text-[16px] font-extrabold text-[#0F172A]">
+            <p className="mt-3 text-sm font-extrabold text-ink sm:text-base">
               Tidak ada pengajuan yang sesuai
             </p>
-            <p className="mt-1.5 max-w-sm text-[13px] text-[#64748B]">
+            <p className="mt-1 text-xs text-ink-muted">
               Coba sesuaikan kata kunci pencarian atau ubah filter status di atas.
             </p>
           </div>

@@ -686,25 +686,39 @@ export default function DashboardPage() {
     }
   };
 
-  const taughtSkills = user?.skills?.filter((s) => s.tipe === "TEACH") || [];
-  const learnedSkills = user?.skills?.filter((s) => s.tipe === "LEARN") || [];
+  const isSelfMentor = (m: MentorUser) => {
+    if (!user) return false;
+    if (user.id && m.id && String(m.id) === String(user.id)) return true;
+    if (user.email && m.email && user.email.toLowerCase() === m.email.toLowerCase()) return true;
+    if (user.namaLengkap && m.namaLengkap && user.namaLengkap.trim().toLowerCase() === m.namaLengkap.trim().toLowerCase()) return true;
+    return false;
+  };
+
+  const taughtSkills =
+    user?.skills?.filter(
+      (s) => String(s.tipe || (s as any).type).toUpperCase() === "TEACH",
+    ) || [];
+  const learnedSkills =
+    user?.skills?.filter(
+      (s) => String(s.tipe || (s as any).type).toUpperCase() === "LEARN",
+    ) || [];
 
   const query = searchMentorQuery.trim().toLocaleLowerCase("id");
   const hasActiveFilter = Boolean(query || selectedSkillFilter);
   const skillOptions = Array.from(
     new Set(
       mentors.flatMap((mentor) =>
-        mentor.skills.map((item) => item.skill.namaSkill),
-      ),
+        mentor.skills.map((item) => item.skill?.namaSkill || (item as any).namaSkill || ""),
+      ).filter(Boolean),
     ),
   ).sort((a, b) => a.localeCompare(b, "id"));
 
   const visibleMentors = mentors.filter(
     (mentor) =>
-      (!user || (mentor.id !== user.id && mentor.email !== user.email)) &&
+      !isSelfMentor(mentor) &&
       (!selectedSkillFilter ||
         mentor.skills.some(
-          (item) => item.skill.namaSkill === selectedSkillFilter,
+          (item) => (item.skill?.namaSkill || (item as any).namaSkill) === selectedSkillFilter,
         )) &&
       [
         mentor.namaLengkap,
@@ -821,22 +835,17 @@ export default function DashboardPage() {
           {/* ================= TAB 1: DAFTAR MENTOR ================= */}
           {activeTab === "mentors" && (
             <div className="flex flex-col gap-6">
-              <header className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-                <div>
-                  <h2 className="text-xl font-bold tracking-tight text-ink">
-                    Mentor Tersedia
-                  </h2>
-                  <p className="text-xs text-ink-muted">
-                    Pilih mentor mahasiswa terverifikasi untuk menjadwalkan sesi belajar 1-on-1.
-                  </p>
-                </div>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold text-ink-muted">
+                  Pilih mentor mahasiswa untuk menjadwalkan sesi belajar 1-on-1.
+                </p>
 
                 {mentorListState === "ready" && (
-                  <span className="self-start rounded-full border border-line bg-surface px-3.5 py-1 text-xs font-semibold text-ink-muted shadow-2xs sm:self-auto">
+                  <span className="rounded-full border border-line bg-surface px-3.5 py-1 text-xs font-semibold text-ink-muted shadow-2xs">
                     Menampilkan <strong className="font-bold text-primary">{visibleMentors.length}</strong> Mentor
                   </span>
                 )}
-              </header>
+              </div>
 
               <div className="rounded-2xl border border-line bg-surface p-3.5 shadow-soft-card sm:p-5">
                 <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
@@ -1356,7 +1365,7 @@ export default function DashboardPage() {
                     <div className="flex flex-wrap gap-2">
                       {learnedSkills.map((s) => (
                         <Badge key={s.id} variant="outline">
-                          {s.skill.namaSkill}
+                          {s.skill?.namaSkill || (s as any).namaSkill || (typeof s === "string" ? s : "")}
                         </Badge>
                       ))}
                       {learnedSkills.length === 0 && (
@@ -1407,7 +1416,7 @@ export default function DashboardPage() {
                       <div className="flex flex-wrap gap-2">
                         {taughtSkills.map((s) => (
                           <Badge key={s.id} variant="outline">
-                            {s.skill.namaSkill}
+                            {s.skill?.namaSkill || (s as any).namaSkill || (typeof s === "string" ? s : "")}
                           </Badge>
                         ))}
                         {taughtSkills.length === 0 && (
@@ -1752,7 +1761,7 @@ export default function DashboardPage() {
                             <div className="flex flex-wrap gap-2">
                               {taughtSkills.map((s) => (
                                 <Badge key={s.id} variant="outline">
-                                  {s.skill.namaSkill}
+                                  {s.skill?.namaSkill || (s as any).namaSkill || (typeof s === "string" ? s : "")}
                                 </Badge>
                               ))}
                             </div>
@@ -1921,26 +1930,21 @@ export default function DashboardPage() {
           {/* ================= TAB 6: ADMIN VERIFIKASI MENTOR ================= */}
           {activeTab === "admin" && user.role === "Admin" && (
             <div className="flex flex-col gap-6">
-              <header className="flex flex-wrap items-end justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <h1 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                    Verifikasi mentor
-                  </h1>
-                  <p className="text-sm text-ink-secondary">
-                    Validasi transkrip nilai dan kredensial calon mentor sebelum status aktif dipublikasikan.
-                  </p>
-                </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs font-semibold text-ink-muted">
+                  Validasi transkrip nilai dan kredensial calon mentor sebelum status aktif dipublikasikan.
+                </p>
 
                 <button
                   type="button"
                   onClick={loadAdminApplications}
                   disabled={adminLoading}
-                  className="action-secondary inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-xs font-semibold transition-colors disabled:opacity-60"
+                  className="action-secondary inline-flex min-h-9 items-center gap-2 rounded-full px-4 text-xs font-semibold transition-colors disabled:opacity-60"
                 >
                   <RefreshCw className="size-3.5" aria-hidden="true" />
                   <span>{adminLoading ? "Memuat…" : "Muat ulang"}</span>
                 </button>
-              </header>
+              </div>
 
               <Frame>
                 <FrameHeader>

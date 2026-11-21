@@ -20,35 +20,33 @@ export default function ToastStack({ toasts, onDismiss }: Props) {
           <div
             key={toast.id}
             role="status"
-            className={`pointer-events-auto relative overflow-hidden rounded-2xl border bg-white shadow-xl shadow-slate-900/10 animate-in slide-in-from-right-6 fade-in duration-300 ${
-              success ? "border-[#A7F3D0]" : "border-[#FECDD3]"
-            }`}
+            className={`pointer-events-auto relative overflow-hidden rounded-2xl border border-line bg-surface shadow-cloud animate-in slide-in-from-right-6 fade-in duration-300`}
           >
             <span
               aria-hidden="true"
               className={`absolute inset-y-0 left-0 w-1.5 ${
-                success ? "bg-[#059669]" : "bg-[#E11D48]"
+                success ? "bg-success" : "bg-danger"
               }`}
             />
             <div className="flex items-start gap-3 p-4 pl-5">
               <span
-                className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
                   success
-                    ? "bg-[#ECFDF5] text-[#059669]"
-                    : "bg-[#FFF1F2] text-[#E11D48]"
+                    ? "bg-success-soft text-success"
+                    : "bg-danger-tint text-danger"
                 }`}
               >
                 {success ? (
-                  <CheckCircle2 className="h-5 w-5" />
+                  <CheckCircle2 className="h-4.5 w-4.5" />
                 ) : (
-                  <XCircle className="h-5 w-5" />
+                  <XCircle className="h-4.5 w-4.5" />
                 )}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[13.5px] font-extrabold text-[#0F172A]">
+                <p className="text-xs sm:text-sm font-extrabold text-ink">
                   {toast.title}
                 </p>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-[#64748B]">
+                <p className="mt-0.5 text-xs text-ink-muted leading-relaxed">
                   {toast.message}
                 </p>
               </div>
@@ -56,15 +54,15 @@ export default function ToastStack({ toasts, onDismiss }: Props) {
                 type="button"
                 onClick={() => onDismiss(toast.id)}
                 aria-label="Tutup notifikasi"
-                className="rounded-lg p-1 text-[#94A3B8] transition hover:bg-[#F1F5F9] hover:text-[#334155]"
+                className="rounded-lg p-1 text-ink-muted transition hover:bg-canvas hover:text-ink"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
             <span
               aria-hidden="true"
-              className={`block h-[3px] w-full animate-[progress_4s_linear_forwards] ${
-                success ? "bg-[#A7F3D0]" : "bg-[#FECDD3]"
+              className={`block h-1 w-full animate-[progress_4s_linear_forwards] ${
+                success ? "bg-success-soft" : "bg-danger-soft"
               }`}
             />
           </div>

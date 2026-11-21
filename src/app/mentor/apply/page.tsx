@@ -180,9 +180,9 @@ export default function MentorApplyPage() {
         <div className="mb-6">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-xs font-bold text-ink-muted hover:text-ink transition"
+            className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-bold text-ink shadow-2xs transition hover:border-primary hover:text-primary hover:bg-primary-soft/30 active:scale-[0.98]"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-primary" />
             <span>Kembali ke Dashboard Mentora</span>
           </Link>
         </div>
