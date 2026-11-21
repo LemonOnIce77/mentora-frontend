@@ -17,9 +17,6 @@ const navLinks = [
 
 const adminNavLinks = [
   { label: "Dashboard Admin", href: "/admin" },
-  { label: "Tentang", href: "/tentang" },
-  { label: "Testimoni", href: "/testimoni" },
-  { label: "FAQ", href: "/faq" },
 ];
 
 interface CurrentUser {

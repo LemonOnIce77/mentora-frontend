@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Image from 'next/image';
 import { Loader2, ShieldAlert } from 'lucide-react';
+import AdminNavbar from './components/AdminNavbar';
 import AdminHero from './components/AdminHero';
 import AdminTabs from './components/AdminTabs';
 import OverviewTab from './components/OverviewTab';
@@ -31,7 +31,23 @@ export default function AdminPage() {
 
   // Auth & role protection
   const [authStatus, setAuthStatus] = useState<'checking' | 'authorized' | 'unauthorized'>('checking');
+  const [adminUser, setAdminUser] = useState<{
+    namaLengkap?: string;
+    namaPanggilan?: string;
+    email?: string;
+    role?: string;
+    fotoProfil?: string;
+  } | null>(null);
   const [tab, setTab] = useState<TabKey>('overview');
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.replace('/auth?tab=masuk');
+    } catch {
+      window.location.replace('/auth?tab=masuk');
+    }
+  };
 
   // Data states
   const [submissions, setSubmissions] = useState<Submission[]>(initialSubmissions);
@@ -156,6 +172,7 @@ export default function AdminPage() {
             try {
               const localUser = JSON.parse(sessionData);
               if (localUser && (localUser.role === 'Admin' || localUser.role?.toLowerCase() === 'admin')) {
+                setAdminUser(localUser);
                 setAuthStatus('authorized');
                 await fetchAdminData();
                 return;
@@ -177,6 +194,7 @@ export default function AdminPage() {
           return;
         }
 
+        setAdminUser(currentUser);
         setAuthStatus('authorized');
         await fetchAdminData();
       } catch (error) {
@@ -281,7 +299,15 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas text-ink antialiased">
-      <Navbar />
+      <AdminNavbar
+        activeTab={tab}
+        onTabChange={setTab}
+        pendingCount={pendingCount}
+        adminUser={adminUser}
+        onLogout={handleLogout}
+        isRefreshing={isRefreshing}
+        onRefresh={fetchAdminData}
+      />
 
       <main className="flex-1">
         <AdminHero refreshing={isRefreshing} onRefresh={fetchAdminData} />
@@ -312,7 +338,15 @@ export default function AdminPage() {
         </div>
       </main>
 
-      <Footer />
+      <footer className="border-t border-line bg-surface py-5 text-xs text-ink-muted">
+        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 font-bold text-ink-secondary">
+            <Image src="/Mentora.svg" alt="" width={22} height={22} />
+            <span>Mentora Administrator Workspace</span>
+          </div>
+          <p>© {new Date().getFullYear()} Mentora Platform. Hak Akses Khusus Administrator Sistem.</p>
+        </div>
+      </footer>
 
       <ConfirmModal
         state={confirm}
