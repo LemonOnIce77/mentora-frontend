@@ -179,36 +179,38 @@ export default function MatchingPage() {
           </div>
         </header>
 
-        <section className="rounded-3xl border border-line bg-surface p-5 shadow-soft-card space-y-4">
-          <div className="flex flex-col lg:flex-row gap-3">
+        <section className="rounded-3xl border border-line bg-surface p-4 sm:p-5 shadow-soft-card space-y-4">
+          <div className="flex flex-col lg:flex-row gap-2.5 sm:gap-3">
             <label className="relative flex-1">
-              <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-ink-muted" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-muted" />
               <input
                 aria-label="Cari partner"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cari nama, kampus, prodi, domisili, atau skill..."
-                className="w-full rounded-xl border border-line py-3 pl-10 pr-4 text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary-accent/20"
+                className="w-full rounded-xl border border-line py-2.5 sm:py-3 pl-10 pr-4 text-xs sm:text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary-accent/20"
               />
             </label>
             <button
               onClick={activateLocation}
               disabled={locating}
-              className="inline-flex items-center justify-center gap-2 rounded-xl action-primary px-4 py-3 text-sm font-bold disabled:opacity-60 transition shadow-xs"
+              className="inline-flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl action-primary px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold disabled:opacity-60 transition shadow-xs"
             >
               <LocateFixed className="h-4 w-4 text-primary" />
-              {locating
-                ? "Mendeteksi lokasi..."
-                : location
-                  ? "Perbarui Lokasi GPS"
-                  : "Aktifkan Lokasi Terdekat (GPS)"}
+              <span>
+                {locating
+                  ? "Mendeteksi lokasi..."
+                  : location
+                    ? "Perbarui Lokasi GPS"
+                    : "Aktifkan Lokasi Terdekat (GPS)"}
+              </span>
             </button>
           </div>
 
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-xs font-bold uppercase tracking-wide text-ink-muted">
-                Radius
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className="mr-1 text-[11px] sm:text-xs font-bold uppercase tracking-wide text-ink-muted">
+                Radius:
               </span>
               {(
                 [
@@ -222,20 +224,20 @@ export default function MatchingPage() {
                   key={item.label}
                   onClick={() => setRadius(item.value)}
                   aria-pressed={radius === item.value}
-                  className="filter-chip"
+                  className="filter-chip text-xs py-1 px-3"
                 >
                   {item.label}
                 </button>
               ))}
             </div>
 
-            <label className="flex items-center gap-2 text-xs font-bold text-ink-muted">
+            <label className="flex items-center gap-2 text-xs font-bold text-ink-muted sm:ml-auto">
               <ArrowDownWideNarrow className="h-4 w-4" />
-              <span>Urutkan</span>
+              <span>Urutkan:</span>
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as "score" | "distance")}
-                className="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none"
+                className="rounded-xl border border-line bg-surface px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-ink outline-none focus:border-primary"
               >
                 <option value="score">Skor Kecocokan Tertinggi</option>
                 <option value="distance" disabled={!location}>
@@ -289,11 +291,11 @@ export default function MatchingPage() {
             </button>
           </section>
         ) : filtered.length ? (
-          <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <section className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((partner) => (
               <article
                 key={partner.id}
-                className="bg-surface rounded-3xl p-6 border border-line shadow-soft-card hover:shadow-cloud transition-all flex flex-col justify-between"
+                className="bg-surface rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-line shadow-soft-card hover:shadow-cloud transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3">

@@ -148,13 +148,13 @@ export default function StudyAgenda({
   return (
     <section
       aria-labelledby="agenda-title"
-      className="grid min-w-0 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]"
+      className="grid min-w-0 grid-cols-1 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]"
     >
-      <div className="flex min-w-0 flex-col gap-4 p-5 sm:p-6">
+      <div className="flex min-w-0 flex-col gap-3.5 p-4 sm:gap-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2
             id="agenda-title"
-            className="text-base font-bold tracking-tight text-ink"
+            className="text-sm font-bold tracking-tight text-ink sm:text-base"
           >
             Agenda belajar
           </h2>
@@ -169,9 +169,9 @@ export default function StudyAgenda({
                 type="button"
                 aria-pressed={mode === view}
                 onClick={() => setView(mode)}
-                className={`min-h-8 rounded-full px-3 text-xs font-semibold transition-colors ${
+                className={`min-h-7 rounded-full px-2.5 text-xs font-semibold transition-colors sm:min-h-8 sm:px-3 ${
                   mode === view
-                    ? "bg-white text-primary"
+                    ? "bg-white text-primary shadow-2xs"
                     : "text-ink-muted hover:text-ink"
                 }`}
               >
@@ -184,15 +184,15 @@ export default function StudyAgenda({
         <div className="flex items-center justify-between gap-2">
           <p
             aria-live="polite"
-            className="text-sm font-bold tracking-tight text-ink sm:text-base"
+            className="text-xs font-bold tracking-tight text-ink sm:text-base"
           >
             {monthYear.format(date)}
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 sm:gap-1">
             <button
               type="button"
               onClick={() => onChooseDay(today)}
-              className="min-h-9 rounded-full px-3 text-xs font-semibold text-primary transition-colors hover:bg-primary-soft"
+              className="min-h-8 rounded-full px-2.5 text-xs font-semibold text-primary transition-colors hover:bg-primary-soft sm:min-h-9 sm:px-3"
             >
               Hari ini
             </button>
@@ -200,7 +200,7 @@ export default function StudyAgenda({
               type="button"
               aria-label={view + " sebelumnya"}
               onClick={() => navigate(-1)}
-              className="grid size-9 place-items-center rounded-full text-ink-secondary transition-colors hover:bg-canvas"
+              className="grid size-8 place-items-center rounded-full text-ink-secondary transition-colors hover:bg-canvas sm:size-9"
             >
               <ChevronLeft className="size-4" aria-hidden="true" />
             </button>
@@ -208,20 +208,20 @@ export default function StudyAgenda({
               type="button"
               aria-label={view + " berikutnya"}
               onClick={() => navigate(1)}
-              className="grid size-9 place-items-center rounded-full text-ink-secondary transition-colors hover:bg-canvas"
+              className="grid size-8 place-items-center rounded-full text-ink-secondary transition-colors hover:bg-canvas sm:size-9"
             >
               <ChevronRight className="size-4" aria-hidden="true" />
             </button>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1 sm:gap-1.5">
           <div
             aria-hidden="true"
-            className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-ink-muted"
+            className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-ink-muted sm:text-xs"
           >
             {weekdayNames.map((day) => (
-              <span key={day} className="py-1">
+              <span key={day} className="py-0.5 sm:py-1">
                 {day}
               </span>
             ))}
@@ -231,7 +231,7 @@ export default function StudyAgenda({
             ref={daysRef}
             role="group"
             aria-label="Pilih tanggal agenda"
-            className="grid grid-cols-7 gap-1.5"
+            className="grid grid-cols-7 gap-1 sm:gap-1.5"
           >
             {Array.from({ length: cells }, (_, index) => {
               const iso = shiftDay(first, index);
@@ -241,11 +241,11 @@ export default function StudyAgenda({
               const outside =
                 monthly && iso.slice(0, 7) !== selected.slice(0, 7);
               let color = outside
-                ? "text-ink-muted hover:bg-canvas"
+                ? "text-ink-muted/50 hover:bg-canvas"
                 : "bg-canvas text-ink-secondary hover:bg-primary-soft";
               if (iso === today)
                 color = "bg-white text-primary ring-1 ring-inset ring-primary";
-              if (isSelected) color = "bg-primary text-white";
+              if (isSelected) color = "bg-primary text-white shadow-xs";
               return (
                 <button
                   key={iso}
@@ -259,13 +259,13 @@ export default function StudyAgenda({
                   aria-label={
                     fullDate.format(day) + (hasBooking ? ", ada sesi" : "")
                   }
-                  className={`relative grid h-10 min-w-0 place-items-center rounded-xl text-sm font-semibold tabular-nums transition-colors ${color}`}
+                  className={`relative grid h-8 sm:h-10 min-w-0 place-items-center rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold tabular-nums transition-colors ${color}`}
                 >
                   {day.getUTCDate()}
                   {hasBooking && (
                     <span
                       aria-hidden="true"
-                      className="absolute bottom-1 size-1.5 rounded-full bg-current"
+                      className="absolute bottom-0.5 sm:bottom-1 size-1 sm:size-1.5 rounded-full bg-current"
                     />
                   )}
                 </button>
@@ -275,7 +275,7 @@ export default function StudyAgenda({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 border-t border-line bg-canvas p-5 sm:p-6 xl:border-l xl:border-t-0">
+      <div className="flex flex-col gap-4 border-t border-line bg-canvas p-4 sm:p-6 xl:border-l xl:border-t-0">
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-line pb-4">
           <div className="flex items-center gap-2.5">
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">

@@ -91,10 +91,19 @@ flowchart TD
 
 ## 📱 5. Standar Responsivitas & Aksesibilitas (Responsive & A11y)
 
-1. **Mobile-First Breakpoints:**
-   - Ponsel (`< 640px`): Navigasi bertransformasi menjadi drawer hamburger, tab navigasi dasbor dapat digeser horizontal tanpa scrollbar yang mengganggu (`[scrollbar-width:none]`).
-   - Tablet (`640px - 1024px`): Grid kartu beralih ke 2 kolom.
-   - Desktop (`> 1024px`): Layout 3 kolom atau sidebar-content split yang lega dengan batas maksimal kontainer `max-w-7xl mx-auto`.
+1. **Mobile-First & Tablet Breakpoints:**
+   - **Ponsel (`< 640px`):**
+     - Navigasi utama berpindah ke drawer hamburger dengan target tap min. 44px (`min-h-11`).
+     - Sub-header dock tab dasbor dirancang scrollable secara horizontal tanpa bar (`[scrollbar-width:none] [&::-webkit-scrollbar]:hidden`) dengan padding tepi `-mx-3 px-3`.
+     - Filter keahlian (chips) pada daftar mentor dan pencocokan partner dapat di-scroll menyamping dengan nyaman.
+     - Kalender belajar (*Study Agenda*) merampingkan ukuran sel tanggal menjadi `h-8 text-xs` dan menyusun panel jadwal secara vertikal di bawah kalender.
+     - Kartu mentor beralih ke layout 1 kolom dengan padding `p-4` dan tombol aksi yang nyaman ditekan ibu jari.
+   - **Tablet (`640px - 1024px`):**
+     - Grid kartu beralih ke 2 kolom seimbang (`sm:grid-cols-2`).
+     - Agenda belajar dan filter form menyesuaikan padding (`p-6`) dan kontrol filter sejajar.
+   - **Desktop (`> 1024px`):**
+     - Layout 3 kolom atau split view kalender horizontal (`xl:grid-cols-[1.25fr_1fr]`).
+     - Batas kontainer maksimum terpusat di `max-w-7xl mx-auto px-8`.
 2. **Keterbacaan & Bahasa (Humanizer Indonesia):**
    - Seluruh teks label, instruksi, dan pesan error menggunakan Bahasa Indonesia yang santun, ramah mahasiswa, tidak kaku, dan bebas terjemahan mesin harfiah.
    - Contoh: Hindari "Submit your credential application", gunakan *"Ajukan keahlian dan dokumen pendukung untuk mulai mengajar"*.

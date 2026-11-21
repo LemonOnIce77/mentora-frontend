@@ -105,11 +105,11 @@ export default function DashboardNavigation({
   return (
     <nav
       aria-label="Navigasi dasbor"
-      className="border-b border-line bg-surface/85 backdrop-blur-sm"
+      className="border-b border-line bg-surface/90 backdrop-blur-md"
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <div className="-mx-1 overflow-x-auto px-1 pb-1 lg:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="inline-flex items-center gap-1 rounded-2xl border border-line bg-canvas p-1">
+      <div className="mx-auto flex max-w-7xl flex-col gap-2.5 px-3 py-2.5 sm:px-6 sm:py-3 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <div className="-mx-3 overflow-x-auto px-3 pb-1 sm:-mx-1 sm:px-1 lg:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="inline-flex min-w-max items-center gap-1 rounded-2xl border border-line bg-canvas p-1 shadow-2xs">
             {items.map(({ key, label, icon: Icon }) => {
               const isCurrent = active === key;
               const badgeCount = countFor(key);
@@ -119,15 +119,15 @@ export default function DashboardNavigation({
                   href={dashboardUrl(key)}
                   aria-current={isCurrent ? "page" : undefined}
                   className={cn(
-                    "inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-150 sm:text-[13.5px]",
+                    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-bold transition-all duration-150 sm:gap-2 sm:px-3.5 sm:text-[13.5px]",
                     isCurrent
                       ? "bg-primary text-white shadow-sm"
-                      : "text-ink-secondary hover:bg-surface hover:text-ink",
+                      : "text-ink-secondary hover:bg-surface hover:text-ink active:scale-[0.98]",
                   )}
                 >
                   <Icon
                     className={cn(
-                      "size-4 shrink-0",
+                      "size-3.5 shrink-0 sm:size-4",
                       isCurrent ? "text-white" : "text-ink-muted",
                     )}
                     aria-hidden="true"
@@ -136,9 +136,9 @@ export default function DashboardNavigation({
                   {badgeCount !== null && (
                     <span
                       className={cn(
-                        "rounded-full px-2 py-0.5 text-xs font-extrabold tabular-nums",
+                        "rounded-full px-1.5 py-0.5 text-[10px] font-extrabold tabular-nums sm:px-2 sm:text-xs",
                         isCurrent
-                          ? "bg-white/20 text-white"
+                          ? "bg-white/25 text-white"
                           : "bg-primary-soft text-primary",
                       )}
                     >
@@ -153,20 +153,20 @@ export default function DashboardNavigation({
 
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-xs font-bold text-ink-secondary shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-bold text-ink-secondary shadow-2xs sm:gap-2 sm:px-4 sm:py-2">
               <ShieldCheck
-                className="size-4 shrink-0 text-primary"
+                className="size-3.5 shrink-0 text-primary sm:size-4"
                 aria-hidden="true"
               />
               <span>Administrator Mentora</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-4 py-2 text-xs font-medium text-ink-secondary shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink-secondary shadow-2xs sm:px-4 sm:py-2">
               <GraduationCap
-                className="size-4 shrink-0 text-primary"
+                className="size-3.5 shrink-0 text-primary sm:size-4"
                 aria-hidden="true"
               />
-              <span className="max-w-[200px] truncate">
+              <span className="max-w-[150px] truncate sm:max-w-[220px]">
                 {user.universitas ? user.universitas : "Mahasiswa / Mentee"}
               </span>
             </span>
@@ -174,10 +174,10 @@ export default function DashboardNavigation({
 
           {!isAdmin && (
             <span
-              className="inline-flex items-center gap-1.5 rounded-full border border-warning-soft/70 bg-warning-tint px-4 py-2 text-xs font-bold text-warning shadow-2xs"
+              className="inline-flex items-center gap-1.5 rounded-full border border-warning-soft/70 bg-warning-tint px-3 py-1.5 text-xs font-bold text-warning shadow-2xs sm:px-4 sm:py-2"
             >
               <Award
-                className="size-4 shrink-0 text-warning"
+                className="size-3.5 shrink-0 text-warning sm:size-4"
                 aria-hidden="true"
               />
               <span className="tabular-nums">

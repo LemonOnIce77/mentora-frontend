@@ -817,8 +817,8 @@ export default function DashboardPage() {
                 )}
               </header>
 
-              <div className="rounded-2xl border border-line bg-surface p-4 shadow-soft-card sm:p-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="rounded-2xl border border-line bg-surface p-3.5 shadow-soft-card sm:p-5">
+                <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
                   <div
                     role="search"
                     aria-label="Pencarian mentor"
@@ -826,7 +826,7 @@ export default function DashboardPage() {
                   >
                     <Search
                       aria-hidden="true"
-                      className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-muted"
+                      className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-muted sm:left-4"
                     />
                     <input
                       type="search"
@@ -836,7 +836,7 @@ export default function DashboardPage() {
                       }
                       aria-label="Cari mentor, kampus, atau prodi"
                       placeholder="Cari nama mentor, kampus, prodi..."
-                      className="w-full rounded-full border border-line bg-canvas py-2.5 pr-10 pl-11 text-sm text-ink placeholder:text-ink-muted transition-colors focus:border-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-accent/20"
+                      className="w-full rounded-full border border-line bg-canvas py-2 pr-9 pl-10 text-xs text-ink placeholder:text-ink-muted transition-colors focus:border-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary-accent/20 sm:py-2.5 sm:pr-10 sm:pl-11 sm:text-sm"
                     />
                     {searchMentorQuery && (
                       <button
@@ -851,36 +851,38 @@ export default function DashboardPage() {
                   </div>
 
                   {skillOptions.length > 0 && (
-                    <div
-                      role="group"
-                      aria-label="Filter keahlian"
-                      className="flex flex-wrap items-center gap-2"
-                    >
-                      <span className="mr-1 hidden items-center gap-1.5 text-xs font-bold text-ink-muted sm:inline-flex">
-                        <SlidersHorizontal className="size-3.5" />
-                        Keahlian:
-                      </span>
-                      {["", ...skillOptions].map((name) => {
-                        const isActive = selectedSkillFilter === name;
-                        return (
-                          <button
-                            key={name || "all"}
-                            type="button"
-                            aria-pressed={isActive}
-                            onClick={() =>
-                              setSelectedSkillFilter(isActive ? "" : name)
-                            }
-                            className={cn(
-                              "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors",
-                              isActive
-                                ? "border-primary bg-primary-soft text-primary"
-                                : "border-line bg-surface text-ink-secondary hover:border-slate-300 hover:text-ink",
-                            )}
-                          >
-                            {name || "Semua"}
-                          </button>
-                        );
-                      })}
+                    <div className="-mx-1 overflow-x-auto px-1 pb-1 sm:overflow-visible sm:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      <div
+                        role="group"
+                        aria-label="Filter keahlian"
+                        className="inline-flex min-w-max flex-wrap items-center gap-1.5 sm:gap-2"
+                      >
+                        <span className="mr-1 hidden items-center gap-1.5 text-xs font-bold text-ink-muted sm:inline-flex">
+                          <SlidersHorizontal className="size-3.5" />
+                          Keahlian:
+                        </span>
+                        {["", ...skillOptions].map((name) => {
+                          const isActive = selectedSkillFilter === name;
+                          return (
+                            <button
+                              key={name || "all"}
+                              type="button"
+                              aria-pressed={isActive}
+                              onClick={() =>
+                                setSelectedSkillFilter(isActive ? "" : name)
+                              }
+                              className={cn(
+                                "whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors sm:px-3.5 sm:py-1.5 sm:text-xs",
+                                isActive
+                                  ? "border-primary bg-primary-soft text-primary"
+                                  : "border-line bg-surface text-ink-secondary hover:border-slate-300 hover:text-ink",
+                              )}
+                            >
+                              {name || "Semua"}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1076,9 +1078,9 @@ export default function DashboardPage() {
                     bookedSessions.map((session) => (
                       <article
                         key={session.id}
-                        className="flex flex-col gap-4 bg-surface px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between"
+                        className="flex flex-col gap-4 bg-surface px-4 py-4 sm:px-6 sm:py-5 lg:flex-row lg:items-center lg:justify-between"
                       >
-                        <div className="flex min-w-0 items-start gap-3.5">
+                        <div className="flex min-w-0 items-start gap-3 sm:gap-3.5">
                           {session.mentorPhoto &&
                           !brokenImageUrls[session.mentorPhoto] ? (
                             <img
@@ -1087,31 +1089,31 @@ export default function DashboardPage() {
                               onError={() =>
                                 markImageBroken(session.mentorPhoto)
                               }
-                              className="size-11 shrink-0 rounded-xl border border-line object-cover object-top"
+                              className="size-10 shrink-0 rounded-xl border border-line object-cover object-top sm:size-11"
                             />
                           ) : (
-                            <div className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-primary-soft text-sm font-extrabold text-primary">
+                            <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-primary-soft text-xs font-extrabold text-primary sm:size-11 sm:text-sm">
                               {cleanInitials(session.mentorName)}
                             </div>
                           )}
 
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="text-base font-bold text-ink">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                              <h3 className="text-sm font-bold text-ink sm:text-base">
                                 {session.mentorName}
                               </h3>
                               <Badge variant="success-light">
                                 Terkonfirmasi
                               </Badge>
                             </div>
-                            <p className="mt-0.5 text-sm text-ink-secondary">
+                            <p className="mt-0.5 text-xs text-ink-secondary sm:text-sm">
                               Materi:{" "}
                               <strong className="font-semibold text-primary">
                                 {session.skill}
                               </strong>
                             </p>
-                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tabular-nums text-ink-muted">
-                              <span className="inline-flex items-center gap-1.5">
+                            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] tabular-nums text-ink-muted sm:mt-2 sm:gap-x-3 sm:text-xs">
+                              <span className="inline-flex items-center gap-1 sm:gap-1.5">
                                 <Calendar
                                   className="size-3.5"
                                   aria-hidden="true"
@@ -1122,7 +1124,7 @@ export default function DashboardPage() {
                                 </span>
                               </span>
                               <InlineDot />
-                              <span className="inline-flex items-center gap-1.5">
+                              <span className="inline-flex items-center gap-1 sm:gap-1.5">
                                 {session.metode === "Online" ? (
                                   <Video
                                     className="size-3.5 text-primary"
@@ -1142,17 +1144,17 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2 border-t border-line/60 pt-3 sm:gap-3 lg:border-t-0 lg:pt-0">
                           <button
                             type="button"
                             onClick={() => handleCancelSession(session.id)}
-                            className="inline-flex min-h-10 items-center px-2 text-xs font-semibold text-danger underline-offset-4 hover:underline"
+                            className="inline-flex min-h-9 items-center px-2 text-xs font-semibold text-danger underline-offset-4 hover:underline sm:min-h-10"
                           >
                             Batalkan sesi
                           </button>
                           <Link
                             href={`/mentors/${session.mentorId}`}
-                            className="inline-flex min-h-10 items-center px-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                            className="inline-flex min-h-9 items-center px-2 text-xs font-semibold text-primary underline-offset-4 hover:underline sm:min-h-10 sm:text-sm"
                           >
                             Profil
                           </Link>
@@ -1165,7 +1167,7 @@ export default function DashboardPage() {
                                 )}`,
                               )
                             }
-                            className="action-primary inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 text-xs font-bold transition-colors sm:text-sm"
+                            className="action-primary inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold transition-colors sm:min-h-10 sm:px-4 sm:text-sm"
                           >
                             <MessageCircle
                               className="size-3.5"

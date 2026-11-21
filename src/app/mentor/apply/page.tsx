@@ -188,11 +188,11 @@ export default function MentorApplyPage() {
         </div>
 
         {/* Title Header Card */}
-        <div className="bg-surface rounded-3xl p-6 sm:p-8 border border-line shadow-soft-card mb-8">
+        <div className="bg-surface rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-line shadow-soft-card mb-6 sm:mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-tint border border-primary-soft text-primary text-xs font-bold uppercase tracking-wider mb-2">
             <span>UPGRADE PERAN</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-ink tracking-tight">
             Pengajuan Akun & Kredensial Mentor
           </h1>
           <p className="text-xs sm:text-sm text-ink-muted max-w-2xl mt-1 leading-relaxed">

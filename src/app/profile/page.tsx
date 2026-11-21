@@ -210,21 +210,21 @@ export default function ProfilePage() {
         </div>
 
         {/* Profile Card Header */}
-        <div className="bg-surface rounded-3xl p-6 sm:p-8 border border-line shadow-soft-card mb-8 flex flex-col sm:flex-row items-center gap-6">
+        <div className="bg-surface rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-line shadow-soft-card mb-6 sm:mb-8 flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
           <div className="relative group">
             {fotoProfil ? (
               <img
                 src={fotoProfil}
                 alt={namaLengkap}
-                className="w-24 h-24 rounded-3xl object-cover border border-line shadow-xs"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl object-cover border border-line shadow-xs"
               />
             ) : (
-              <div className="w-24 h-24 rounded-3xl bg-primary text-white flex items-center justify-center font-bold text-3xl shadow-xs">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-primary text-white flex items-center justify-center font-bold text-2xl sm:text-3xl shadow-xs">
                 {(namaPanggilan || namaLengkap || "M").charAt(0)}
               </div>
             )}
-            <label className="absolute -bottom-2 -right-2 p-2 action-primary rounded-xl shadow-md cursor-pointer transition">
-              <Camera className="w-4 h-4" />
+            <label className="absolute -bottom-1.5 -right-1.5 sm:-bottom-2 sm:-right-2 p-1.5 sm:p-2 action-primary rounded-xl shadow-md cursor-pointer transition">
+              <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <input
                 type="file"
                 accept="image/*"
@@ -235,12 +235,12 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex-1 text-center sm:text-left space-y-1">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-              <h1 className="text-2xl font-extrabold text-ink">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-ink">
                 {namaLengkap}
               </h1>
               <span
-                className={`text-xs font-bold px-3 py-0.5 rounded-full ${
+                className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-0.5 rounded-full ${
                   statusMentor === "APPROVED"
                     ? "bg-success-tint text-success border border-success-soft"
                     : "bg-canvas text-ink-secondary border border-line"
@@ -252,7 +252,7 @@ export default function ProfilePage() {
               </span>
             </div>
             <p className="text-xs text-ink-muted">{email}</p>
-            <p className="text-xs text-ink-secondary font-medium pt-1">
+            <p className="text-xs text-ink-secondary font-medium pt-0.5 sm:pt-1">
               {prodi} • {universitas} (Semester {semester})
             </p>
           </div>
@@ -275,7 +275,7 @@ export default function ProfilePage() {
         {/* Form Edit Profil (SCRUM-97 & SCRUM-98) */}
         <form
           onSubmit={handleSaveProfile}
-          className="bg-surface rounded-3xl p-8 border border-line shadow-soft-card space-y-6"
+          className="bg-surface rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-line shadow-soft-card space-y-5 sm:space-y-6"
         >
           <div>
             <h2 className="text-xl font-bold text-ink">
