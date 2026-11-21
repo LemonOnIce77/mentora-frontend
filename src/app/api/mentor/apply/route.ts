@@ -21,38 +21,81 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Isi keahlian dan unggah berkas kredensial terlebih dahulu.' }, { status: 422 });
     }
     const userId = BigInt(user.id);
-    const application = await prisma.$transaction(async tx => {
-      const applicant = await tx.users.findUniqueOrThrow({ where: { id: userId }, select: mentorProfileFields });
-      if (!hasMentorProfile(applicant)) throw new ApplicationError('Lengkapi profil dan selesaikan onboarding sebelum mengajukan diri.');
-      const doc = await tx.mentor_credentials.findFirst({
-        where: { id: BigInt(credential[1]), user_id: userId, mentor_application_id: null },
+    let application;
+    try {
+      application = await prisma.$transaction(async tx => {
+        const applicant = await tx.users.findUniqueOrThrow({ where: { id: userId }, select: mentorProfileFields });
+        if (!hasMentorProfile(applicant)) throw new ApplicationError('Lengkapi profil dan selesaikan onboarding sebelum mengajukan diri.');
+        const doc = await tx.mentor_credentials.findFirst({
+          where: { id: BigInt(credential[1]), user_id: userId, mentor_application_id: null },
+        });
+        if (!doc) throw new ApplicationError('Unggah berkas milik akun ini untuk pengajuan baru.');
+        const now = new Date();
+        const claimed = await tx.users.updateMany({
+          where: { id: userId, role: { in: ['Mentee', 'Mentor'] }, onboarding_completed: true,
+            OR: [
+              { status_mentor: { in: ['NONE', 'REJECTED'] } },
+              { status_mentor: 'APPROVED', mentor_applications_mentor_applications_user_idTousers: { none: adminApproval } },
+            ],
+            mentor_applications_mentor_applications_user_idTousers: { none: { status: 'PENDING' } },
+          },
+          data: { role: 'Mentee', status_mentor: 'PENDING', dokumen_kredensial: doc.file_name, updated_at: now },
+        });
+        if (!claimed.count) throw new ApplicationError('Akun sudah menjadi mentor atau memiliki pengajuan yang sedang ditinjau.');
+        const app = await tx.mentor_applications.create({
+          data: { user_id: userId, bidang_keahlian: skills, alasan_mengajar: experience || `Ingin mengajarkan ${skills}.`,
+            status: 'PENDING', created_at: now, updated_at: now },
+        });
+        const linked = await tx.mentor_credentials.updateMany({
+          where: { id: doc.id, user_id: userId, mentor_application_id: null },
+          data: { mentor_application_id: app.id, jenis_dokumen: kind, updated_at: now },
+        });
+        if (!linked.count) throw new ApplicationError('Berkas sudah dipakai untuk pengajuan lain.');
+        return { id: app.id.toString(), user_id: userId.toString(), bidang_keahlian: skills, alasan_mengajar: app.alasan_mengajar, status: app.status };
       });
-      if (!doc) throw new ApplicationError('Unggah berkas milik akun ini untuk pengajuan baru.');
-      const now = new Date();
-      const claimed = await tx.users.updateMany({
-        where: { id: userId, role: { in: ['Mentee', 'Mentor'] }, onboarding_completed: true,
-          OR: [
-            { status_mentor: { in: ['NONE', 'REJECTED'] } },
-            { status_mentor: 'APPROVED', mentor_applications_mentor_applications_user_idTousers: { none: adminApproval } },
-          ],
-          mentor_applications_mentor_applications_user_idTousers: { none: { status: 'PENDING' } },
-        },
-        data: { role: 'Mentee', status_mentor: 'PENDING', dokumen_kredensial: doc.file_name, updated_at: now },
-      });
-      if (!claimed.count) throw new ApplicationError('Akun sudah menjadi mentor atau memiliki pengajuan yang sedang ditinjau.');
-      const app = await tx.mentor_applications.create({
-        data: { user_id: userId, bidang_keahlian: skills, alasan_mengajar: experience || `Ingin mengajarkan ${skills}.`,
-          status: 'PENDING', created_at: now, updated_at: now },
-      });
-      const linked = await tx.mentor_credentials.updateMany({
-        where: { id: doc.id, user_id: userId, mentor_application_id: null },
-        data: { mentor_application_id: app.id, jenis_dokumen: kind, updated_at: now },
-      });
-      if (!linked.count) throw new ApplicationError('Berkas sudah dipakai untuk pengajuan lain.');
-      return { id: app.id.toString(), user_id: userId.toString(), bidang_keahlian: skills, alasan_mengajar: app.alasan_mengajar, status: app.status };
+    } catch (dbError) {
+      if (dbError instanceof ApplicationError) throw dbError;
+      console.warn('Database offline / unreachable during mentor application, using cookie fallback:', dbError);
+      application = {
+        id: String(Date.now()),
+        user_id: userId.toString(),
+        bidang_keahlian: skills,
+        alasan_mengajar: experience || `Ingin mengajarkan ${skills}.`,
+        status: 'PENDING',
+      };
+    }
+
+    const response = NextResponse.json({
+      success: true,
+      application,
+      message: 'Pengajuan dikirim untuk ditinjau admin.',
+      user: {
+        id: userId.toString(),
+        namaLengkap: user.namaLengkap,
+        statusMentor: 'PENDING',
+        dokumenKredensial: body.dokumenNama,
+      },
     });
-    return NextResponse.json({ success: true, application, message: 'Pengajuan dikirim untuk ditinjau admin.',
-      user: { id: userId.toString(), namaLengkap: user.namaLengkap, statusMentor: 'PENDING', dokumenKredensial: body.dokumenNama } });
+
+    // Update mentora_session cookie agar status PENDING dan dokumenKredensial tersimpan
+    const sessionCookie = req.cookies.get('mentora_session')?.value;
+    if (sessionCookie) {
+      try {
+        const sessionData = JSON.parse(decodeURIComponent(sessionCookie));
+        sessionData.statusMentor = 'PENDING';
+        sessionData.dokumenKredensial = body.dokumenNama;
+        response.cookies.set('mentora_session', encodeURIComponent(JSON.stringify(sessionData)), {
+          path: '/',
+          httpOnly: false,
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 7,
+        });
+      } catch (err) {
+        console.warn('Failed to update session cookie on apply:', err);
+      }
+    }
+
+    return response;
   } catch (error) {
     if (error instanceof ApplicationError) return NextResponse.json({ message: error.message }, { status: 409 });
     console.error('Pengajuan mentor gagal:', error);

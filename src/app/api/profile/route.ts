@@ -216,17 +216,26 @@ export async function PUT(req: NextRequest) {
       ...authUser,
       ...updatedProfile,
       id: Number(authUser.id),
+      fotoProfil:
+        updatedProfile.fotoProfil && updatedProfile.fotoProfil.startsWith('data:')
+          ? (authUser.fotoProfil || '')
+          : updatedProfile.fotoProfil,
     };
 
-    response.cookies.set(
-      'mentora_session',
-      JSON.stringify(currentSession),
-      {
-        httpOnly: false,
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      }
-    );
+    try {
+      response.cookies.set(
+        'mentora_session',
+        encodeURIComponent(JSON.stringify(currentSession)),
+        {
+          httpOnly: false,
+          path: '/',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24 * 7,
+        }
+      );
+    } catch (cookieErr) {
+      console.warn('Gagal memperbarui cookie mentora_session:', cookieErr);
+    }
 
     return response;
   } catch (error) {

@@ -1,4 +1,5 @@
 import path from 'node:path';
+import os from 'node:os';
 
 export function credentialPath(userId: bigint, relative: string) {
   const prefix = `credentials/${userId}/`;
@@ -6,11 +7,14 @@ export function credentialPath(userId: bigint, relative: string) {
   if (!relative.startsWith(prefix) || !/^[\w-]+\.(pdf|jpe?g|png)$/i.test(name)) {
     throw new Error('Lokasi dokumen tidak valid.');
   }
-  const root = process.env.MENTORA_CREDENTIAL_ROOT ||
-    path.resolve(process.cwd(), '../mentora-backend/storage/app/private');
+  const root =
+    process.env.MENTORA_CREDENTIAL_ROOT ||
+    (process.env.VERCEL
+      ? path.join(os.tmpdir(), 'mentora-credentials')
+      : path.resolve(process.cwd(), '../mentora-backend/storage/app/private'));
   return path.join(root, relative);
 }
 
-export function credentialUrl(id: bigint) {
+export function credentialUrl(id: bigint | number | string) {
   return `/api/mentor/credentials/${id}/download`;
 }
